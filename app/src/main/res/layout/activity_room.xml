@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/room_bg_repeat" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/room_header" android:layout_width="fill_parent" android:layout_height="@dimen/header_height" android:src="@drawable/room_header" android:scaleType="fitXY" />
+    <LinearLayout android:gravity="center_vertical" android:id="@id/content" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="1.0">
+        <ImageView android:layout_width="@dimen/room_left_width" android:layout_height="@dimen/room_left_height" android:src="@drawable/room_left00" />
+        <LinearLayout android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content">
+            <ImageView android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_01" />
+            <ImageView android:id="@id/room_right_2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_02" />
+            <ImageView android:id="@id/room_right_3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_03" />
+            <ImageView android:id="@id/room_right_4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_04" />
+            <ImageView android:id="@id/room_right_5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_05" />
+            <ImageView android:id="@id/room_right_6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_06" />
+            <ImageView android:clickable="true" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/room_right00_07" android:onClick="toNoteClick" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:background="@drawable/footer" android:layout_width="fill_parent" android:layout_height="@dimen/footer_height">
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_momorisroom_footer_to_konyoku" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+            <ImageButton android:id="@id/imgbutton_momorisroom_footer_to_konyoku" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_konyoku" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toKonyokuClick" />
+        </LinearLayout>
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_momorisroom_footer_to_gatya" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+            <ImageButton android:id="@id/imgbutton_momorisroom_footer_to_gacya" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_gacya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+        </LinearLayout>
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_momorisroom_footer_to_collec" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+            <ImageButton android:id="@id/imgbutton_momorisroom_footer_to_collec" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_collec" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toCollecClick" />
+        </LinearLayout>
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_momorisroom_footer_to_top" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+            <ImageButton android:id="@id/imgbutton_momorisroom_footer_to_top" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_top" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTitleClick" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

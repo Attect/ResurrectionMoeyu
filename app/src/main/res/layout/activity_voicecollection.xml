@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:id="@id/layout_voicecollection" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:id="@id/layout_voicecollec_hedder" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentTop="true">
+        <LinearLayout android:gravity="center" android:id="@id/layout_voicecollec_getstate" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <ImageView android:id="@id/img_voicecollec_hedder_left" android:layout_width="0.0dip" android:layout_height="fill_parent" android:src="@drawable/voice_back_hedder1" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="383.0" />
+            <RelativeLayout android:id="@id/layout_voicecollec_hedder_right" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="257.0">
+                <ImageView android:id="@id/img_voicecollec_hedder_right" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/voice_back_hedder2" android:scaleType="fitXY" android:adjustViewBounds="true" />
+                <TextView android:textAppearance="?android:textAppearanceLarge" android:gravity="center|right" android:id="@id/textview_voicecollec_getstate" android:paddingRight="20.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="275/275" android:layout_centerInParent="true" />
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout android:id="@id/layout_voicecollec_tabmenu" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_below="@id/layout_voicecollec_hedder">
+        <ImageView android:id="@id/img_voicecollec_menu" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/voice_back_bar" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:id="@id/layout_voicecollec_tabmenu_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_centerInParent="true">
+            <ImageButton android:id="@id/imgbutton_voicecollec_normal" android:background="@null" android:paddingLeft="10.0dip" android:paddingRight="10.0dip" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/nomalvoice" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="tabClick" />
+            <ImageButton android:id="@id/imgbutton_voicecollec_item" android:background="@null" android:paddingLeft="10.0dip" android:paddingRight="10.0dip" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/itemvoice_glay" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="tabClick" />
+            <ImageButton android:id="@id/imgbutton_voicecollec_event" android:background="@null" android:paddingLeft="10.0dip" android:paddingRight="10.0dip" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/iventvoice_glay" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="tabClick" />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout android:id="@id/layout_voicecollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_voicecollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_voicecollec_footer_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_voicecollec_footer" android:layout_alignBottom="@id/img_voicecollec_footer" android:layout_centerHorizontal="true">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_voicecollec_footer_to_gatya" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_voicecollec_footer_to_gatya" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_gacya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_voicecollec_footer_to_collec" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_voicecollec_footer_to_collec" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_collec" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toCollectionRoomClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_voicecollec_footer_to_top" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_voicecollec_footer_to_top" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_top" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTitleClick" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <ListView android:id="@id/listview_voicecollec" android:layout_width="fill_parent" android:layout_height="wrap_content" android:divider="#ffdcdcdc" android:dividerHeight="1.0dip" android:layout_above="@id/layout_voicecollec_footer" android:layout_below="@id/layout_voicecollec_tabmenu" />
+</RelativeLayout>

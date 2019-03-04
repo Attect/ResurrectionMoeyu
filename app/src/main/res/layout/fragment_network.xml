@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout android:gravity="center" android:id="@id/indicator" android:background="#aa000000" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <ProgressBar android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+    <LinearLayout android:gravity="center" android:id="@id/network_error" android:background="#aa000000" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:onClick="onNetworkErrorClick">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="通信エラーが発生しました。\n電波状況の良い場所で再試行してください。" />
+    </LinearLayout>
+</FrameLayout>

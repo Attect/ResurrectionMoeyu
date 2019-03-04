@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="center|left" android:orientation="horizontal" android:id="@id/layout_listview" android:background="#ffffffff" android:paddingLeft="13.25dip" android:paddingTop="3.5999756dip" android:paddingRight="13.25dip" android:paddingBottom="3.5999756dip" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:gravity="center" android:id="@id/layout_listview_left" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="180.0">
+        <ImageView android:id="@id/img_listview_left" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_icon" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <ImageView android:id="@id/img_listview_left_lock" android:paddingTop="25.0dip" android:paddingBottom="25.0dip" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/diary_lock" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_alignTop="@id/img_listview_left" android:layout_alignRight="@id/img_listview_left" android:layout_alignBottom="@id/img_listview_left" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_listview_left_number" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignLeft="@id/img_listview_left" android:layout_alignRight="@id/img_listview_left" android:layout_alignBottom="@id/img_listview_left" android:layout_centerHorizontal="true">
+            <View android:id="@id/view_listview_left_space_left" android:layout_width="0.0dip" android:layout_height="1.0dip" android:layout_weight="1.0" />
+            <ImageView android:id="@id/img_listview_left_tenth" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/diary_number00" android:scaleType="fitEnd" android:adjustViewBounds="true" android:layout_weight="1.0" />
+            <ImageView android:id="@id/img_listview_left_one" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/diary_number01" android:scaleType="fitStart" android:adjustViewBounds="true" android:layout_weight="1.0" />
+            <View android:id="@id/view_listview_left_space_right" android:layout_width="0.0dip" android:layout_height="1.0dip" android:layout_weight="1.0" />
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout android:gravity="center|left" android:orientation="vertical" android:id="@id/layout_listview_right" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="350.0">
+        <ImageView android:id="@id/img_listview_right_top" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_item_1" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <FrameLayout android:id="@id/layout_listview_right_center" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <LinearLayout android:gravity="center|left" android:orientation="horizontal" android:id="@id/layout_listview_right_center_item" android:visibility="invisible" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                <ImageView android:id="@id/img_listview_right_center_item_left" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_item_2_left" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="159.0" />
+                <FrameLayout android:id="@id/layout_listview_right_center_item_center" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="51.0">
+                    <ImageView android:layout_gravity="center" android:id="@id/img_listview_right_center_item_center" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_item_2_center" android:scaleType="fitXY" android:adjustViewBounds="true" />
+                    <LinearLayout android:layout_gravity="center" android:id="@id/layout_listview_right_center_item_center_number" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                        <ImageView android:id="@id/img_listview_right_center_item_center_tenth" android:visibility="visible" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/number00" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+                        <ImageView android:id="@id/img_listview_right_center_item_center_one" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/number01" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+                    </LinearLayout>
+                </FrameLayout>
+                <ImageView android:id="@id/img_listview_right_center_item_right" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_item_2_right" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="140.0" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center|left" android:orientation="horizontal" android:id="@id/layout_listview_right_center_voice" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                <ImageView android:id="@id/img_listview_right_center_voice_left" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_voice_2_left" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="132.0" />
+                <FrameLayout android:id="@id/layout_listview_right_center_voice_center" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="77.0">
+                    <ImageView android:layout_gravity="center" android:id="@id/img_listview_right_center_voice_center" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_voice_2_center" android:scaleType="fitXY" android:adjustViewBounds="true" />
+                    <LinearLayout android:layout_gravity="center" android:id="@id/layout_listview_right_center_voice_center_number" android:layout_width="fill_parent" android:layout_height="wrap_content">
+                        <ImageView android:id="@id/img_listview_right_center_voice_center_hundred" android:visibility="visible" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/number00" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+                        <ImageView android:id="@id/img_listview_right_center_voice_center_tenth" android:visibility="visible" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/number00" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+                        <ImageView android:id="@id/img_listview_right_center_voice_center_one" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/number01" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+                    </LinearLayout>
+                </FrameLayout>
+                <ImageView android:id="@id/img_listview_right_center_voice_right" android:layout_width="0.0dip" android:layout_height="fill_parent" android:src="@drawable/diary_icon02_voice_2_right" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="141.0" />
+            </LinearLayout>
+        </FrameLayout>
+        <RelativeLayout android:id="@id/layout_listview_right_bottom" android:layout_width="fill_parent" android:layout_height="wrap_content">
+            <ImageView android:id="@id/img_listview_right_bottom_back" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_icon02_item_3" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_centerVertical="true" />
+            <ImageButton android:id="@id/imgbutton_listview_right_bottom_readicon" android:background="@null" android:paddingLeft="30.0dip" android:paddingRight="30.0dip" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/readicon_a" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_centerVertical="true" />
+        </RelativeLayout>
+    </LinearLayout>
+</LinearLayout>

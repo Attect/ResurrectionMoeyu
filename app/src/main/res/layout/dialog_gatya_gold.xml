@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="top" android:orientation="vertical" android:id="@id/layout_gatya_gold_panel" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_gatya_gold_panel_top" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/gold_panel_top" android:scaleType="fitXY" android:adjustViewBounds="true" />
+    <LinearLayout android:gravity="center|top" android:orientation="horizontal" android:id="@id/layout_gatya_gold_panel_center" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@id/img_gatya_gold_panel_side" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/gold_panel_side" android:scaleType="fitXY" android:layout_weight="21.0" />
+        <LinearLayout android:orientation="vertical" android:id="@id/layout_gatya_gold_panel_check" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="58.0">
+            <RelativeLayout android:id="@id/layout_gatya_gold_panel_check_top" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_gatya_gold_panel_check_top_box" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/gold_pane_check_top" android:scaleType="fitXY" />
+                <ImageButton android:id="@id/imgbutton_gatya_gold_panel_check_top_mark" android:background="@null" android:visibility="visible" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/checkmark" android:scaleType="fitCenter" android:layout_centerInParent="true" />
+            </RelativeLayout>
+            <RelativeLayout android:id="@id/layout_gatya_gold_panel_check_under" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_gatya_gold_panel_check_under_box" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/gold_panel_check_under" android:scaleType="fitXY" />
+                <ImageButton android:id="@id/imgbutton_gatya_gold_panel_check_under_mark" android:background="@null" android:visibility="invisible" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/checkmark" android:scaleType="fitCenter" android:layout_centerInParent="true" />
+            </RelativeLayout>
+        </LinearLayout>
+        <LinearLayout android:orientation="vertical" android:id="@id/layout_gatya_gold_panel_content" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="475.0">
+            <ImageView android:id="@id/img_gatya_gold_panel_content_top" android:layout_width="fill_parent" android:layout_height="0.0dip" android:src="@drawable/gold_panel_center" android:scaleType="fitXY" android:layout_weight="1.0" />
+            <ImageView android:id="@id/img_gatya_gold_panel_content_under" android:layout_width="fill_parent" android:layout_height="0.0dip" android:src="@drawable/gold_panel_under" android:scaleType="fitXY" android:layout_weight="1.0" />
+        </LinearLayout>
+    </LinearLayout>
+    <LinearLayout android:id="@id/layout_gatya_gold_panel_button" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageButton android:id="@id/imgbutton_gatya_gold_panel_cancel" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/gold_cancel" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageButton android:id="@id/imgbutton_gatya_gold_panel_buy" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/gold_buy" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+</LinearLayout>

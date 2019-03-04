@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:id="@id/layout_itemcollec" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:id="@id/layout_itemcollec_header" android:layout_width="wrap_content" android:layout_height="wrap_content">
+        <ImageView android:id="@id/img_itemcollec_header" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/hedder" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:id="@id/layout_itemcollec_getstate" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignBottom="@id/img_itemcollec_header">
+            <View android:id="@id/view_itemcollec_space01" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="2.0" />
+            <TextView android:textAppearance="?android:textAppearanceLarge" android:gravity="center|right" android:id="@id/textview_itemcollec_getstate" android:layout_width="0.0dip" android:layout_height="wrap_content" android:text="25/25" android:layout_weight="1.0" />
+            <View android:id="@id/view_itemcollec_space02" android:layout_width="0.0dip" android:layout_height="wrap_content" android:layout_weight="0.2" />
+        </LinearLayout>
+    </RelativeLayout>
+    <RelativeLayout android:gravity="center" android:id="@id/layout_itemcollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_itemcollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_itemcollec_footer_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_itemcollec_footer" android:layout_alignBottom="@id/img_itemcollec_footer" android:layout_centerHorizontal="true">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_itemcollec_footer_to_gatya" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_itemcollec_footer_to_gatya" android:background="@null" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/to_gacya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_itemcollec_footer_to_collec" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_itemcollec_footer_to_collec" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_collec" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toCollectionRoomClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_itemcollec_footer_to_tweet" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_itemcollec_footer_to_tweet" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_twitter" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTwitterClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_itemcollec_footer_to_top" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_itemcollec_footer_to_top" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_top" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTitleClick" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <ListView android:id="@id/listview_itemcollec" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/layout_itemcollec_footer" android:layout_below="@id/layout_itemcollec_header" />
+</RelativeLayout>

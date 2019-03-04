@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:id="@id/layout_diarydialog" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_diarydialog_page" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_page" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+    <LinearLayout android:gravity="center|top" android:orientation="vertical" android:id="@id/layout_diarydialog_contents" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@id/img_diarydialog_contents_words" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_1" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+        <ImageView android:id="@id/imgbutton_diarydialog_contents_close" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_page_close" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+    </LinearLayout>
+</FrameLayout>

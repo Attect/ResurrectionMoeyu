@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:id="@id/layout_collecroom" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_collecroom_header" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/collection_01" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_alignParentTop="true" android:layout_centerHorizontal="true" />
+    <RelativeLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_collecroom_footer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_collecroom_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_alignParentLeft="true" android:layout_alignParentTop="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_collecroom_footer_to_top" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_collecroom_footer" android:layout_alignBottom="@id/img_collecroom_footer" android:layout_centerHorizontal="true">
+            <ImageButton android:id="@id/imgbutton_collecroom_footer_to_top" android:background="@null" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:src="@drawable/to_top" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="toTitleClick" />
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout android:orientation="vertical" android:id="@id/layout_collecroom_body" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/layout_collecroom_footer" android:layout_below="@id/img_collecroom_header">
+        <ImageView android:id="@id/img_collecroom_body_block1" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/collection_02" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <LinearLayout android:id="@id/layout_collecroom_body_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_weight="1.0">
+            <ImageButton android:id="@id/imgbutton_collecroom_body_to_itemcollec" android:background="@null" android:layout_width="0.0dip" android:layout_height="fill_parent" android:src="@drawable/collection_03" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="toItemCollectionClick" />
+            <ImageButton android:id="@id/imgbutton_collecroom_body_to_voicecollec" android:background="@null" android:layout_width="0.0dip" android:layout_height="fill_parent" android:src="@drawable/collection_04" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="toVoiceCollectionClick" />
+        </LinearLayout>
+        <ImageView android:id="@id/img_collecroom_body_block2" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/collection_05" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageButton android:id="@id/imgbutton_collecroom_body_to_momori" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/collection_06" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" android:onClick="toMomorisRoomClick" />
+        <ImageView android:id="@id/img_collecroom_body_block3" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/collection_07" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+</RelativeLayout>

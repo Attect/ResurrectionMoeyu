@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@id/layout_gatya_result" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_gatya_result_header" android:layout_width="fill_parent" android:layout_height="wrap_content" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_alignParentTop="true" android:layout_centerHorizontal="true" />
+    <RelativeLayout android:id="@id/layout_gatya_result_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_gatya_result_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_gatya_result_footer_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_gatya_result_footer" android:layout_alignBottom="@id/img_gatya_result_footer" android:layout_centerHorizontal="true">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_gatya_result_footer_to_konyoku" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_gatya_result_footer_to_konyoku" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_konyoku" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toKonyokuClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_gatya_result_footer_to_gatya" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_gatya_result_footer_to_gatya" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_gacya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_gatya_result_footer_to_item" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_gatya_result_footer_to_item" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_item" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toItemClick" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout android:gravity="center" android:orientation="vertical" android:id="@id/layout_gatya_result_body" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/layout_gatya_result_footer" android:layout_below="@id/img_gatya_result_header">
+        <RelativeLayout android:id="@id/layout_gatya_result_body_top" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="558.0">
+            <LinearLayout android:orientation="vertical" android:id="@id/layout_gatya_result_body_top_contents" android:layout_width="fill_parent" android:layout_height="fill_parent">
+                <RelativeLayout android:id="@id/layout_gatya_result_body_top_back" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="446.0">
+                    <ImageView android:id="@id/img_gatya_result_body_top_back" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scaleType="fitXY" android:adjustViewBounds="true" />
+                    <ImageView android:id="@id/img_gatya_result_body_item_name" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_alignTop="@id/img_gatya_result_body_top_back" />
+                    <ImageView android:id="@id/img_gatya_result_body_item_picture" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginTop="10.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_below="@id/img_gatya_result_body_item_name" android:layout_alignBottom="@id/img_gatya_result_body_top_back" />
+                </RelativeLayout>
+                <ImageView android:id="@id/img_gatya_result_body_center_back" android:layout_width="fill_parent" android:layout_height="0.0dip" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="112.0" />
+            </LinearLayout>
+            <ImageView android:id="@id/img_gatya_result_body_item_new" android:visibility="visible" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="40.0dip" android:src="@drawable/new_icon" android:scaleType="fitCenter" android:layout_alignBottom="@id/layout_gatya_result_body_top_contents" />
+        </RelativeLayout>
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_gatya_result_body_meter" android:layout_width="fill_parent" android:layout_height="0.0dip" android:layout_weight="39.0">
+            <ImageView android:id="@id/img_gatya_result_body_meter_left" android:layout_width="0.0dip" android:layout_height="fill_parent" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="97.0" />
+            <FrameLayout android:id="@id/layout_gatya_result_body_meter_center" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="460.0">
+                <ImageView android:id="@id/img_gatya_result_body_meter_center_back" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/result_level_bar_back" android:scaleType="fitXY" android:adjustViewBounds="true" />
+                <ImageView android:id="@id/img_gatya_result_body_meter_center_bar" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/result_level_bar" android:scaleType="fitXY" />
+            </FrameLayout>
+            <ImageView android:id="@id/img_gatya_result_body_meter_right" android:layout_width="0.0dip" android:layout_height="fill_parent" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="83.0" />
+        </LinearLayout>
+        <ImageView android:id="@id/img_gatya_result_body_under_back" android:layout_width="fill_parent" android:layout_height="0.0dip" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="75.0" />
+    </LinearLayout>
+    <ImageView android:id="@id/item_complete_view" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/event_complete" android:scaleType="fitCenter" android:onClick="onItemCompleteClick" />
+    <ImageView android:id="@id/levelup_view" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/event_levelup" android:scaleType="fitCenter" android:onClick="onLevelupClick" />
+    <ImageView android:id="@id/recommend_first_levelup_view" android:padding="20.0dip" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/recommend_plate06a" android:scaleType="fitCenter" android:onClick="onRecommendLevelupClick" />
+    <ImageView android:id="@id/recommend_first_gacha_view" android:padding="20.0dip" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/recommend_plate04a" android:scaleType="fitCenter" android:onClick="onRecommendGachaClick" />
+    <LinearLayout android:gravity="center" android:id="@id/indicator" android:background="#ff000000" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <ProgressBar android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+</RelativeLayout>

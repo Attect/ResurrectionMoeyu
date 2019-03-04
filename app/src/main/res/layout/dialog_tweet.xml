@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:gravity="top" android:orientation="vertical" android:id="@id/layout_tweet_dialog" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:id="@id/layout_tweet_dialog_top" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@id/img_tweet_dialog_top" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/recommend_plate05_01" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="bottom" android:orientation="horizontal" android:id="@id/layout_tweet_dialog_top_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginBottom="20.0dip" android:layout_alignBottom="@id/img_tweet_dialog_top" android:layout_alignParentLeft="@id/img_tweet_dialog_top" android:layout_alignParentRight="@id/img_tweet_dialog_top">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_tweet_dialog_top_left_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_tweet_dialog_top_to_tweet" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_twitter" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_tweet_dialog_top_right_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_tweet_dialog_top_to_back" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_back" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <LinearLayout android:id="@id/layout_tweet_dialog_center" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <ImageView android:id="@id/img_tweet_dialog_center_left" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/recommend_plate05_02" android:scaleType="fitXY" android:layout_weight="83.0" />
+        <RelativeLayout android:id="@id/layout_tweet_dialog_center_center" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_weight="33.0">
+            <ImageButton android:id="@id/imgbutton_tweet_dialog_center_center_check_box" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/recommend_plate05_03" android:scaleType="fitXY" />
+            <ImageButton android:id="@id/imgbutton_tweet_dialog_center_center_check_mark" android:background="@null" android:visibility="visible" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/checkmark" android:scaleType="fitCenter" android:layout_centerInParent="true" />
+        </RelativeLayout>
+        <ImageView android:id="@id/img_tweet_dialog_center_right" android:layout_width="0.0dip" android:layout_height="fill_parent" android:src="@drawable/recommend_plate05_04" android:scaleType="fitXY" android:layout_weight="438.0" />
+    </LinearLayout>
+    <ImageView android:id="@id/img_tweet_dialog_under" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/recommend_plate05_05" android:scaleType="fitXY" android:adjustViewBounds="true" />
+</LinearLayout>

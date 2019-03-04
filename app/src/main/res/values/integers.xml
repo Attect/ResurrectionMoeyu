@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer name="whitein_ms">500</integer>
+    <integer name="whitout_ms">500</integer>
+    <integer name="item_fadeout_ms">1000</integer>
+    <integer name="scene_change_interval_ms">60000</integer>
+</resources>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:id="@id/layout_listitem" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_listitem_back" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/tana_long_back_parts" android:adjustViewBounds="true" />
+    <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_listitem_item" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_listitem_back" android:layout_alignBottom="@id/img_listitem_back">
+        <ImageButton android:id="@id/imgbutton_listitem_item1" android:background="@null" android:layout_width="78.0dip" android:layout_height="78.0dip" android:layout_marginLeft="20.0dip" android:layout_marginRight="20.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageButton android:id="@id/imgbutton_listitem_item2" android:background="@null" android:layout_width="78.0dip" android:layout_height="78.0dip" android:layout_marginLeft="20.0dip" android:layout_marginRight="20.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageButton android:id="@id/imgbutton_listitem_item3" android:background="@null" android:layout_width="78.0dip" android:layout_height="78.0dip" android:layout_marginLeft="20.0dip" android:layout_marginRight="20.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@id/layout_itemcollec_dialog" android:layout_width="fill_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_itemcollec_dialog_back" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/item_review_back" android:scaleType="fitCenter" android:adjustViewBounds="true" />
+    <ImageView android:id="@id/img_itemcollec_dialog_itemname" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="10.0dip" android:layout_marginTop="5.0dip" android:layout_marginRight="10.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_alignLeft="@id/img_itemcollec_dialog_back" android:layout_alignTop="@id/img_itemcollec_dialog_back" android:layout_alignRight="@id/img_itemcollec_dialog_back" />
+    <LinearLayout android:id="@id/layout_itemcollec_dialog_button" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_alignLeft="@id/img_itemcollec_dialog_back" android:layout_alignRight="@id/img_itemcollec_dialog_back" android:layout_alignBottom="@id/img_itemcollec_dialog_back">
+        <ImageButton android:id="@id/imgbutton_itemcollec_dialog_konyoku" android:background="@null" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/item_review_konyoku" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageButton android:id="@id/imgbutton_itemcollec_dialog_cancel" android:background="@null" android:layout_width="0.0dip" android:layout_height="wrap_content" android:src="@drawable/item_review_toziru" android:scaleType="fitXY" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+    <LinearLayout android:gravity="center" android:id="@id/layout_itemcollec_dialog_body" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_above="@id/layout_itemcollec_dialog_button" android:layout_below="@id/img_itemcollec_dialog_itemname" android:layout_alignLeft="@id/img_itemcollec_dialog_back" android:layout_alignRight="@id/img_itemcollec_dialog_back">
+        <ImageView android:id="@id/img_itemcollec_dialog_itempicture" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginLeft="25.0dip" android:layout_marginTop="20.0dip" android:layout_marginRight="20.0dip" android:layout_marginBottom="20.0dip" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageView android:id="@id/img_itemcollec_dialog_itemcomment" android:layout_width="wrap_content" android:layout_height="wrap_content" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+</RelativeLayout>

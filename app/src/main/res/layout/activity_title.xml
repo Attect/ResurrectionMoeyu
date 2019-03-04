@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:id="@id/layout_top" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_top_spa_smoke" android:drawingCacheQuality="high" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/spa_smoke" />
+    <RelativeLayout android:gravity="center" android:id="@id/layout_top_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true">
+        <ImageView android:id="@id/img_top_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="fitXY" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_top_footer_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_top_footer" android:layout_alignBottom="@id/img_top_footer" android:layout_centerHorizontal="true">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_top_footer_to_collec" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_top_footer_to_collec" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_collec" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toCollectionRoomClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_top_footer_to_tweet" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_top_footer_to_tweet" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_twitter" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTwitterClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_top_footer_to_settei" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_top_footer_to_settei" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/settei" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toSetteiClick" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <ImageView android:id="@id/img_top_back" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/top_back" android:scaleType="centerCrop" android:adjustViewBounds="true" android:layout_above="@id/layout_top_footer" />
+    <LinearLayout android:gravity="bottom|center" android:orientation="vertical" android:id="@id/layout_top_spa_water" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/layout_top_footer">
+        <ImageView android:id="@id/img_top_spa_water_back" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/spa_water_back01" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+        <ImageView android:id="@id/img_top_spa_water_front" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/spa_water_front01" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_weight="1.0" />
+    </LinearLayout>
+    <LinearLayout android:gravity="bottom|center" android:orientation="vertical" android:id="@id/layout_top_body_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_above="@id/layout_top_footer">
+        <ImageButton android:id="@id/imgbutton_top_body_to_konyoku" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_margin="30.0dip" android:src="@drawable/konyoku" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toKonyokuClick" />
+        <ImageButton android:id="@id/imgbutton_top_body_to_gatya" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_marginLeft="30.0dip" android:layout_marginRight="30.0dip" android:layout_marginBottom="30.0dip" android:src="@drawable/gatya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+    </LinearLayout>
+    <ImageView android:id="@id/login_bonus" android:padding="20.0dip" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:src="@drawable/recommend_plate09bb" android:scaleType="fitCenter" android:onClick="onLoginBonusClick" />
+    <fragment android:name="jp.co.a_tm.moeyu.api.fragment.LoginFragment" android:id="@id/login_fragment" android:layout_width="fill_parent" android:layout_height="fill_parent" />
+    <fragment android:name="jp.co.a_tm.moeyu.api.fragment.SignupFragment" android:id="@id/signup_fragment" android:layout_width="fill_parent" android:layout_height="fill_parent" />
+    <LinearLayout android:gravity="center" android:id="@id/indicator" android:background="#aa000000" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent">
+        <ProgressBar android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    </LinearLayout>
+</RelativeLayout>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="vertical" android:background="#ffffffff" android:layout_width="fill_parent" android:layout_height="fill_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/img_notecollec_header" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_header" android:scaleType="centerCrop" android:adjustViewBounds="true" />
+    <RelativeLayout android:gravity="center" android:id="@id/layout_notecollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignParentBottom="true" android:layout_centerHorizontal="true">
+        <ImageView android:id="@id/img_notecollec_footer" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/footer" android:scaleType="centerCrop" android:adjustViewBounds="true" />
+        <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_notecollec_footer_button" android:layout_width="fill_parent" android:layout_height="wrap_content" android:layout_alignTop="@id/img_notecollec_footer" android:layout_alignBottom="@id/img_notecollec_footer" android:layout_centerHorizontal="true">
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_notecollec_footer_to_konyoku" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_notecollec_footer_to_konyoku" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_konyoku" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toKonyokuClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_notecollec_footer_to_gatya" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_notecollec_footer_to_gatya" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_gacya" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toGatyaClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_notecollec_footer_to_momori" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_notecollec_footer_to_momori" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/icon_momorisroom" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toMomorisClick" />
+            </LinearLayout>
+            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@id/layout_notecollec_footer_to_top" android:layout_width="0.0dip" android:layout_height="fill_parent" android:layout_margin="5.0dip" android:layout_weight="1.0">
+                <ImageButton android:id="@id/imgbutton_notecollec_footer_to_top" android:background="@null" android:layout_width="wrap_content" android:layout_height="fill_parent" android:src="@drawable/to_top" android:scaleType="fitCenter" android:adjustViewBounds="true" android:onClick="toTitleClick" />
+            </LinearLayout>
+        </LinearLayout>
+    </RelativeLayout>
+    <ListView android:id="@id/listview_notecollec" android:layout_width="fill_parent" android:layout_height="wrap_content" android:divider="#ffffffff" android:dividerHeight="1.0dip" android:layout_above="@id/layout_notecollec_footer" android:layout_below="@id/img_notecollec_header" />
+    <RelativeLayout android:id="@id/layout_diarydialog" android:visibility="invisible" android:layout_width="fill_parent" android:layout_height="fill_parent" android:onClick="onDiaryClick">
+        <ImageView android:id="@id/img_diarydialog_page" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_page" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_centerInParent="true" />
+        <ImageView android:id="@id/img_diarydialog_contents_words" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_1" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_alignTop="@id/img_diarydialog_page" />
+        <ImageView android:id="@id/imgbutton_diarydialog_contents_close" android:background="@null" android:layout_width="fill_parent" android:layout_height="wrap_content" android:src="@drawable/diary_page_close" android:scaleType="fitCenter" android:adjustViewBounds="true" android:layout_below="@id/img_diarydialog_contents_words" android:layout_alignBottom="@id/img_diarydialog_page" />
+    </RelativeLayout>
+</RelativeLayout>

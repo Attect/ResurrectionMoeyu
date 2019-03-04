@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?><manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto" package="jp.co.a_tm.moeyu">
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="com.android.vending.BILLING"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <compatible-screens>
+        <screen android:screenDensity="ldpi" android:screenSize="small"/>
+        <screen android:screenDensity="mdpi" android:screenSize="small"/>
+        <screen android:screenDensity="hdpi" android:screenSize="small"/>
+        <screen android:screenDensity="xhdpi" android:screenSize="small"/>
+        <screen android:screenDensity="ldpi" android:screenSize="normal"/>
+        <screen android:screenDensity="mdpi" android:screenSize="normal"/>
+        <screen android:screenDensity="hdpi" android:screenSize="normal"/>
+        <screen android:screenDensity="xhdpi" android:screenSize="normal"/>
+    </compatible-screens>
+
+    <application android:icon="@drawable/ic_launcher" android:label="@string/app_name" android:name=".MoeyuApplication" android:theme="@android:style/Theme.Black.NoTitleBar" android:usesCleartextTraffic="true">
+        <uses-library android:name="org.apache.http.legacy" android:required="false"/>
+        <activity android:name=".MainActivity" android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".TitleActivity" android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:host="moe-yu.com" android:scheme="moeyu"/>
+            </intent-filter>
+        </activity>
+        <activity android:name=".GatyaActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".GatyaResultActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".MomorisRoomActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".CollectionRoomActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".ItemCollectionActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".VoiceCollectionActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".NoteCollectionActivity" android:screenOrientation="portrait"/>
+        <activity android:name=".BathActivity" android:screenOrientation="portrait" android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"/>
+        <activity android:name=".PreferenceActivity" android:screenOrientation="portrait"/>
+        <service android:name=".billing.BillingService"/>
+        <receiver android:name=".billing.BillingReceiver">
+            <intent-filter>
+                <action android:name="com.android.vending.billing.IN_APP_NOTIFY"/>
+                <action android:name="com.android.vending.billing.RESPONSE_CODE"/>
+                <action android:name="com.android.vending.billing.PURCHASE_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

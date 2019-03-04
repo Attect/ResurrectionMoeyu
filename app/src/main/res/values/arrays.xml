@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <integer-array name="require_exp">
+        <item>0</item>
+        <item>0</item>
+        <item>2</item>
+        <item>14</item>
+        <item>44</item>
+        <item>100</item>
+        <item>188</item>
+    </integer-array>
+    <string-array name="tweet_level_array">
+        <item>初対面</item>
+        <item>仲良し</item>
+        <item>わくわく</item>
+        <item>友達以上？</item>
+        <item>ドキドキ</item>
+        <item>らぶらぶ</item>
+    </string-array>
+    <string-array name="event_levelup_2">
+        <item>251</item>
+        <item>252</item>
+        <item>253</item>
+        <item>254</item>
+        <item>255</item>
+        <item>256</item>
+    </string-array>
+    <string-array name="event_levelup_3">
+        <item>257</item>
+        <item>258</item>
+        <item>259</item>
+        <item>260</item>
+        <item>261</item>
+        <item>262</item>
+    </string-array>
+    <string-array name="event_levelup_4">
+        <item>263</item>
+        <item>264</item>
+        <item>265</item>
+        <item>266</item>
+        <item>267</item>
+        <item>268</item>
+    </string-array>
+    <string-array name="event_levelup_5">
+        <item>269</item>
+        <item>270</item>
+        <item>271</item>
+        <item>272</item>
+        <item>273</item>
+        <item>274</item>
+        <item>275</item>
+        <item>276</item>
+        <item>277</item>
+        <item>278</item>
+        <item>279</item>
+    </string-array>
+    <string-array name="event_levelup_6">
+        <item>280</item>
+        <item>281</item>
+        <item>282</item>
+        <item>283</item>
+        <item>284</item>
+        <item>285</item>
+        <item>286</item>
+        <item>287</item>
+        <item>288</item>
+        <item>289</item>
+    </string-array>
+    <string-array name="event_complete_item">
+        <item>246</item>
+        <item>247</item>
+        <item>248</item>
+        <item>249</item>
+        <item>250</item>
+    </string-array>
+    <string-array name="event_item_ice">
+        <item>227</item>
+        <item>228</item>
+        <item>229</item>
+        <item>230</item>
+    </string-array>
+    <string-array name="event_item_ahiru">
+        <item>143</item>
+        <item>222</item>
+        <item>223</item>
+        <item>201</item>
+    </string-array>
+    <string-array name="event_item_danberu">
+        <item>157</item>
+        <item>186</item>
+        <item>187</item>
+        <item>188</item>
+    </string-array>
+    <string-array name="event_item_konnyaku">
+        <item>206</item>
+        <item>207</item>
+        <item>208</item>
+    </string-array>
+</resources>
