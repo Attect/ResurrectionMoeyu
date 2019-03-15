@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="clear_dialog" parent="@android:style/Theme.Dialog">
+
+    <style name="clear_dialog" parent="@style/Theme.AppCompat.DayNight.Dialog">
         <item name="android:windowBackground">@color/clear</item>
     </style>
 </resources>
