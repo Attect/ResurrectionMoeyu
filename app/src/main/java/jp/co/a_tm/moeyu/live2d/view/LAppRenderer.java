@@ -1,7 +1,8 @@
 package jp.co.a_tm.moeyu.live2d.view;
 
 import android.opengl.GLSurfaceView.Renderer;
-import android.support.v4.content.IntentCompat;
+
+import androidx.core.content.IntentCompat;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import jp.co.a_tm.moeyu.Scene;

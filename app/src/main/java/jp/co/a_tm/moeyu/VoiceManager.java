@@ -1,7 +1,8 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Context;
-import android.support.v4.view.accessibility.AccessibilityEventCompat;
+
+import androidx.core.view.accessibility.AccessibilityEventCompat;
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
