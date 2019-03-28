@@ -1,7 +1,11 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import jp.co.a_tm.moeyu.model.EventData;
 
@@ -82,11 +86,32 @@ public abstract class BaseActivity extends AppCompatActivity {
      */
     protected static final int NEXT_EXIT = -1;
 
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        hideSystemUI();
+    }
 
     @Override
     protected void onPause() {
         super.onPause();
         release();
+    }
+
+    /**
+     * 隐藏一些系统UI及全屏
+     * 系统能够正确提示进入全屏状态
+     * 状态栏会被隐藏
+     * 但是底部导航栏将保留
+     */
+    private void hideSystemUI() {
+        getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     /**
