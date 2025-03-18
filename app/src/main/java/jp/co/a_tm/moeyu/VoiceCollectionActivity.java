@@ -160,28 +160,27 @@ public class VoiceCollectionActivity extends BaseActivity {
         ImageButton normalButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_normal);
         ImageButton itemButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_item);
         ImageButton eventButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_event);
-        switch (view.getId()) {
-            case R.id.imgbutton_voicecollec_normal /*2131624131*/:
-                normalButton.setImageResource(R.drawable.nomalvoice);
-                itemButton.setImageResource(R.drawable.itemvoice_glay);
-                eventButton.setImageResource(R.drawable.iventvoice_glay);
-                setTab(Tab.NORMAL);
-                return;
-            case R.id.imgbutton_voicecollec_item /*2131624132*/:
-                normalButton.setImageResource(R.drawable.nomalvoice_glay);
-                itemButton.setImageResource(R.drawable.itemvoice);
-                eventButton.setImageResource(R.drawable.iventvoice_glay);
-                setTab(Tab.ITEM);
-                return;
-            case R.id.imgbutton_voicecollec_event /*2131624133*/:
-                normalButton.setImageResource(R.drawable.nomalvoice_glay);
-                itemButton.setImageResource(R.drawable.itemvoice_glay);
-                eventButton.setImageResource(R.drawable.iventvoice);
-                setTab(Tab.EVENT);
-                return;
-            default:
-                return;
+        int id = view.getId();
+        if (id == R.id.imgbutton_voicecollec_normal) { /*2131624131*/
+            normalButton.setImageResource(R.drawable.nomalvoice);
+            itemButton.setImageResource(R.drawable.itemvoice_glay);
+            eventButton.setImageResource(R.drawable.iventvoice_glay);
+            setTab(Tab.NORMAL);
+            return;
+        } else if (id == R.id.imgbutton_voicecollec_item) { /*2131624132*/
+            normalButton.setImageResource(R.drawable.nomalvoice_glay);
+            itemButton.setImageResource(R.drawable.itemvoice);
+            eventButton.setImageResource(R.drawable.iventvoice_glay);
+            setTab(Tab.ITEM);
+            return;
+        } else if (id == R.id.imgbutton_voicecollec_event) { /*2131624133*/
+            normalButton.setImageResource(R.drawable.nomalvoice_glay);
+            itemButton.setImageResource(R.drawable.itemvoice_glay);
+            eventButton.setImageResource(R.drawable.iventvoice);
+            setTab(Tab.EVENT);
+            return;
         }
+        return;
     }
 
     public void toGatyaClick(View view) {

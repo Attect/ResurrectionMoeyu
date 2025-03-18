@@ -27,6 +27,20 @@ public class UserData implements Serializable {
     private int platinumCoin;
     private String state;
     private String userId;
+    private long lastLoginTime;
+
+    public static UserData createLocal(){
+        UserData user = new UserData();
+        user.bonus = true;
+        user.bronzeCoin = 10;
+        user.exp = 0;
+        user.goldCoin = 0;
+        user.level = 1;
+        user.platinumCoin = 0;
+        user.userId = "local";
+        user.lastLoginTime= System.currentTimeMillis();
+        return user;
+    }
 
     public static UserData fromJson(JSONObject json) throws JSONException {
         UserData user = new UserData();
@@ -170,5 +184,9 @@ public class UserData implements Serializable {
 
     public boolean isMaxLevel() {
         return this.level == 6;
+    }
+
+    public long getLastLoginTime() {
+        return lastLoginTime;
     }
 }

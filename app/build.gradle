@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     useLibrary 'org.apache.http.legacy'
     compileSdkVersion 28
+    namespace "jp.co.a_tm.moeyu"
     defaultConfig {
         applicationId "jp.co.a_tm.moeyu"
         minSdkVersion 19

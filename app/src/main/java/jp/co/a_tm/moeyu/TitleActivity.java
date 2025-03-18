@@ -93,13 +93,11 @@ public class TitleActivity extends BaseActivity {
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_terms /*2131624240*/:
-                showTerms();
-                break;
-            case R.id.menu_inquiry /*2131624241*/:
-                sendInquiryMail();
-                break;
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_terms) { /*2131624240*/
+            showTerms();
+        } else if (itemId == R.id.menu_inquiry) { /*2131624241*/
+            sendInquiryMail();
         }
         return true;
     }

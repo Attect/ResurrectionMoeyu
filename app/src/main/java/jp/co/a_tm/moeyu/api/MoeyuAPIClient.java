@@ -3,16 +3,26 @@ package jp.co.a_tm.moeyu.api;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.Random;
+
 import jp.co.a_tm.moeyu.api.model.GachaResult;
 import jp.co.a_tm.moeyu.live2d.motion.LAppAnimation;
 import jp.co.a_tm.moeyu.model.UserData;
@@ -49,6 +59,9 @@ public class MoeyuAPIClient {
     private static final String appVersion = "1";
     private Config mConfig;
 
+    private static File userDataFile;
+    private static UserData userData;
+
     public enum GachaCoin {
         BRONZE("bronze_coin"),
         GOLD("gold_coin"),
@@ -66,89 +79,121 @@ public class MoeyuAPIClient {
         }
     }
 
+
+
+    private void saveUserData(){
+        try{
+            FileOutputStream out = new FileOutputStream(userDataFile);
+            userData.store(out);
+            out.flush();
+            out.close();
+        } catch (FileNotFoundException e) {
+            Logger.e("UserData","保存失败：文件没有找到");
+        } catch (IOException e) {
+            Logger.e("UserData","保存失败，IO错误");
+        }
+    }
+
+    private void readUserData(){
+        try{
+            FileInputStream in = new FileInputStream(userDataFile);
+            userData = UserData.restore(in);
+            if (userData == null){
+                userData = UserData.createLocal();
+            }else{
+                Date date = new Date();
+                Date loginDate = new Date(userData.getLastLoginTime());
+                Calendar cal1 = Calendar.getInstance();
+                cal1.setTime(date);
+
+                Calendar cal2 = Calendar.getInstance();
+                cal2.setTime(loginDate);
+
+                boolean isSameDay = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR)
+                        && cal1.get(Calendar.MONTH) == cal2.get(Calendar.MONTH)
+                        && cal1.get(Calendar.DAY_OF_MONTH) == cal2.get(Calendar.DAY_OF_MONTH);
+                if (!isSameDay){
+                    userData.setBonus(true);
+                    userData.setBronzeCoin(userData.getBronzeCoin()+1);
+                }else{
+                    userData.setBonus(false);
+                }
+            }
+            saveUserData();
+        } catch (FileNotFoundException e) {
+            Logger.e("UserData","读取失败：文件没有找到");
+        }
+    }
+
     public MoeyuAPIClient(Context context) {
         this.mConfig = Config.getInstance(context);
-        if (this.mConfig.isDebug()) {
-            BASE_URL = "https://api.apk.moe/third_party/moeyu/";
-        } else if (this.mConfig.isStaging()) {
-            BASE_URL = "https://api.apk.moe/third_party/moeyu/";
-        } else if (this.mConfig.isProd()) {
-            BASE_URL = "https://api.apk.moe/third_party/moeyu/";
+        userDataFile = new File(context.getCacheDir(),"localUserData.dat");
+        if (!userDataFile.exists()){
+            userData = UserData.createLocal();
+            saveUserData();
+        }else{
+            readUserData();
         }
-        Logger.d("BASE_URL: " + BASE_URL);
     }
 
     public UserData userSignUp() throws MoeyuAPIException {
-        int statusCode = -1;
-        try {
-            List<NameValuePair> params = createBaseParams();
-            params.add(new BasicNameValuePair(SIGNATURE, createSignature(params)));
-            Log.d("DEBUG",BASE_URL + "signup.php?" + URLEncodedUtils.format(params, "UTF-8"));
-            HttpResponse response = new DefaultHttpClient().execute(new HttpGet(BASE_URL + "signup.php?" + URLEncodedUtils.format(params, "UTF-8")));
-            statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == LAppAnimation.FLIP_START_FACE_Y) {
-                String json = responseToString(response);
-                Logger.d("userSignUp response json = " + json);
-                return UserData.fromJson(new JSONObject(json));
-            }
-            throw new MoeyuAPIException(statusCode);
-        } catch (JSONException e) {
-            throw new MoeyuAPIException(e, statusCode);
-        } catch (ClientProtocolException e2) {
-            throw new MoeyuAPIException(e2);
-        } catch (IOException e22) {
-            throw new MoeyuAPIException(e22);
-        }
+        return userData;
     }
 
     public UserData userData(String userId) throws MoeyuAPIException {
-        int statusCode = -1;
-        try {
-            List<NameValuePair> params = createBaseParams();
-            params.add(new BasicNameValuePair(USER_ID, userId));
-            Log.d("DEBUG",BASE_URL + "userdata.php?" + URLEncodedUtils.format(params, "UTF-8"));
-            HttpResponse response = new DefaultHttpClient().execute(new HttpGet(BASE_URL + "userdata.php?" + URLEncodedUtils.format(params, "UTF-8")));
-            statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == LAppAnimation.FLIP_START_FACE_Y) {
-                String json = responseToString(response);
-                Logger.d("userData response json = " + json);
-                return UserData.fromJson(new JSONObject(json));
-            }
-            throw new MoeyuAPIException(statusCode);
-        } catch (JSONException e) {
-            throw new MoeyuAPIException(e, statusCode);
-        } catch (ClientProtocolException e2) {
-            throw new MoeyuAPIException(e2);
-        } catch (IOException e22) {
-            throw new MoeyuAPIException(e22);
-        }
+        return userData;
     }
 
     public GachaResult userGatya(String userId, GachaCoin use) throws MoeyuAPIException {
-        int statusCode = -1;
-        try {
-            List<NameValuePair> params = createBaseParams();
-            params.add(new BasicNameValuePair(USER_ID, userId));
-            params.add(new BasicNameValuePair(USE, use.getValue()));
-            params.add(new BasicNameValuePair(SIGNATURE, createSignature(params)));
-            HttpPost post = new HttpPost(BASE_URL + "gacha.php");
-            DefaultHttpClient client = new DefaultHttpClient();
-            post.setEntity(new UrlEncodedFormEntity(params));
-            HttpResponse response = client.execute(post);
-            statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == LAppAnimation.FLIP_START_FACE_Y) {
-                String json = responseToString(response);
-                Logger.d("userGatya response json = " + json);
-                return GachaResult.fromJson(new JSONObject(json));
+        ArrayList<Integer> noHolds = new ArrayList<>();
+        for (int i = 0; i < 25; i++) {
+            int id = i+1;
+            if (!userData.hasItem(id)){
+                noHolds.add(id);
             }
-            throw new MoeyuAPIException(statusCode);
-        } catch (JSONException e) {
-            throw new MoeyuAPIException(e, statusCode);
-        } catch (ClientProtocolException e2) {
-            throw new MoeyuAPIException(e2);
-        } catch (IOException e22) {
-            throw new MoeyuAPIException(e22);
         }
+        if (noHolds.isEmpty()){
+            noHolds.addAll(userData.getItems());
+        }
+        int rate = 0;
+        switch (use){
+            case BRONZE:
+                rate = 2;
+                userData.setBronzeCoin(userData.getBronzeCoin()-1);
+                break;
+            case GOLD:
+                rate = 3;
+                userData.setGoldCoin(userData.getGoldCoin()-1);
+                break;
+            case PLATINUM:
+                rate = 4;
+                userData.setPlatinumCoin(userData.getPlatinumCoin()-1);
+                break;
+            case None:
+                break;
+        }
+        GachaResult result = getGachaResult(rate, noHolds);
+        saveUserData();
+        return result;
+    }
+
+    @NonNull
+    private static GachaResult getGachaResult(int rate, ArrayList<Integer> noHolds) {
+        Random random = new Random();
+        int randomResult = Math.abs(random.nextInt() % 10);
+        int itemId = 0;
+        if (rate > randomResult || userData.getItems().isEmpty()){
+            randomResult = Math.abs(random.nextInt() % noHolds.size());
+            itemId = noHolds.get(randomResult);
+            userData.addItem(itemId);
+        }else{
+            randomResult = Math.abs(random.nextInt() % userData.getItems().size());
+            itemId = userData.getItems().get(randomResult);
+        }
+        GachaResult result = new GachaResult();
+        result.setUserData(userData);
+        result.setItemId(itemId);
+        return result;
     }
 
     public UserData userBilling(String signedData, String signature) throws MoeyuAPIException {
