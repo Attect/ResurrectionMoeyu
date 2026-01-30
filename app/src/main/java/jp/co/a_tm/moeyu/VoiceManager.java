@@ -2,15 +2,15 @@ package jp.co.a_tm.moeyu;
 
 import android.content.Context;
 
-import androidx.core.view.accessibility.AccessibilityEventCompat;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 public class VoiceManager {
     private Context mContext;
@@ -20,7 +20,7 @@ public class VoiceManager {
         this.mContext = context;
         InputStream inputStream = this.mContext.getAssets().open("voice.json");
         StringBuilder stringBuilder = new StringBuilder();
-        byte[] buffer = new byte[AccessibilityEventCompat.TYPE_TOUCH_EXPLORATION_GESTURE_END];
+        byte[] buffer = new byte[1024];
         while (true) {
             int length = inputStream.read(buffer);
             if (length >= 0) {
