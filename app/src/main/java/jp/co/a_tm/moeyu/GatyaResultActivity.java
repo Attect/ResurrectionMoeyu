@@ -1,9 +1,11 @@
 package jp.co.a_tm.moeyu;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
+
 import jp.co.a_tm.moeyu.api.model.GachaResult;
 import jp.co.a_tm.moeyu.model.EventData;
 import jp.co.a_tm.moeyu.model.UserData;
@@ -29,6 +31,9 @@ public class GatyaResultActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gatya_result);
+        findViewById(R.id.layout_gatya_result).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        findViewById(R.id.layout_gatya_result).setBackgroundColor(Color.BLACK);
+
         GachaResult result = (GachaResult) getIntent().getSerializableExtra(EXTRA_GACHA_RESULT);
         this.mUserData = result.getUserData();
         this.mPreUserData = (UserData) getIntent().getSerializableExtra(EXTRA_PRE_USER_DATA);

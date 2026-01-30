@@ -2,6 +2,7 @@ package jp.co.a_tm.moeyu;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class Decryption {
     private static final String VOICE = "voice";
+    private static final String VOICE_CN = "voice_cn";
     private Context mContext;
 
     public Decryption(Context context) {
@@ -23,10 +25,22 @@ public class Decryption {
         AssetManager manager = this.mContext.getResources().getAssets();
         String[] fileNames = manager.list(VOICE);
         List<String> alreadies = Arrays.asList(this.mContext.fileList());
-        for (String fileName : fileNames) {
-            String oggName = fileName.replace(".okk", ".ogg");
-            if (!alreadies.contains(oggName)) {
-                write(oggName, decrypt(fileName, manager.open(VOICE + File.separator + fileName)));
+        if (fileNames != null) {
+            for (String fileName : fileNames) {
+                String oggName = fileName.replace(".okk", ".ogg");
+                if (!alreadies.contains(oggName)) {
+                    write(oggName, decrypt(fileName, manager.open(VOICE + File.separator + fileName)));
+                }
+            }
+        }
+
+        String[] cnFileNames = manager.list(VOICE_CN);
+        if (cnFileNames != null) {
+            for (String fileName : cnFileNames) {
+                String oggName = fileName.replace(".okk", "_cn.ogg");
+                if (!alreadies.contains(oggName)) {
+                    write(oggName, decrypt(fileName, manager.open(VOICE_CN + File.separator + fileName)));
+                }
             }
         }
     }

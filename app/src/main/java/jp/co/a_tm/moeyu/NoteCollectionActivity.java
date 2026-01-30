@@ -1,6 +1,7 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,9 +12,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-//import com.google.android.apps.analytics.GoogleAnalyticsTracker;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import jp.co.a_tm.moeyu.util.Logger;
 
 public class NoteCollectionActivity extends BaseActivity {
@@ -136,6 +138,9 @@ public class NoteCollectionActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         Logger.d("NoteCollectionAcitivity");
         setContentView(R.layout.activity_notecollection);
+        findViewById(R.id.layout_note_collection).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        findViewById(R.id.layout_note_collection).setBackgroundColor(Color.BLACK);
+
         ItemTableController itemController = new ItemTableController(this);
         VoiceTableController voiceController = new VoiceTableController(this);
         this.mItemCountOpened = itemController.countOpened();

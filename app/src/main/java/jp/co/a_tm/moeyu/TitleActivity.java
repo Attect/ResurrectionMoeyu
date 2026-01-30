@@ -1,6 +1,7 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -9,9 +10,11 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Random;
+
 import jp.co.a_tm.moeyu.api.MoeyuAPIException;
 import jp.co.a_tm.moeyu.api.fragment.LoginFragment;
 import jp.co.a_tm.moeyu.api.fragment.SignupFragment;
@@ -59,6 +62,9 @@ public class TitleActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title);
+
+        findViewById(R.id.layout_top).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        findViewById(R.id.layout_top).setBackgroundColor(Color.BLACK);
     }
 
     /* access modifiers changed from: protected */

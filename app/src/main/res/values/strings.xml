@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, MoeyuActivity!</string>
-    <string name="app_name">萌浴 一起洗澡物语汉化版</string>
+    <string name="app_name">萌浴 一起洗澡的故事</string>
     <string name="tweet_https">https://twitter.com/intent/tweet?text=</string>
     <string name="tweet_text_left">いい湯だなう ふたりの仲は・・・「</string>
     <string name="tweet_text_center">」 道具收集率</string>
-    <string name="tweet_text_right">％ 一起洗澡的故事 萌浴</string>
+    <string name="tweet_text_right">％萌浴 一起洗澡的故事</string>
     <string name="tweet_hash">\#moeyu</string>
     <string name="tweet_url">http://api.moeapk.com/third_party/moeyu</string>
     <string name="is_enable_camera">需要使用摄像头</string>

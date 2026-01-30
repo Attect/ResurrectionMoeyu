@@ -2,6 +2,7 @@ package jp.co.a_tm.moeyu;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.media.MediaPlayer;
@@ -26,6 +27,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+
+import org.json.JSONException;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+
 import jp.co.a_tm.moeyu.live2d.LAppLive2DManager;
 import jp.co.a_tm.moeyu.live2d.LAppLive2DManager.FinishListener;
 import jp.co.a_tm.moeyu.live2d.motion.LAppAnimation;
@@ -46,7 +51,6 @@ import jp.co.a_tm.moeyu.model.EventData;
 import jp.co.a_tm.moeyu.model.UserData;
 import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.util.UserDataManager;
-import org.json.JSONException;
 
 public class BathActivity extends BaseActivity implements OnTouchListener {
     private static final String TAG = BathActivity.class.getSimpleName();
@@ -194,6 +198,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mRenderer = lAppGLView.getRenderer();
         lAppGLView.setOnTouchListener(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(lAppGLView, 0);
+
+        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) lAppGLView.getLayoutParams();
+        layoutParams.setMargins(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        lAppGLView.setBackgroundColor(Color.BLACK);
         this.mLive2dManager.setupModel();
         this.mLive2dManager.startAnimation();
         this.mUserData = new UserDataManager(this).loadUserData();

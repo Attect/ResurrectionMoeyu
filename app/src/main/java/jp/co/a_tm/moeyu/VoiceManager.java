@@ -1,6 +1,7 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -15,6 +16,7 @@ import java.util.Random;
 public class VoiceManager {
     private Context mContext;
     private JSONObject mVoiceJson;
+    public boolean useCN = true;
 
     public VoiceManager(Context context) throws IOException, JSONException {
         this.mContext = context;
@@ -34,6 +36,14 @@ public class VoiceManager {
     }
 
     public FileDescriptor getVoiceFileDescripter(String voiceName) throws FileNotFoundException, IOException {
+        if (useCN) {
+            try {
+                return this.mContext.openFileInput(voiceName + "_cn.ogg").getFD();
+            } catch (IOException e) {
+                Log.e("VOICE", "Not found " + voiceName + "_cn.ogg");
+            }
+        }
+
         return this.mContext.openFileInput(voiceName + ".ogg").getFD();
     }
 

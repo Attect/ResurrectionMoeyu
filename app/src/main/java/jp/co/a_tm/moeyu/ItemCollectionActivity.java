@@ -2,6 +2,7 @@ package jp.co.a_tm.moeyu;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,8 +13,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import jp.co.a_tm.moeyu.util.Logger;
 
 public class ItemCollectionActivity extends BaseActivity {
@@ -103,6 +106,9 @@ public class ItemCollectionActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itemcollection);
+        findViewById(R.id.layout_itemcollec).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        findViewById(R.id.layout_itemcollec).setBackgroundColor(Color.BLACK);
+
         ItemTableController itemController = new ItemTableController(getApplicationContext());
         List<ItemListItem> list = new ArrayList();
         list.add(new ItemListItem(new int[]{-1, 1, -1}, itemController));

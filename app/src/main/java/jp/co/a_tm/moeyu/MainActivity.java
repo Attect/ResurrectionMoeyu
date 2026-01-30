@@ -1,13 +1,19 @@
 package jp.co.a_tm.moeyu;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
+import android.hardware.display.DisplayManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.widget.VideoView;
+
 import java.io.Serializable;
+
 import jp.co.a_tm.moeyu.util.Config;
 import jp.co.a_tm.moeyu.util.Logger;
 //import net.adways.appdriver.sdk.AppDriverTracker;
@@ -18,9 +24,20 @@ public class MainActivity extends BaseActivity {
     private static final String TAG = MainActivity.class.getSimpleName();
     private boolean isFirstRun = true;
 
+    /**
+     * 修正非16:9屏幕比例
+     */
+    public static int FIX_HEIGHT = 0;
+
     /* access modifiers changed from: protected */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        Display display = displayManager.getDisplays()[0];
+        Rect displaySize = new Rect();
+        display.getRectSize(displaySize);
+        FIX_HEIGHT = displaySize.height() - (displaySize.width() / 9 * 16);
+
         setContentView(R.layout.activity_main);
 //        AppDriverTracker.requestAppDriver(this, 2654, "a0d6bbbe12c9063db2575ed63bafe95b");
         Logger.setConfig(Config.getInstance(getApplicationContext()));
