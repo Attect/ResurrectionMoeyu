@@ -440,7 +440,7 @@ public class GatyaActivity extends BaseActivity {
      * @param view 点击的视图
      */
     public void toKonyokuClick(View view) {
-        toBath();
+        toActivity(NEXT_ACTIVITY_BATH);
     }
 
     /**
@@ -449,7 +449,7 @@ public class GatyaActivity extends BaseActivity {
      * @param view 点击的视图
      */
     public void toItemClick(View view) {
-        toItemCollection();
+        toActivity(NEXT_ACTIVITY_ITEM_COLLECTION);
     }
 
     /**
