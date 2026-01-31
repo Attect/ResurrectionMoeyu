@@ -8,43 +8,76 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import jp.co.a_tm.moeyu.util.Logger;
 
+/**
+ * 语音收藏活动类
+ * 负责显示和管理用户收集的语音内容，支持三种类别：普通、物品、事件
+ */
 public class VoiceCollectionActivity extends BaseActivity {
+    /**
+     * 基础行数
+     */
     private final int BASE_ROW = 15;
+    /** 事件最大行数 */
     private final int EVENT_MAX_ROW = 288;
+    /** 物品最大行数 */
     private final int ITEM_MAX_ROW = 244;
+    /** 普通最大行数 */
     private final int NORMAL_MAX_ROW = 122;
+    /** 完成状态文本视图 */
     private TextView mCompleteState;
+    /** 语音控制器 */
     /* access modifiers changed from: private */
     public VoiceTableController mController;
+    /** 事件适配器 */
     private VoiceListAdapter mEventAdapter;
+    /** 事件是否打开数组 */
     /* access modifiers changed from: private */
     public boolean[] mEventOpened = new boolean[288];
+    /** 物品适配器 */
     private VoiceListAdapter mItemAdapter;
+    /** 物品是否打开数组 */
     /* access modifiers changed from: private */
     public boolean[] mItemOpened = new boolean[244];
+    /** 列表视图 */
     private ListView mListView;
+    /** 普通适配器 */
     private VoiceListAdapter mNormalAdapter;
+    /** 普通是否打开数组 */
     /* access modifiers changed from: private */
     public boolean[] mNormalOpened = new boolean[122];
+    /** 播放器 */
     /* access modifiers changed from: private */
     public MediaPlayer mPlayer;
+    /** 当前选择的标签页 */
     /* access modifiers changed from: private */
     public Tab mSelectTab;
 
+    /**
+     * 标签页枚举
+     * 定义语音收藏的三个分类标签页
+     */
     enum Tab {
         NORMAL,
         ITEM,
         EVENT
     }
 
-    /* access modifiers changed from: protected */
-    public void onCreate(Bundle savedInstanceState) {
+    /**
+     * 创建时回调方法
+     * 初始化语音收藏界面
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Logger.d("VoiceCollectionAcitivity");
         setContentView(R.layout.activity_voicecollection);
@@ -52,24 +85,27 @@ public class VoiceCollectionActivity extends BaseActivity {
         this.mListView = (ListView) findViewById(R.id.listview_voicecollec);
         this.mCompleteState = (TextView) findViewById(R.id.textview_voicecollec_getstate);
         setTab(Tab.NORMAL);
+
+        // 设置列表点击监听器
         this.mListView.setOnItemClickListener(new OnItemClickListener() {
+            @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
                 switch (VoiceCollectionActivity.this.mSelectTab.ordinal()) {
-                    case 1:
+                    case 1: // 普通语音
                         if (VoiceCollectionActivity.this.mNormalOpened[position]) {
                             VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(position + 1) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
                             return;
                         }
                         return;
-                    case 2:
+                    case 2: // 物品语音
                         if (VoiceCollectionActivity.this.mItemOpened[position]) {
                             VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(((position + 122) - 15) + 2) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
                             return;
                         }
                         return;
-                    case 3:
+                    case 3: // 事件语音
                         if (VoiceCollectionActivity.this.mEventOpened[position]) {
                             VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(((position + 244) - 15) + 2) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
@@ -83,23 +119,38 @@ public class VoiceCollectionActivity extends BaseActivity {
         });
     }
 
-    /* access modifiers changed from: protected */
-    public void onResume() {
+    /**
+     * 恢复时回调方法
+     * 活动恢复时执行的操作
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onResume() {
         super.onResume();
-//        this.mTracker.trackPageView("ボイスコレクション");
+        //        this.mTracker.trackPageView("ボイスコレクション");
         this.mPlayer = new MediaPlayer();
     }
 
-    /* access modifiers changed from: protected */
-    public void onPause() {
+    /**
+     * 暂停时回调方法
+     * 活动暂停时释放播放器资源
+     */
+    @Override
+    protected void onPause() {
         super.onPause();
         this.mPlayer.release();
     }
 
+    /**
+     * 设置标签页
+     *
+     * @param tab 标签页类型
+     */
     private void setTab(Tab tab) {
         this.mSelectTab = tab;
         switch (this.mSelectTab) {
-            case NORMAL:
+            case NORMAL: // 普通语音
                 if (this.mNormalAdapter == null) {
                     this.mNormalOpened = this.mController.isOpened(1, 108);
                     this.mNormalAdapter = addList(this.mController, this.mNormalOpened, 0);
@@ -107,7 +158,7 @@ public class VoiceCollectionActivity extends BaseActivity {
                 this.mListView.setAdapter(this.mNormalAdapter);
                 this.mCompleteState.setText(this.mController.countOpened(1, 108) + "/" + 108);
                 return;
-            case ITEM:
+            case ITEM: // 物品语音
                 if (this.mItemAdapter == null) {
                     this.mItemOpened = this.mController.isOpened(109, 230);
                     this.mItemAdapter = addList(this.mController, this.mItemOpened, 108);
@@ -115,7 +166,7 @@ public class VoiceCollectionActivity extends BaseActivity {
                 this.mListView.setAdapter(this.mItemAdapter);
                 this.mCompleteState.setText(this.mController.countOpened(108, 229) + "/" + 122);
                 return;
-            case EVENT:
+            case EVENT: // 事件语音
                 if (this.mEventAdapter == null) {
                     this.mEventOpened = this.mController.isOpened(231, 274);
                     this.mEventAdapter = addList(this.mController, this.mEventOpened, 230);
@@ -128,6 +179,14 @@ public class VoiceCollectionActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 添加列表项
+     *
+     * @param controller 语音控制器
+     * @param opened 是否打开数组
+     * @param base 基础索引
+     * @return 语音列表适配器
+     */
     private VoiceListAdapter addList(VoiceTableController controller, boolean[] opened, int base) {
         List<String> list = new ArrayList();
         for (int i = 0; i < opened.length; i++) {
@@ -140,6 +199,13 @@ public class VoiceCollectionActivity extends BaseActivity {
         return new VoiceListAdapter(this, list);
     }
 
+    /**
+     * 获取文件描述符
+     * 配置媒体播放器的音频数据源
+     *
+     * @param player 播放器
+     * @param str 文件名
+     */
     public void getFileDescriptor(MediaPlayer player, String str) {
         try {
             player.reset();
@@ -156,6 +222,11 @@ public class VoiceCollectionActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 标签页点击事件
+     *
+     * @param view 点击的视图
+     */
     public void tabClick(View view) {
         ImageButton normalButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_normal);
         ImageButton itemButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_item);
@@ -183,14 +254,29 @@ public class VoiceCollectionActivity extends BaseActivity {
         return;
     }
 
+    /**
+     * 抽卡按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toGatyaClick(View view) {
         toGacha();
     }
 
+    /**
+     * 收藏房间按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toCollectionRoomClick(View view) {
         toCollection();
     }
 
+    /**
+     * 标题按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toTitleClick(View view) {
         finish();
     }

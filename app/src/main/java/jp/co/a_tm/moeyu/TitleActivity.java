@@ -22,26 +22,56 @@ import jp.co.a_tm.moeyu.api.listener.UserDataListener;
 import jp.co.a_tm.moeyu.model.UserData;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
+/**
+ * 标题活动类
+ * 负责显示应用标题界面，处理用户登录/注册和页面跳转
+ */
 public class TitleActivity extends BaseActivity {
+    /**
+     * 浴室呼叫音乐播放器
+     */
     private MediaPlayer mBathCall = new MediaPlayer();
+    /** 用户ID */
     /* access modifiers changed from: private */
     public String mUserId;
 
+    /**
+     * 初始化数据任务类
+     * 异步初始化应用数据
+     */
     private class InitializeDataTask extends AsyncTask<Void, Void, Void> {
+        /** 构造函数 */
         private InitializeDataTask() {
         }
 
+        /**
+         * 初始化数据任务的构造函数（供合成使用）
+         *
+         * @param x0 外部类实例
+         * @param x1 合成参数
+         */
         /* synthetic */ InitializeDataTask(TitleActivity x0, InitializeDataTask x1) {
             this();
         }
 
-        /* access modifiers changed from: protected */
-        public void onPreExecute() {
+        /**
+         * 执行前操作
+         * 显示加载指示器
+         */
+        @Override
+        protected void onPreExecute() {
             TitleActivity.this.findViewById(R.id.indicator).setVisibility(View.VISIBLE);
         }
 
-        /* access modifiers changed from: protected|varargs */
-        public Void doInBackground(Void... params) {
+        /**
+         * 后台任务执行
+         * 初始化数据并保存设置
+         *
+         * @param params 参数
+         * @return 任务结果
+         */
+        @Override
+        protected Void doInBackground(Void... params) {
             try {
                 TitleActivity.this.initializeData();
                 new PreferencesHelper(TitleActivity.this.getApplicationContext()).setInitBoot(false);
@@ -51,53 +81,95 @@ public class TitleActivity extends BaseActivity {
             return null;
         }
 
-        /* access modifiers changed from: protected */
-        public void onPostExecute(Void result) {
+        /**
+         * 执行后操作
+         * 隐藏加载指示器并执行登录
+         *
+         * @param result 任务结果
+         */
+        @Override
+        protected void onPostExecute(Void result) {
             TitleActivity.this.findViewById(R.id.indicator).setVisibility(View.INVISIBLE);
             TitleActivity.this.login();
         }
     }
 
-    /* access modifiers changed from: protected */
-    public void onCreate(Bundle savedInstanceState) {
+    /**
+     * 创建时回调方法
+     * 初始化标题界面
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title);
 
+        // 设置界面边距和背景色
         findViewById(R.id.layout_top).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
         findViewById(R.id.layout_top).setBackgroundColor(Color.BLACK);
     }
 
-    /* access modifiers changed from: protected */
-    public void onResume() {
+    /**
+     * 恢复时回调方法
+     * 处理活动恢复时的登录逻辑
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onResume() {
         super.onResume();
-//        this.mTracker.trackPageView("トップページ");
+        //        this.mTracker.trackPageView("トップページ");
         MoeyuApplication application = (MoeyuApplication) getApplication();
         if (application.isFirstRun()) {
             application.setFirstRun(false);
             if (new PreferencesHelper(this).isInitBoot()) {
+                // 首次运行且需要初始化数据时执行异步任务
                 new InitializeDataTask(this, null).execute();
                 return;
             } else {
+                // 不需要初始化可以直接登录
                 login();
                 return;
             }
         }
+        // 加载保存的用户数据
         UserDataManager dataManager = new UserDataManager(this);
         if (dataManager.isSavedUserData()) {
             this.mUserId = dataManager.loadUserData().getUserId();
         }
     }
 
+    /**
+     * 初始化数据
+     * 解密并初始化应用数据
+     *
+     * @throws IOException IO异常
+     */
     /* access modifiers changed from: private */
-    public void initializeData() throws IOException {
+    private void initializeData() throws IOException {
         new Decryption(getApplicationContext()).execute();
     }
 
+    /**
+     * 创建选项菜单
+     *
+     * @param menu 菜单
+     * @return 是否继续处理
+     */
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
+    /**
+     * 选项菜单点击事件
+     *
+     * @param item 菜单项
+     * @return 是否处理
+     */
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
         if (itemId == R.id.menu_terms) { /*2131624240*/
@@ -108,6 +180,14 @@ public class TitleActivity extends BaseActivity {
         return true;
     }
 
+    /**
+     * 键盘按下事件
+     *
+     * @param keyCode 按键代码
+     * @param event   按键事件
+     * @return 是否处理
+     */
+    @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode != 4) {
             return super.onKeyDown(keyCode, event);
@@ -116,10 +196,16 @@ public class TitleActivity extends BaseActivity {
         return true;
     }
 
+    /**
+     * 显示服务条款
+     */
     private void showTerms() {
         startActivity(new Intent("android.intent.action.VIEW", Uri.parse("http://www.moe-yu.com/kiyaku.html")));
     }
 
+    /**
+     * 发送咨询邮件
+     */
     private void sendInquiryMail() {
         Intent intent = new Intent();
         intent.setAction("android.intent.action.SENDTO");
@@ -128,6 +214,10 @@ public class TitleActivity extends BaseActivity {
         startActivity(intent);
     }
 
+    /**
+     * 执行登录操作
+     * 根据是否有保存用户数据决定是登录还是注册
+     */
     /* access modifiers changed from: private */
     public void login() {
         UserDataManager dataManager = new UserDataManager(this);
@@ -139,6 +229,13 @@ public class TitleActivity extends BaseActivity {
         executeSignup();
     }
 
+    /**
+     * 获取文件描述符
+     * 配置媒体播放器的音频数据源
+     *
+     * @param player 播放器
+     * @param str 文件名
+     */
     private void getFileDescriptor(MediaPlayer player, String str) {
         try {
             player.setDataSource(openFileInput(str).getFD());
@@ -154,30 +251,63 @@ public class TitleActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 浴室按钮点击事件
+     * 播放浴室音乐并跳转到浴室页面
+     *
+     * @param view 点击的视图
+     */
     public void toKonyokuClick(View view) {
         getFileDescriptor(this.mBathCall, String.format("%03d", new Object[]{Integer.valueOf(new Random().nextInt(3) + 3)}) + ".ogg");
         this.mBathCall.start();
         toBath();
     }
 
+    /**
+     * 抽卡按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toGatyaClick(View view) {
         toGacha();
     }
 
+    /**
+     * 收藏房间按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toCollectionRoomClick(View view) {
         toCollection();
     }
 
+    /**
+     * 推特按钮点击事件
+     * 显示推特分享对话框
+     *
+     * @param view 点击的视图
+     */
     public void toTwitterClick(View view) {
         new TweetDialog(this).show(this);
     }
 
+    /**
+     * 设置按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toSetteiClick(View view) {
         toPreference();
     }
 
+    /**
+     * 执行登录操作
+     *
+     * @param userId 用户ID
+     */
     private void executeLogin(String userId) {
         ((LoginFragment) getSupportFragmentManager().findFragmentById(R.id.login_fragment)).login(userId, new UserDataListener() {
+            @Override
             public void onSuccess(UserData userData) {
                 TitleActivity.this.titleCall();
                 if (userData.hasBonus()) {
@@ -185,33 +315,50 @@ public class TitleActivity extends BaseActivity {
                 }
             }
 
+            @Override
             public void onError(MoeyuAPIException e) {
             }
 
+            @Override
             public void onCancel() {
             }
         }, false, false);
     }
 
+    /**
+     * 执行注册操作
+     */
     private void executeSignup() {
         ((SignupFragment) getSupportFragmentManager().findFragmentById(R.id.signup_fragment)).signup(new UserDataListener() {
+            @Override
             public void onSuccess(UserData userData) {
                 TitleActivity.this.mUserId = userData.getUserId();
                 TitleActivity.this.titleCall();
             }
 
+            @Override
             public void onError(MoeyuAPIException e) {
             }
 
+            @Override
             public void onCancel() {
             }
         });
     }
 
+    /**
+     * 登录奖励点击事件
+     *
+     * @param view 点击的视图
+     */
     public void onLoginBonusClick(View view) {
         view.setVisibility(View.INVISIBLE);
     }
 
+    /**
+     * 标题呼叫音乐播放
+     * 播放标题界面的语音
+     */
     /* access modifiers changed from: private */
     public void titleCall() {
         MediaPlayer mp = new MediaPlayer();

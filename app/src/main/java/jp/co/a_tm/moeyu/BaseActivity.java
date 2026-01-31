@@ -7,13 +7,14 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
 import jp.co.a_tm.moeyu.model.EventData;
 
 /**
- * 基础Activity
- * 负责提供一些跳转方法
+ * 基础Activity类
+ * 提供一些通用的跳转方法和基础功能
  *
- * @fixed Attect
+ * @author Attect
  * @date 2019-03-16
  */
 public abstract class BaseActivity extends AppCompatActivity {
@@ -86,12 +87,22 @@ public abstract class BaseActivity extends AppCompatActivity {
      */
     protected static final int NEXT_EXIT = -1;
 
+    /**
+     * 创建时回调方法
+     * 初始化Activity并隐藏系统UI
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         hideSystemUI();
     }
 
+    /**
+     * 暂停时回调方法
+     * 释放资源
+     */
     @Override
     protected void onPause() {
         super.onPause();
@@ -99,10 +110,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 隐藏一些系统UI及全屏
-     * 系统能够正确提示进入全屏状态
-     * 状态栏会被隐藏
-     * 但是底部导航栏将保留
+     * 隐藏系统UI并设置全屏
+     * 隐藏状态栏但保留底部导航栏
      */
     private void hideSystemUI() {
         getWindow().getDecorView().setSystemUiVisibility(
@@ -115,14 +124,15 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * Activity释放资源
-     * 例如一些Live2D占用的资源
+     * 释放资源
+     * 子类可重写以释放特定资源（如Live2D资源）
      */
     protected void release() {
     }
 
     /**
-     * 退出
+     * 退出应用
+     * 设置结果并结束活动
      */
     protected void exit() {
         Intent data = new Intent();
@@ -132,7 +142,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往标题
+     * 跳转到标题界面
      */
     protected void toTitle() {
         Intent data = new Intent();
@@ -142,7 +152,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往扭蛋
+     * 跳转到扭蛋界面
      */
     protected void toGacha() {
         Intent data = new Intent();
@@ -152,14 +162,14 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往洗澡
+     * 跳转到洗澡界面（无参数版本）
      */
     protected void toBath() {
         toBath(null);
     }
 
     /**
-     * 前往洗澡
+     * 跳转到洗澡界面
      *
      * @param scene  指定场景
      * @param itemId 默认选中道具
@@ -174,7 +184,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往洗澡
+     * 跳转到洗澡界面
      *
      * @param eventData 发生的事件
      */
@@ -189,7 +199,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往配置
+     * 跳转到设置界面
      */
     protected void toPreference() {
         Intent data = new Intent();
@@ -199,7 +209,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 从洗澡Activity前往配置
+     * 从洗澡Activity跳转到设置界面
      */
     protected void toPreferenceFromBath() {
         Intent data = new Intent();
@@ -209,7 +219,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往收藏
+     * 跳转到收藏界面
      */
     protected void toCollection() {
         Intent data = new Intent();
@@ -219,7 +229,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往道具收藏
+     * 跳转到道具收藏界面
      */
     protected void toItemCollection() {
         Intent data = new Intent();
@@ -229,7 +239,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往语音收藏
+     * 跳转到语音收藏界面
      */
     protected void toVoiceCollection() {
         Intent data = new Intent();
@@ -239,7 +249,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往桃璃的房间
+     * 跳转到桃璃房间界面
      */
     protected void toRoom() {
         Intent data = new Intent();
@@ -249,7 +259,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
     /**
-     * 前往秘密的日记
+     * 跳转到日记界面
      */
     protected void toDiary() {
         Intent data = new Intent();

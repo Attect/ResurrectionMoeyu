@@ -12,15 +12,35 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * 解密类
+ * 负责解密应用中的音频文件
+ */
 public class Decryption {
+    /**
+     * 音频文件夹名
+     */
     private static final String VOICE = "voice";
+    /** 中文音频文件夹名 */
     private static final String VOICE_CN = "voice_cn";
+    /** 上下文 */
     private Context mContext;
 
+    /**
+     * 构造函数
+     *
+     * @param context 上下文
+     */
     public Decryption(Context context) {
         this.mContext = context;
     }
 
+    /**
+     * 执行解密操作
+     * 解密所有音频文件并保存到应用目录
+     *
+     * @throws IOException IO异常
+     */
     public void execute() throws IOException {
         AssetManager manager = this.mContext.getResources().getAssets();
         String[] fileNames = manager.list(VOICE);
@@ -45,6 +65,14 @@ public class Decryption {
         }
     }
 
+    /**
+     * 解密文件内容
+     *
+     * @param name 文件名
+     * @param inputStream 输入流
+     * @return 解密后的字节数组
+     * @throws IOException IO异常
+     */
     private byte[] decrypt(String name, InputStream inputStream) throws IOException {
         BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
         byte[] buffer = new byte[512];
@@ -60,6 +88,13 @@ public class Decryption {
         return array;
     }
 
+    /**
+     * 写入文件
+     *
+     * @param name 文件名
+     * @param buffer 字节缓冲区
+     * @throws IOException IO异常
+     */
     private void write(String name, byte[] buffer) throws IOException {
         FileOutputStream fileOutputStream = this.mContext.openFileOutput(name, 0);
         fileOutputStream.write(buffer);

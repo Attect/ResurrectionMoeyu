@@ -11,29 +11,56 @@ import jp.co.a_tm.moeyu.model.EventData;
 import jp.co.a_tm.moeyu.model.UserData;
 import jp.co.a_tm.moeyu.util.Logger;
 
+/**
+ * 抽卡结果活动类
+ * 负责显示抽卡结果内容，包括获得的物品、等级提升、事件等
+ */
 public class GatyaResultActivity extends BaseActivity {
+    /**
+     * 抽卡结果额外参数名称
+     */
     public static final String EXTRA_GACHA_RESULT = "extra_gacha_result";
+    /** 前用户数据额外参数名称 */
     public static final String EXTRA_PRE_USER_DATA = "extra_pre_user_data";
+    /** 事件数据 */
     private EventData mEventData;
+    /** 首选项帮助器 */
     private PreferencesHelper mHelper;
+    /** 前用户数据 */
     private UserData mPreUserData;
+    /** 推荐抽卡状态 */
     private RecommendStatus mRecommendGachaStatus = RecommendStatus.None;
+    /** 推荐等级提升状态 */
     private RecommendStatus mRecommendLevelupStatus = RecommendStatus.None;
+    /** 用户数据 */
     private UserData mUserData;
 
+    /**
+     * 推荐状态枚举
+     * 定义推荐内容的不同状态
+     */
     private enum RecommendStatus {
         None,
         Item1,
         Item2
     }
 
-    /* access modifiers changed from: protected */
-    public void onCreate(Bundle savedInstanceState) {
+    /**
+     * 创建时回调方法
+     * 初始化抽卡结果界面
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gatya_result);
+
+        // 设置界面边距和背景色
         findViewById(R.id.layout_gatya_result).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
         findViewById(R.id.layout_gatya_result).setBackgroundColor(Color.BLACK);
 
+        // 获取抽卡结果和前用户数据
         GachaResult result = (GachaResult) getIntent().getSerializableExtra(EXTRA_GACHA_RESULT);
         this.mUserData = result.getUserData();
         this.mPreUserData = (UserData) getIntent().getSerializableExtra(EXTRA_PRE_USER_DATA);
@@ -43,17 +70,33 @@ public class GatyaResultActivity extends BaseActivity {
         showEventViews(this.mPreUserData.getLevel(), this.mPreUserData.isItemComplete());
     }
 
-    /* access modifiers changed from: protected */
-    public void onResume() {
+    /**
+     * 恢复时回调方法
+     *
+     * @param savedInstanceState 保存的实例状态
+     */
+    @Override
+    protected void onResume() {
         super.onResume();
-//        this.mTracker.trackPageView("ガチャ結果");
+        //        this.mTracker.trackPageView("ガチャ結果");
     }
 
+    /**
+     * 窗口焦点改变回调方法
+     *
+     * @param hasFocus 是否获得焦点
+     */
+    @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         setMeterImage();
     }
 
+    /**
+     * 推荐等级提升点击事件
+     *
+     * @param view 点击的视图
+     */
     public void onRecommendLevelupClick(View view) {
         ImageView recommendView = (ImageView) view;
         recommendView.setImageDrawable(null);
@@ -71,6 +114,11 @@ public class GatyaResultActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 推荐抽卡点击事件
+     *
+     * @param view 点击的视图
+     */
     public void onRecommendGachaClick(View view) {
         ImageView recommendView = (ImageView) view;
         recommendView.setImageDrawable(null);
@@ -88,16 +136,31 @@ public class GatyaResultActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 物品完成点击事件
+     *
+     * @param view 点击的视图
+     */
     public void onItemCompleteClick(View view) {
         view.setVisibility(View.INVISIBLE);
         toBath(this.mEventData);
     }
 
+    /**
+     * 等级提升点击事件
+     *
+     * @param view 点击的视图
+     */
     public void onLevelupClick(View view) {
         view.setVisibility(View.INVISIBLE);
         toBath(this.mEventData);
     }
 
+    /**
+     * 设置背景图像
+     *
+     * @param opened 是否已打开（获得物品）
+     */
     private void setBackImage(boolean opened) {
         String fileName = "result_back_";
         ImageView newImage = (ImageView) findViewById(R.id.img_gatya_result_body_item_new);
@@ -114,12 +177,20 @@ public class GatyaResultActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 设置物品图像
+     *
+     * @param num 物品编号
+     */
     private void setItemImage(int num) {
         ImageView picture = (ImageView) findViewById(R.id.img_gatya_result_body_item_picture);
         ((ImageView) findViewById(R.id.img_gatya_result_body_item_name)).setImageResource(getResources().getIdentifier("itemname_bar_" + num, "drawable", "jp.co.a_tm.moeyu"));
         picture.setImageResource(getResources().getIdentifier("item" + num + "_2x", "drawable", "jp.co.a_tm.moeyu"));
     }
 
+    /**
+     * 设置经验条图像
+     */
     private void setMeterImage() {
         if (!this.mPreUserData.isMaxLevel()) {
             float start;
@@ -149,6 +220,12 @@ public class GatyaResultActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 显示事件视图
+     *
+     * @param loveLevelBefore 等级之前的等级
+     * @param itemCompleteBefore 物品完成状态
+     */
     private void showEventViews(int loveLevelBefore, boolean itemCompleteBefore) {
         if (this.mHelper.isInitGatyaResult()) {
             findViewById(R.id.recommend_first_gacha_view).setVisibility(View.VISIBLE);
@@ -173,26 +250,47 @@ public class GatyaResultActivity extends BaseActivity {
         }
     }
 
+    /**
+     * 浴室按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toKonyokuClick(View view) {
         toBath();
     }
 
+    /**
+     * 抽卡按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toGatyaClick(View view) {
         toGacha();
     }
 
+    /**
+     * 物品按钮点击事件
+     *
+     * @param view 点击的视图
+     */
     public void toItemClick(View view) {
         toItemCollection();
     }
 
-    /* access modifiers changed from: protected */
-    public void onDestroy() {
+    /**
+     * 销毁时回调方法
+     */
+    @Override
+    protected void onDestroy() {
         super.onDestroy();
         Logger.d(getClass().getSimpleName() + " onDestroy()");
     }
 
-    /* access modifiers changed from: protected */
-    public void release() {
+    /**
+     * 释放资源
+     */
+    @Override
+    protected void release() {
         findViewById(R.id.indicator).setVisibility(View.VISIBLE);
         for (int id : new int[]{R.id.img_gatya_result_body_item_name, R.id.img_gatya_result_body_item_picture, R.id.img_gatya_result_header, R.id.img_gatya_result_body_top_back, R.id.img_gatya_result_body_center_back, R.id.img_gatya_result_body_meter_left, R.id.img_gatya_result_body_meter_right, R.id.img_gatya_result_body_under_back}) {
             ((ImageView) findViewById(id)).setImageDrawable(null);
