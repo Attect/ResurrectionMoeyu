@@ -1024,7 +1024,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         if (this.mDialog.isShowing()) {
             this.mDialog.dismiss();
         }
-        toActivity(NEXT_ACTIVITY_GACHA);
+        toGacha();
     }
 
     /**
@@ -1036,7 +1036,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         if (this.mDialog.isShowing()) {
             this.mDialog.dismiss();
         }
-        toActivity(NEXT_ACTIVITY_PREFERENCE_FROM_BATH);
+        toPreferenceFromBath();
     }
 
     /**
