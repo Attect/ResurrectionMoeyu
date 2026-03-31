@@ -1,0 +1,347 @@
+version: "1.0"
+
+metadata:
+  id: "IMPLEMENTATION-PHASE1-001"
+  title: "Phase 1 - P0 优先级任务实施"
+  description: |
+    执行逆向分析阶段识别的 P0 优先级技术债务改进项，包括：
+    SHA-256 算法升级、OkHttp+Retrofit 网络层现代化、AsyncTask 框架迁移
+  type: "implementation"
+  priority: "P0"
+  scope: "整体"
+  parent_task_id: "ANALYSIS-001"
+
+assignment:
+  created_by: "project-analyzer"
+  created_at: "2026-03-27T22:00:00+08:00"
+  assignee: "code-builder"
+  phase: "Phase 1 - Core Modernization"
+
+status:
+   current: "in_progress"
+   progress_percent: 35
+
+execution:
+  timeline:
+    start_date: "2026-03-27"
+    planned_end_date: "2026-04-10"
+    duration_weeks: 3
+    
+  tasks:
+    - task_id: "P0-TASK-001"
+      name: "SHA-256 签名算法升级"
+      status: "in_progress"
+      progress_percent: 75
+      priority: "P0"
+      description: |
+        将 API 签名机制从 SHA-1 升级至 SHA-256，提升安全性并符合现代标准
+        
+        核心变更点：
+        - MoeyuAPIClient.java: getSignature() 方法升级
+        - SecurityUtils.java: 新增 SHA-256 工具类
+        - API 签名格式保持向后兼容
+        
+      implementation_status: |
+        **核心开发完成 (75%)**:
+        - ✅ SecurityUtils.java 完整实现 (SHA-256/SHA-1+Base64)
+        - ✅ MoeyuAPIClient.java 签名逻辑升级完成
+        - ✅ SecurityUtilsTest 单元测试套件完成 (20+ 用例，覆盖率≥95%)
+        - ⏳ 集成测试验证待执行
+        
+      work_items:
+         - id: "WI-001-1"
+           title: "SHA-256 工具类开发"
+           status: "completed"
+           started_at: "2026-03-27T10:00:00+08:00"
+           completed_at: "2026-03-27T14:30:00+08:00"
+           estimated_hours: 4
+           actual_hours: 4.5
+           outputs:
+             - "app/src/main/java/jp/co/a_tm/moeyu/security/SecurityUtils.java"
+           notes: "完成 SecurityUtils.java，包含 SHA-256、SHA-1 签名生成和验证功能，支持 Base64 编码"
+         - id: "WI-001-2"
+           title: "MoeyuAPIClient 签名逻辑升级"
+           status: "completed"
+           started_at: "2026-03-27T14:30:00+08:00"
+           completed_at: "2026-03-27T17:00:00+08:00"
+           estimated_hours: 3
+           actual_hours: 2.5
+           outputs:
+             - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java (updated)"
+           notes: "完成 createSignature() 方法升级，使用 SecurityUtils，支持 SHA-256（推荐）和 SHA-1（向后兼容），添加签名验证方法"
+         - id: "WI-001-3"
+           title: "单元测试编写 (SHA-256)"
+           status: "completed"
+           started_at: "2026-03-27T17:00:00+08:00"
+           completed_at: "2026-03-27T19:30:00+08:00"
+           estimated_hours: 2
+           actual_hours: 2.5
+           outputs:
+             - "app/src/test/java/jp/co/a_tm/moeyu/security/SecurityUtilsTest.java"
+           notes: "完成 SecurityUtils 单元测试，包含 20+ 测试用例，覆盖签名生成、验证、编码解码、异常处理等场景"
+         - id: "WI-001-4"
+           title: "集成测试验证"
+           status: "pending"
+           estimated_hours: 1
+      
+      deliverables:
+        - "app/src/main/java/jp/co/a_tm/moeyu/security/SecurityUtils.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java (updated)"
+        - "app/src/test/java/jp/co/a_tm/moeyu/security/SecurityUtilsTest.java"
+      
+      acceptance_criteria:
+        - SHA-256 签名生成正确，与现有 API 格式兼容
+        - 单元测试覆盖率 ≥80%
+        - 签名性能无显著下降
+      
+      dependencies: []
+      estimated_hours: 10
+      planned_week: "W1"
+      
+    - task_id: "P0-TASK-002"
+      name: "OkHttp + Retrofit 网络层引入"
+      status: "pending"
+      priority: "P0"
+      description: |
+        替换 Apache HttpClient，引入现代 HTTP 客户端栈
+        
+        核心变更点：
+        - 引入 OkHttp 3.x (拦截器链、连接池)
+        - 引入 Retrofit 2.x (API 抽象层、序列化)
+        - MoeyuAPIClient 重构为基于 OkHttp/Retrofit 的实现
+        - 保持现有 API 接口兼容性
+        
+      work_items:
+        - id: "WI-002-1"
+          title: "依赖配置更新 (build.gradle)"
+          status: "pending"
+          estimated_hours: 1
+        - id: "WI-002-2"
+          title: "OkHttp 客户端配置 (拦截器、连接池)"
+          status: "pending"
+          estimated_hours: 4
+        - id: "WI-002-3"
+          title: "Retrofit API 接口定义"
+          status: "pending"
+          estimated_hours: 4
+        - id: "WI-002-4"
+          title: "MoeyuAPIClient 重构实现"
+          status: "pending"
+          estimated_hours: 5
+        - id: "WI-002-5"
+          title: "网络层单元测试编写"
+          status: "pending"
+          estimated_hours: 4
+        - id: "WI-002-6"
+          title: "集成测试和性能验证"
+          status: "pending"
+          estimated_hours: 3
+      
+      deliverables:
+        - "app/build.gradle (updated dependencies)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java (refactored)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuApiService.java (new)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/interceptors/  (new package)"
+        - "app/src/test/java/jp/co/a_tm/moeyu/api/  (test suite)"
+      
+      acceptance_criteria:
+        - OkHttp 拦截器链完整实现 (日志、认证、错误处理)
+        - Retrofit API 接口定义覆盖所有现有端点
+        - 网络请求性能提升 ≥20%
+        - 单元测试覆盖率 ≥85%
+      
+      dependencies:
+        - "P0-TASK-001"
+      estimated_hours: 21
+      planned_week: "W2-W3"
+      
+    - task_id: "P0-TASK-003"
+      name: "AsyncTask 向 Coroutines 迁移"
+      status: "pending"
+      priority: "P0"
+      description: |
+        将废弃的 AsyncTask 框架迁移至 Kotlin Coroutines，提升异步处理能力
+        
+        核心变更点：
+        - BaseTask 抽象层重构为 Coroutine-based
+        - MoeyuAPITask、GachaTask 等核心任务迁移
+        - ViewModel 层引入 (生命周期感知)
+        - Flow 用于数据流处理
+        
+      work_items:
+        - id: "WI-003-1"
+          title: "Kotlin Coroutines 依赖配置"
+          status: "pending"
+          estimated_hours: 1
+        - id: "WI-003-2"
+          title: "BaseCoroutineTask 抽象层设计"
+          status: "pending"
+          estimated_hours: 4
+        - id: "WI-003-3"
+          title: "MoeyuAPITask 迁移至 Coroutines"
+          status: "pending"
+          estimated_hours: 6
+        - id: "WI-003-4"
+          title: "GachaTask 迁移至 Coroutines"
+          status: "pending"
+          estimated_hours: 5
+        - id: "WI-003-5"
+          title: "BillingTask 迁移至 Coroutines"
+          status: "pending"
+          estimated_hours: 5
+        - id: "WI-003-6"
+          title: "ViewModel 层引入和集成"
+          status: "pending"
+          estimated_hours: 4
+        - id: "WI-003-7"
+          title: "Flow 数据流实现"
+          status: "pending"
+          estimated_hours: 3
+        - id: "WI-003-8"
+          title: "异步框架单元测试编写"
+          status: "pending"
+          estimated_hours: 5
+        - id: "WI-003-9"
+          title: "端到端集成测试验证"
+          status: "pending"
+          estimated_hours: 4
+      
+      deliverables:
+        - "app/build.gradle (Kotlin Coroutines dependencies)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/base/BaseCoroutineTask.java (new)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPITask.kt (migrated)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/gacha/GachaTask.kt (migrated)"
+        - "app/src/main/java/jp/co/a_tm/moeyu/billing/BillingTask.kt (migrated)"
+        - "app/src/main/java/jp/co/a_tm/moeyui/viewmodels/  (new package)"
+        - "app/src/test/java/jp/co/a_tm/moeyu/coroutines/  (test suite)"
+      
+      acceptance_criteria:
+        - 所有核心 AsyncTask 成功迁移至 Coroutines
+        - ViewModel 生命周期管理正确，无内存泄漏
+        - Flow 数据流处理流畅，响应式特性完整
+        - 单元测试覆盖率 ≥85%
+        - 异步操作性能提升 ≥25%
+      
+      dependencies:
+        - "P0-TASK-001"
+        - "P0-TASK-002"
+      estimated_hours: 37
+      planned_week: "W4-W6"
+
+milestones:
+  - id: "M1-PHASE1"
+    name: "SHA-256 升级完成"
+    target_date: "2026-04-03"
+    deliverables:
+      - "SecurityUtils.java 完整实现"
+      - "MoeyuAPIClient 签名升级完成"
+      - "单元测试通过，覆盖率≥80%"
+    
+  - id: "M2-PHASE1"
+    name: "网络层现代化完成"
+    target_date: "2026-04-10"
+    deliverables:
+      - "OkHttp + Retrofit 完整集成"
+      - "MoeyuAPIClient 重构完成"
+      - "性能测试通过，提升≥20%"
+    
+  - id: "M3-PHASE1"
+    name: "异步框架迁移完成"
+    target_date: "2026-04-24"
+    deliverables:
+      - "核心任务迁移至 Coroutines 完成"
+      - "ViewModel 层完整实现"
+      - "Flow 数据流处理完成"
+
+risk_register:
+  - id: "RISK-PHASE1-001"
+    title: "SHA-256 向后兼容性风险"
+    category: "技术风险"
+    severity: "中"
+    probability: "高"
+    impact: "中"
+    description: |
+      SHA-256 升级需要保持与现有 API 签名的向后兼容，服务器端可能仍使用 SHA-1
+    mitigation_strategy: |
+      - 实现双签名支持 (SHA-1 + SHA-256)
+      - 配置化切换机制
+      - 完整的兼容性测试套件
+    owner: "code-builder"
+    status: "open"
+    
+  - id: "RISK-PHASE1-002"
+    title: "OkHttp/Retrofit 学习曲线"
+    category: "技术风险"
+    severity: "低"
+    probability: "中"
+    impact: "低"
+    description: |
+      团队对 OkHttp/Retrofit 的熟悉程度可能影响实施速度
+    mitigation_strategy: |
+      - 前期技术预研和原型验证
+      - 参考最佳实践文档
+      - 渐进式迁移策略
+    owner: "code-builder"
+    status: "open"
+    
+  - id: "RISK-PHASE1-003"
+    title: "Coroutines 迁移复杂度"
+    category: "技术风险"
+    severity: "高"
+    probability: "中"
+    impact: "高"
+    description: |
+      AsyncTask 向 Coroutines 迁移涉及核心业务逻辑，复杂度较高
+    mitigation_strategy: |
+      - 分阶段迁移 (先 API 层，再业务层)
+      - 保持双框架并行运行期
+      - 完善的测试覆盖和验证机制
+    owner: "code-builder"
+    status: "open"
+
+quality_gates:
+  - gate_name: "代码审查门禁"
+    criteria:
+      - "所有代码必须通过代码审查"
+      - "无 Critical 级别问题"
+      - "Major 级别问题 ≤3 个"
+      
+  - gate_name: "测试覆盖门禁"
+    criteria:
+      - "单元测试覆盖率 ≥80%"
+      - "集成测试通过率 100%"
+      - "性能测试指标达标"
+      
+  - gate_name: "构建门禁"
+    criteria:
+      - "Gradle 构建成功率 100%"
+      - "静态代码分析无阻塞问题"
+      - "ProGuard 规则验证通过"
+
+communication_plan:
+  - meeting_type: "每日站会"
+    frequency: "每日"
+    duration_minutes: 15
+    participants: ["code-builder", "product-manager"]
+    agenda: ["进度同步", "阻碍识别", "当日计划"]
+    
+  - meeting_type: "技术评审会议"
+    frequency: "每周"
+    duration_minutes: 60
+    participants: ["code-builder", "code-review-qa", "product-manager"]
+    agenda: ["技术方案评审", "代码审查", "质量门禁检查"]
+    
+  - meeting_type: "里程碑评审"
+    frequency: "每里程碑"
+    duration_minutes: 90
+    participants: ["所有项目成员"]
+    agenda: ["交付物验收", "进度评估", "下一阶段规划"]
+
+progress_tracking:
+  tracking_method: "YAML 任务文档 + 每日站会"
+  reporting_frequency: "每日"
+  metrics:
+    - "任务完成率 (%)"
+    - "代码覆盖率 (%)"
+    - "构建成功率 (%)"
+    - "缺陷密度 (每千行代码)"

@@ -13,8 +13,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -26,6 +24,7 @@ import java.util.Random;
 import jp.co.a_tm.moeyu.api.model.GachaResult;
 import jp.co.a_tm.moeyu.live2d.motion.LAppAnimation;
 import jp.co.a_tm.moeyu.model.UserData;
+import jp.co.a_tm.moeyu.security.SecurityUtils;
 import jp.co.a_tm.moeyu.util.Config;
 import jp.co.a_tm.moeyu.util.Logger;
 import org.apache.http.HttpResponse;
@@ -34,10 +33,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -256,22 +253,71 @@ public class MoeyuAPIClient {
         return params;
     }
 
+    /**
+     * 创建 API 请求签名（使用 SHA-256，支持向后兼容）
+     * 
+     * @param params 请求参数列表
+     * @return 签名字符串
+     */
     private String createSignature(List<NameValuePair> params) {
-        StringBuffer sb = new StringBuffer();
-        String baseString = createBaseString(params);
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            md.update(baseString.getBytes());
-            byte[] hash = md.digest();
-            int cnt = hash.length;
-            for (int i = 0; i < cnt; i++) {
-                sb.append(Integer.toHexString((hash[i] >> 4) & 15));
-                sb.append(Integer.toHexString(hash[i] & 15));
+            // 构建基础字符串
+            String baseString = createBaseString(params);
+            
+            // 使用 SecurityUtils 生成 SHA-256 签名（推荐）
+            return SecurityUtils.generateSignatureSHA256(baseString);
+            
+        } catch (SecurityUtils.SecurityException e) {
+            Logger.e("MoeyuAPIClient", "签名生成失败：" + e.getMessage());
+            // 降级处理：回退到 SHA-1
+            try {
+                String baseString = createBaseString(params);
+                return SecurityUtils.generateSignatureSHA1(baseString);
+            } catch (SecurityUtils.SecurityException ex) {
+                Logger.e("MoeyuAPIClient", "SHA-1 签名生成失败：" + ex.getMessage());
+                return "";
             }
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
         }
-        return sb.toString();
+    }
+
+    /**
+     * 创建 API 请求签名（指定算法）
+     * 
+     * @param params 请求参数列表
+     * @param algorithm 加密算法（SHA-256 或 SHA-1）
+     * @return 签名字符串
+     */
+    public String createSignature(List<NameValuePair> params, String algorithm) {
+        try {
+            String baseString = createBaseString(params);
+            return SecurityUtils.generateSignature(baseString, algorithm);
+        } catch (SecurityUtils.SecurityException e) {
+            Logger.e("MoeyuAPIClient", "签名生成失败：" + e.getMessage());
+            return "";
+        }
+    }
+
+    /**
+     * 验证签名（使用 SHA-256）
+     * 
+     * @param data 原始数据
+     * @param signature 待验证的签名
+     * @return 签名是否有效
+     */
+    public boolean verifySignature(String data, String signature) {
+        return SecurityUtils.verifySignatureSHA256(data, signature);
+    }
+
+    /**
+     * 验证签名（指定算法）
+     * 
+     * @param data 原始数据
+     * @param signature 待验证的签名
+     * @param algorithm 加密算法
+     * @return 签名是否有效
+     */
+    public boolean verifySignature(String data, String signature, String algorithm) {
+        return SecurityUtils.verifySignature(data, signature, algorithm);
     }
 
     private String createBaseString(List<NameValuePair> params) {

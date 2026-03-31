@@ -56,7 +56,8 @@
         </activity>
         <activity
             android:name=".TitleActivity"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -98,7 +99,7 @@
             android:screenOrientation="portrait" />
 
         <service android:name=".billing.BillingService" />
-        <receiver android:name=".billing.BillingReceiver">
+        <receiver android:name=".billing.BillingReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="com.android.vending.billing.IN_APP_NOTIFY" />
                 <action android:name="com.android.vending.billing.RESPONSE_CODE" />

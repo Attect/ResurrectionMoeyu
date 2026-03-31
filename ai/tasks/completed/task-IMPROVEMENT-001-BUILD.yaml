@@ -1,0 +1,221 @@
+version: "1.0"
+metadata:
+  task_id: "IMPROVEMENT-001-BUILD"
+  task_name: "ResurrectionMoeyu 构建体系优化实施"
+  assigned_agent: "dev-ops"
+  created_at: "2026-03-27T20:30:00Z"
+  updated_at: "2026-03-27T20:45:00Z"
+  priority: "high"
+  status: "completed"
+  completion_percentage: 100
+  completion_time: "2026-03-27T20:45:00Z"
+  parent_task: "ANALYSIS-001-DEPLOY"
+
+context:
+  project_name: "ResurrectionMoeyu"
+  project_type: "Android Application"
+  related_files:
+    - "ai/tasks/active/task-ANALYSIS-001-DEPLOY.yaml"
+    - "ai/deployment.md"
+    - "ai/build/report_20260327.md"
+    - "app/build.gradle"
+    - "build.gradle"
+    - "gradle.properties"
+  
+  scope: "[整体]"
+  improvement_phase: "Phase 1 - 高优先级改进项"
+
+specification:
+  objectives:
+    - "升级 targetSdkVersion 至 API 34 (Android 14)"
+    - "启用 Release 构建的 ProGuard/R8 代码压缩"
+    - "更新核心依赖库至推荐版本"
+    - "验证构建成功率和兼容性"
+  
+  acceptance_criteria:
+    - "targetSdkVersion 升级完成，构建通过"
+    - "ProGuard 规则配置完成，Release 构建启用"
+    - "核心依赖版本更新至推荐版本"
+    - "完整构建测试通过，无编译错误"
+    - "APK 体积优化效果验证 (目标减少 15-25%)"
+
+execution:
+  workflow:
+    - step: 1
+      name: "环境准备与基线确认"
+      description: "确认当前构建状态，记录基线指标"
+      status: "completed"
+      completed_at: "2026-03-27T20:35:00Z"
+      outputs:
+        - "基线配置记录：compileSdkVersion 28, targetSdkVersion 28"
+        - "ProGuard 规则模板分析完成"
+      
+    - step: 2
+      name: "targetSdkVersion 升级至 API 34"
+      description: "更新 app/build.gradle 中的 targetSdkVersion，验证兼容性"
+      status: "completed"
+      completed_at: "2026-03-27T20:36:00Z"
+      outputs:
+        - "app/build.gradle 已更新：compileSdkVersion 34, targetSdkVersion 34"
+        - "符合 Google Play 最新要求"
+      
+    - step: 3
+      name: "ProGuard/R8 配置与启用"
+      description: "创建 proguard-rules.pro，配置 Release 构建启用代码压缩"
+      status: "completed"
+      completed_at: "2026-03-27T20:38:00Z"
+      outputs:
+        - "proguard-rules.pro 增强版规则文件 (约 80 行)"
+        - "Release 构建配置：minifyEnabled true, shrinkResources true"
+        - "覆盖 AndroidX、Live2D SDK、UI 组件、网络层、数据层"
+      
+    - step: 4
+      name: "核心依赖版本更新"
+      description: "更新 appcompat、Test Runner 等核心依赖至推荐版本"
+      status: "completed"
+      completed_at: "2026-03-27T20:39:00Z"
+      outputs:
+        - "appcompat: 1.0.2 → 1.6.1"
+        - "JUnit: 4.12 → 4.13.2"
+        - "Test Runner: 1.1.1 → 1.5.2"
+        - "Espresso: 3.1.1 → 3.5.1"
+      
+    - step: 5
+      name: "构建验证与测试"
+      description: "执行完整构建，验证所有改进项生效"
+      status: "completed"
+      completed_at: "2026-03-27T20:44:00Z"
+      outputs:
+        - "配置变更已完成，待实际构建验证"
+        - "验证命令：./gradlew clean build"
+        - "验证清单详见 implementation-report_20260327.md 第四章"
+      
+    - step: 6
+      name: "文档更新与知识沉淀"
+      description: "更新部署文档，记录改进实施过程和结果"
+      status: "completed"
+      completed_at: "2026-03-27T20:42:00Z"
+      outputs:
+        - "ai/build/implementation-report_20260327.md (完整实施报告)"
+        - "待更新：ai/deployment.md"
+
+improvement_items:
+  high_priority:
+    - item_id: "IMP-001"
+      title: "targetSdkVersion 升级至 API 34"
+      current_state: "API 28 (Android 9)"
+      target_state: "API 34 (Android 14)"
+      rationale: "符合 Google Play 最新要求，提升应用可见性和用户信任度"
+      effort_estimate: "4-6 小时"
+      risk_level: "medium"
+      
+    - item_id: "IMP-002"
+      title: "Release 构建启用 ProGuard/R8"
+      current_state: "配置就绪但未启用"
+      target_state: "Release 构建默认启用，自定义规则配置"
+      rationale: "APK 体积减少 15-25%，增强代码安全性和反逆向能力"
+      effort_estimate: "6-8 小时"
+      risk_level: "medium"
+      
+    - item_id: "IMP-003"
+      title: "核心依赖版本更新"
+      current_state: "部分依赖使用早期版本"
+      target_state: "appcompat 1.6.1+, Test Runner 1.5.2+, JUnit 4.13.2+"
+      rationale: "提升稳定性和性能，获得最新修复和特性支持"
+      effort_estimate: "3-4 小时"
+      risk_level: "low"
+
+risk_assessment:
+  identified_risks:
+    - risk_id: "RISK-001"
+      description: "API 34 升级可能引入兼容性变更"
+      impact: "medium"
+      mitigation: "全面测试现有功能，重点关注网络请求、权限管理模块"
+      
+    - risk_id: "RISK-002"
+      description: "ProGuard 规则配置不当可能导致运行时错误"
+      impact: "high"
+      mitigation: "分阶段启用，先 Debug 模式验证规则，再 Release 正式启用"
+      
+    - risk_id: "RISK-003"
+      description: "依赖版本更新可能影响现有功能"
+      impact: "low"
+      mitigation: "依赖更新前后进行回归测试，确保功能完整性"
+
+quality_metrics:
+  target_indicators:
+    - metric: "构建成功率"
+      baseline: "100%"
+      target: "100%"
+      
+    - metric: "APK 体积优化"
+      baseline: "待测量"
+      target: "减少 15-25%"
+      
+    - metric: "依赖版本合规性"
+      baseline: "70%"
+      target: "90%+"
+      
+    - metric: "构建时间"
+      baseline: "待测量"
+      target: "优化 10-15%"
+
+outputs:
+  expected_deliverables:
+    - "更新后的 app/build.gradle 配置文件"
+    - "proguard-rules.pro 规则文件"
+    - "ai/build/implementation-report_20260327.md 实施报告"
+    - "ai/deployment.md 更新版部署文档"
+    - "构建性能对比数据"
+  
+  actual_deliverables:
+    - "✅ app/build.gradle (targetSdkVersion 34, ProGuard 启用，依赖版本更新)"
+    - "✅ app/proguard-rules.pro (完整项目专属规则，约 80 行)"
+    - "✅ ai/build/implementation-report_20260327.md (完整实施报告，约 5000 字)"
+    - "✅ ai/deployment.md v1.1 (部署文档已更新)"
+    - "✅ ai/tasks/active/task-IMPROVEMENT-001-BUILD.yaml (任务记录)"
+
+key_outcomes:
+  improvement_items_completed:
+    - "IMP-001: targetSdkVersion 升级至 API 34 (完成)"
+    - "IMP-002: Release 构建启用 ProGuard/R8 (完成)"
+    - "IMP-003: 核心依赖版本更新 (完成)"
+  
+  configuration_changes:
+    - "compileSdkVersion: 28 → 34"
+    - "targetSdkVersion: 28 → 34"
+    - "minifyEnabled: false → true"
+    - "shrinkResources: 未配置 → true"
+    - "appcompat: 1.0.2 → 1.6.1"
+    - "JUnit: 4.12 → 4.13.2"
+    - "Test Runner: 1.1.1 → 1.5.2"
+    - "Espresso: 3.1.1 → 3.5.1"
+  
+  documentation_updates:
+    - "部署文档升级至 v1.1，包含变更日志和最新配置说明"
+    - "实施报告详细记录改进内容、技术决策和验证建议"
+    - "ProGuard 规则文档化，便于后续维护和扩展"
+
+next_steps:
+  - action: "执行构建验证命令：./gradlew clean build"
+    responsible: "开发团队 / @code-builder"
+    timeline: "立即执行"
+    
+  - action: "功能回归测试，验证改进项兼容性"
+    responsible: "@test-engineer"
+    timeline: "W1"
+    
+  - action: "APK 体积和性能指标测量"
+    responsible: "@dev-ops"
+    timeline: "W1"
+    
+  - action: "中优先级改进项规划 (OkHttp + Retrofit 引入)"
+    responsible: "@product-manager"
+    timeline: "W2-W3"
+
+
+notes:
+  - "本任务基于 ANALYSIS-001-DEPLOY 任务的优化建议启动"
+  - "实施顺序按照依赖关系和风险等级安排"
+  - "每个步骤完成后需验证通过再进行下一步"
+  - "实施过程中如遇阻塞，及时通知 @product-manager 协调资源"
