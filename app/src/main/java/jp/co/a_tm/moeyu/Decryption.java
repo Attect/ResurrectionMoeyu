@@ -21,6 +21,8 @@ public class Decryption {
      * 音频文件夹名
      */
     private static final String VOICE = "voice";
+    /** XOR解密密钥 */
+    private static final int XOR_KEY = 58;
     /** 中文音频文件夹名 */
     private static final String VOICE_CN = "voice_cn";
     /** 上下文 */
@@ -83,7 +85,7 @@ public class Decryption {
         byte[] array = byteArrayOutputStream.toByteArray();
         int limit = array.length;
         for (int i = 0; i < limit; i++) {
-            array[i] = (byte) (array[i] ^ 58);
+            array[i] = (byte) (array[i] ^ XOR_KEY);
         }
         return array;
     }

@@ -9,9 +9,7 @@ import jp.co.a_tm.moeyu.api.task.LoginTask;
 import jp.co.a_tm.moeyu.model.UserData;
 
 public class LoginFragment extends NetworkBaseFragment {
-    /* access modifiers changed from: private */
     public UserDataListener mListener;
-    /* access modifiers changed from: private */
     public boolean mShowNetoworkError;
     private String mUserId;
 
@@ -31,7 +29,7 @@ public class LoginFragment extends NetworkBaseFragment {
         execute();
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void execute() {
         this.mIndicator.setVisibility(View.VISIBLE);
         new LoginTask(getActivity(), this.mUserId, new MoeyuAPITaskListener<UserData>() {

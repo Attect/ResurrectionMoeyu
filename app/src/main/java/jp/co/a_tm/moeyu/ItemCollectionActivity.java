@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -26,6 +27,8 @@ import jp.co.a_tm.moeyu.util.Logger;
 public class ItemCollectionActivity extends BaseActivity {
     /**
      * 场景映射数组
+     * 数组索引对应物品ID(0=占位), 值为该物品使用的场景
+     * 索引1~25分别对应物品01~25
      */
     private static Scene[] sScenes = new Scene[]{null, Scene.bath_a, Scene.body, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.bath_a, Scene.body, Scene.head, Scene.bath_a, Scene.body, Scene.bath_a, Scene.body, Scene.bath_a, Scene.bath_a};
     /** 最大行数 */
@@ -102,7 +105,7 @@ public class ItemCollectionActivity extends BaseActivity {
                 public void onClick(View view) {
                     Logger.d("Click item=" + item.getItemNumber(buttonNumber));
                     final Dialog dialog = new Dialog(ItemCollectionActivity.this, R.style.clear_dialog);
-                    dialog.requestWindowFeature(1);
+                    dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
                     dialog.setContentView(R.layout.dialog_itemcollec);
                     dialog.setCanceledOnTouchOutside(true);
                     ItemListAdapter.this.setDialogImageView(dialog, item, buttonNumber);
@@ -135,7 +138,6 @@ public class ItemCollectionActivity extends BaseActivity {
          * @param item 物品项
          * @param buttonNumber 按钮编号
          */
-        /* access modifiers changed from: private */
         public void setDialogImageView(Dialog dialog, ItemListItem item, int buttonNumber) {
             ImageView imgName = (ImageView) dialog.findViewById(R.id.img_itemcollec_dialog_itemname);
             ImageView imgPict = (ImageView) dialog.findViewById(R.id.img_itemcollec_dialog_itempicture);
@@ -180,7 +182,7 @@ public class ItemCollectionActivity extends BaseActivity {
 
         // 初始化物品控制器并创建物品列表
         ItemTableController itemController = new ItemTableController(getApplicationContext());
-        List<ItemListItem> list = new ArrayList();
+        List<ItemListItem> list = new ArrayList<>();
         list.add(new ItemListItem(new int[]{-1, 1, -1}, itemController));
         for (int i = 2; i <= itemController.countRows(); i += 3) {
             list.add(new ItemListItem(new int[]{i, i + 1, i + 2}, itemController));
@@ -244,7 +246,6 @@ public class ItemCollectionActivity extends BaseActivity {
      *
      * @param itemId 物品ID
      */
-    /* access modifiers changed from: private */
     public void startBathActivity(int itemId) {
         toBath(getScene(itemId), itemId);
     }

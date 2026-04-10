@@ -11,7 +11,6 @@ import jp.co.a_tm.moeyu.api.task.GachaTask;
 
 public class GachaFragment extends NetworkBaseFragment {
     private GachaCoin mCoin;
-    /* access modifiers changed from: private */
     public GachaResultListener mListener;
     private String mUserId;
 
@@ -22,7 +21,7 @@ public class GachaFragment extends NetworkBaseFragment {
         execute();
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void execute() {
         this.mIndicator.setVisibility(View.VISIBLE);
         new GachaTask(getActivity(), this.mUserId, this.mCoin, new MoeyuAPITaskListener<GachaResult>() {

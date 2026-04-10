@@ -11,7 +11,7 @@ import jp.co.a_tm.moeyu.util.UserDataManager;
 public class EventController implements Serializable {
     private static final long serialVersionUID = 2418885684766671952L;
     private Context mContext;
-    private ArrayList<EventData> mList = new ArrayList();
+    private ArrayList<EventData> mList = new ArrayList<>();
 
     public EventController(Context context) {
         this.mContext = context;

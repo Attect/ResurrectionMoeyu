@@ -25,7 +25,6 @@ public abstract class BaseTask<Params, Progress, Result> extends AsyncTask<Param
         this.mDataManager = new UserDataManager(this.mContext);
     }
 
-    /* access modifiers changed from: protected */
     public void onPostExecute(Result result) {
         if (this.mListener != null) {
             this.mListener.onPreCallback();
@@ -41,7 +40,6 @@ public abstract class BaseTask<Params, Progress, Result> extends AsyncTask<Param
         }
     }
 
-    /* access modifiers changed from: protected */
     public void onCancelled() {
         if (this.mListener != null) {
             this.mListener.onPreCallback();
@@ -49,7 +47,6 @@ public abstract class BaseTask<Params, Progress, Result> extends AsyncTask<Param
         }
     }
 
-    /* access modifiers changed from: protected */
     public void storeUserData(UserData userData) {
         if (userData != null) {
             this.mDataManager.saveUserData(userData);

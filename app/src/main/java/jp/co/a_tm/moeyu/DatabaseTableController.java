@@ -41,16 +41,16 @@ public class DatabaseTableController {
         return this.mHelper.isOpened(this.TABLE_NAME, startId, endId);
     }
 
-    public String isName(int id) {
-        return this.mHelper.isName(this.TABLE_NAME, id);
+    public String getName(int id) {
+        return this.mHelper.getName(this.TABLE_NAME, id);
     }
 
-    public String isTitle(int id) {
-        return this.mHelper.isTitle(this.TABLE_NAME, id);
+    public String getTitle(int id) {
+        return this.mHelper.getTitle(this.TABLE_NAME, id);
     }
 
-    public int isTerm(int id) {
-        return this.mHelper.isTerm(this.TABLE_NAME, id);
+    public int getTerm(int id) {
+        return this.mHelper.getTerm(this.TABLE_NAME, id);
     }
 
     public int countOpened() {

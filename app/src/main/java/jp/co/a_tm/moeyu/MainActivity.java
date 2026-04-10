@@ -125,7 +125,7 @@ public class MainActivity extends BaseActivity {
             startTitleActivity();
         } else {
             // 获取跳转到的页面类型
-            int nextPageType = data.getIntExtra("extra_next_activity", -1);
+            int nextPageType = data.getIntExtra(BaseActivity.EXTRA_NEXT_ACTIVITY, -1);
             // 根据类型跳转到对应的页面
             switch (nextPageType) {
                 case -1: // 结束应用

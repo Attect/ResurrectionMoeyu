@@ -9,7 +9,6 @@ import jp.co.a_tm.moeyu.api.task.SignupTask;
 import jp.co.a_tm.moeyu.model.UserData;
 
 public class SignupFragment extends NetworkBaseFragment {
-    /* access modifiers changed from: private */
     public UserDataListener mListener;
 
     public void signup(UserDataListener listener) {
@@ -17,7 +16,7 @@ public class SignupFragment extends NetworkBaseFragment {
         execute();
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void execute() {
         this.mIndicator.setVisibility(View.VISIBLE);
         new SignupTask(getActivity(), new MoeyuAPITaskListener<UserData>() {

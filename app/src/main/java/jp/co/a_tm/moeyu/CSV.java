@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class CSV {
     public ArrayList<VoiceTitle> loadVoice(Context context) {
-        ArrayList<VoiceTitle> list = new ArrayList();
+        ArrayList<VoiceTitle> list = new ArrayList<>();
         InputStreamReader in = new InputStreamReader(context.getResources().openRawResource(R.raw.voice));
         BufferedReader br = new BufferedReader(in);
         while (true) {
@@ -37,7 +37,7 @@ public class CSV {
     }
 
     public ArrayList<String> loadNote(Context context) {
-        ArrayList<String> list = new ArrayList();
+        ArrayList<String> list = new ArrayList<>();
         InputStreamReader in = new InputStreamReader(context.getResources().openRawResource(R.raw.note));
         BufferedReader br = new BufferedReader(in);
         while (true) {

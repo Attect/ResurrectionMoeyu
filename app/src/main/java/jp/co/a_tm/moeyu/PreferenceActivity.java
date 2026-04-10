@@ -16,7 +16,6 @@ public class PreferenceActivity extends BaseActivity {
     /**
      * 首选项帮助器
      */
-    /* access modifiers changed from: private */
     public PreferencesHelper mPreferencesHelper;
 
     /**
@@ -70,7 +69,7 @@ public class PreferenceActivity extends BaseActivity {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode != 4) {
+        if (keyCode != KeyEvent.KEYCODE_BACK) {
             return super.onKeyDown(keyCode, event);
         }
         onBackClick(null);

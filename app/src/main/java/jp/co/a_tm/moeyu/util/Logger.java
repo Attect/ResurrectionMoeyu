@@ -59,4 +59,10 @@ public class Logger {
             Log.e(TAG, msg);
         }
     }
+
+    public static void e(String tag, String msg, Throwable tr) {
+        if (sConfig != null && !sConfig.isProd()) {
+            Log.e(TAG, msg, tr);
+        }
+    }
 }

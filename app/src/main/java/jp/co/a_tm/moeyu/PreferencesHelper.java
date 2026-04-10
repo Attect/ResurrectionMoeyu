@@ -5,99 +5,99 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
 public class PreferencesHelper {
-    private SharedPreferences sp;
+    private SharedPreferences mPreferences;
 
     public PreferencesHelper(Context context) {
-        this.sp = context.getSharedPreferences("data", 0);
+        this.mPreferences = context.getSharedPreferences("data", 0);
     }
 
     public boolean isInitBoot() {
-        return this.sp.getBoolean("InitBoot", true);
+        return this.mPreferences.getBoolean("InitBoot", true);
     }
 
     public void setInitBoot(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitBoot", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isInitGatya() {
-        return this.sp.getBoolean("InitGatya", true);
+        return this.mPreferences.getBoolean("InitGatya", true);
     }
 
     public boolean isInitBath() {
-        return this.sp.getBoolean("InitBath", true);
+        return this.mPreferences.getBoolean("InitBath", true);
     }
 
     public void setInitBath(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitBath", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public void setInitGatya(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitGatya", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isInitGatyaResult() {
-        return this.sp.getBoolean("InitGatyaResult", true);
+        return this.mPreferences.getBoolean("InitGatyaResult", true);
     }
 
     public void setInitGatyaResult(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitGatyaResult", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isInitLevelUp() {
-        return this.sp.getBoolean("InitLevelUp", true);
+        return this.mPreferences.getBoolean("InitLevelUp", true);
     }
 
     public void setInitLevelUp(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitLevelUp", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isCameraSetting() {
-        return this.sp.getBoolean("Camera", false);
+        return this.mPreferences.getBoolean("Camera", false);
     }
 
     public void setCameraSetting(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("Camera", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isInitTweet() {
-        return this.sp.getBoolean("InitTweet", true);
+        return this.mPreferences.getBoolean("InitTweet", true);
     }
 
     public void setInitTweet(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("InitTweet", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public boolean isTwitterCheck() {
-        return this.sp.getBoolean("Twitter", true);
+        return this.mPreferences.getBoolean("Twitter", true);
     }
 
     public void setTwitterCheck(boolean bool) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putBoolean("Twitter", bool);
-        editor.commit();
+        editor.apply();
     }
 
     public String getAppVersion() {
-        return this.sp.getString("AppVersion", "1.0.0");
+        return this.mPreferences.getString("AppVersion", "1.0.0");
     }
 
     public void setAppVersion(String version) {
-        Editor editor = this.sp.edit();
+        Editor editor = this.mPreferences.edit();
         editor.putString("AppVersion", version);
-        editor.commit();
+        editor.apply();
     }
 }

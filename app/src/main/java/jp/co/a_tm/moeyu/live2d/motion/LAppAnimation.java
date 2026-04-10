@@ -108,7 +108,6 @@ public class LAppAnimation {
         }
     }
 
-    /* access modifiers changed from: 0000 */
     public Live2DMotion loadMotion(String dir, String filename) {
         try {
             return Live2DMotion.loadMotion(UtFile.load(this.live2DManager.getFileManager().open_resource(dir + "/" + filename + ".mtn")));

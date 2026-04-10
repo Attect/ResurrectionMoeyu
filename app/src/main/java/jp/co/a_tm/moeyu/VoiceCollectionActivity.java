@@ -34,30 +34,24 @@ public class VoiceCollectionActivity extends BaseActivity {
     /** 完成状态文本视图 */
     private TextView mCompleteState;
     /** 语音控制器 */
-    /* access modifiers changed from: private */
     public VoiceTableController mController;
     /** 事件适配器 */
     private VoiceListAdapter mEventAdapter;
     /** 事件是否打开数组 */
-    /* access modifiers changed from: private */
     public boolean[] mEventOpened = new boolean[288];
     /** 物品适配器 */
     private VoiceListAdapter mItemAdapter;
     /** 物品是否打开数组 */
-    /* access modifiers changed from: private */
     public boolean[] mItemOpened = new boolean[244];
     /** 列表视图 */
     private ListView mListView;
     /** 普通适配器 */
     private VoiceListAdapter mNormalAdapter;
     /** 普通是否打开数组 */
-    /* access modifiers changed from: private */
     public boolean[] mNormalOpened = new boolean[122];
     /** 播放器 */
-    /* access modifiers changed from: private */
     public MediaPlayer mPlayer;
     /** 当前选择的标签页 */
-    /* access modifiers changed from: private */
     public Tab mSelectTab;
 
     /**
@@ -93,21 +87,21 @@ public class VoiceCollectionActivity extends BaseActivity {
                 switch (VoiceCollectionActivity.this.mSelectTab.ordinal()) {
                     case 1: // 普通语音
                         if (VoiceCollectionActivity.this.mNormalOpened[position]) {
-                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(position + 1) + ".ogg");
+                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.getName(position + 1) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
                             return;
                         }
                         return;
                     case 2: // 物品语音
                         if (VoiceCollectionActivity.this.mItemOpened[position]) {
-                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(((position + 122) - 15) + 2) + ".ogg");
+                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.getName(((position + 122) - 15) + 2) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
                             return;
                         }
                         return;
                     case 3: // 事件语音
                         if (VoiceCollectionActivity.this.mEventOpened[position]) {
-                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.isName(((position + 244) - 15) + 2) + ".ogg");
+                            VoiceCollectionActivity.this.getFileDescriptor(VoiceCollectionActivity.this.mPlayer, VoiceCollectionActivity.this.mController.getName(((position + 244) - 15) + 2) + ".ogg");
                             VoiceCollectionActivity.this.mPlayer.start();
                             return;
                         }
@@ -188,10 +182,10 @@ public class VoiceCollectionActivity extends BaseActivity {
      * @return 语音列表适配器
      */
     private VoiceListAdapter addList(VoiceTableController controller, boolean[] opened, int base) {
-        List<String> list = new ArrayList();
+        List<String> list = new ArrayList<>();
         for (int i = 0; i < opened.length; i++) {
             if (opened[i]) {
-                list.add(controller.isTitle((base + i) + 1));
+                list.add(controller.getTitle((base + i) + 1));
             } else {
                 list.add("？？？？？？");
             }

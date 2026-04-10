@@ -106,7 +106,6 @@ public class CameraPreview extends SurfaceView implements Callback {
         }
     }
 
-    /* access modifiers changed from: protected */
     public Size determinePreviewSize(boolean portrait, int reqWidth, int reqHeight) {
         int reqPreviewWidth;
         int reqPreviewHeight;
@@ -140,7 +139,6 @@ public class CameraPreview extends SurfaceView implements Callback {
         return retSize;
     }
 
-    /* access modifiers changed from: protected */
     public Size determinePictureSize(Size previewSize) {
         Size retSize = null;
         for (Size size : this.mPictureSizeList) {
@@ -163,7 +161,6 @@ public class CameraPreview extends SurfaceView implements Callback {
         return retSize;
     }
 
-    /* access modifiers changed from: protected */
     public boolean adjustSurfaceLayoutSize(Size previewSize, boolean portrait, int availableWidth, int availableHeight) {
         float tmpLayoutHeight;
         float tmpLayoutWidth;
@@ -207,7 +204,6 @@ public class CameraPreview extends SurfaceView implements Callback {
         this.mCenterPosY = y;
     }
 
-    /* access modifiers changed from: protected */
     public void configureCameraParameters(Parameters cameraParams, boolean portrait) {
         if (VERSION.SDK_INT >= 8) {
             int angle;

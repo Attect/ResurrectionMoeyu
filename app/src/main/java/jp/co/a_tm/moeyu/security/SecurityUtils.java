@@ -214,7 +214,7 @@ public class SecurityUtils {
      * @return Base64 编码后的字符串
      */
     public static String encodeBase64(String data) {
-        return BASE64_ENCODER.encodeToString(data.getBytes(CHARSET_UTF_8));
+        return BASE64_ENCODER.encodeToString(data.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

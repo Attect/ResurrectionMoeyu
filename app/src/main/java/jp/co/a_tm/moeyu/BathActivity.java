@@ -61,27 +61,28 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * 日志标识符
      */
     private static final String TAG = BathActivity.class.getSimpleName();
+    /** Live2D视图尺寸（正方形） */
+    private static final int LIVE2D_VIEW_SIZE = 480;
+    /** 无标记语音1（特殊语音，不计入收藏） */
+    private static final String VOICE_NO_MARK_1 = "012";
+    /** 无标记语音2（特殊语音，不计入收藏） */
+    private static final String VOICE_NO_MARK_2 = "013";
 
     /** 背景音乐播放器 */
-    /* access modifiers changed from: private */
     public MediaPlayer mBgmMp;
     /** 各场景的背景音乐资源数组 */
-    /* access modifiers changed from: private|final */
     public final int[][] mBgms;
     /** 相机预览组件 */
     private CameraPreview mCamera;
     /** 链式事件列表 */
     private List<String> mChainEvent;
     /** 对话框 */
-    /* access modifiers changed from: private */
     public Dialog mDialog;
     /** 对话框布局 */
     private LinearLayout mDialogLayout;
     /** 运行标志 */
-    /* access modifiers changed from: private */
     public boolean mFlag;
     /** 处理器 */
-    /* access modifiers changed from: private */
     public Handler mHandler = new Handler();
     /** Live2D模型设置是否完成 */
     private boolean mIsFinishedLive2dSetup;
@@ -94,29 +95,23 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     /** 菜单视图 */
     private View mMenu;
     /** 区域映射 */
-    private Map<Scene, LinkedHashMap<Region, PointF[]>> mRegions = new HashMap();
+    private Map<Scene, LinkedHashMap<Region, PointF[]>> mRegions = new HashMap<>();
     /** 渲染器 */
-    /* access modifiers changed from: private */
     public LAppRenderer mRenderer;
     /** 当前场景 */
-    /* access modifiers changed from: private */
     public Scene mScene;
     /** 场景切换定时器 */
     private Timer mSceneChange;
     /** 当前选中的物品 */
-    /* access modifiers changed from: private */
     public int mSelectedItem;
     /** 用户数据 */
-    /* access modifiers changed from: private */
     public UserData mUserData;
     /** 语音管理器 */
     private VoiceManager mVoiceManager;
     /** 语音播放器 */
-    /* access modifiers changed from: private */
     public MediaPlayer mVoiceMp;
     /** 语音队列 */
-    /* access modifiers changed from: private */
-    public LinkedList<String> mVoiceQueue = new LinkedList();
+    public LinkedList<String> mVoiceQueue = new LinkedList<>();
 
     /**
      * 构造函数，初始化区域和背景音乐配置
@@ -128,7 +123,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             this.mRegions.put(scene, common);
         }
         // 为头部场景额外配置手臂区域
-        LinkedHashMap<Region, PointF[]> headMap = new LinkedHashMap();
+        LinkedHashMap<Region, PointF[]> headMap = new LinkedHashMap<>();
         headMap.putAll(common);
         headMap.put(Region.arm, new PointF[]{new PointF(0.0f, 0.196f), new PointF(1.0f, 0.656f)});
         this.mRegions.put(Scene.head, headMap);
@@ -145,7 +140,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * 自动切换场景
      * 定时自动切换场景
      */
-    /* access modifiers changed from: private */
     private void changeSceneAuto() {
         final Handler handler = new Handler();
         if (this.mSceneChange != null) {
@@ -181,7 +175,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         PointF[] belly = new PointF[]{new PointF(0.333f, 0.853f), new PointF(0.625f, 1.0f)};
         PointF[] arm = new PointF[]{new PointF(0.187f, 0.603f), new PointF(0.791f, 1.0f)};
         PointF[] none = new PointF[]{new PointF(0.0f, 0.0f), new PointF(1.0f, 1.0f)};
-        LinkedHashMap<Region, PointF[]> common = new LinkedHashMap();
+        LinkedHashMap<Region, PointF[]> common = new LinkedHashMap<>();
         common.put(Region.face, face);
         common.put(Region.head, head);
         common.put(Region.brest, brest);
@@ -198,10 +192,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * @return 物品列表
      */
     private List<Integer> createItemList() {
-        List<Integer> list = new ArrayList();
+        List<Integer> list = new ArrayList<>();
         list.add(Integer.valueOf(R.drawable.bath_item_null));
         // 根据用户数据生成物品
-        for (int i = 1; i <= 25; i++) {
+        for (int i = 1; i <= UserData.MAX_ITEM_COUNT; i++) {
             list.add(Integer.valueOf(getResId(String.format(this.mUserData.isItemGet(i) ? "item%02d" : "gray_item%02d", new Object[]{Integer.valueOf(i)}))));
         }
         return list;
@@ -268,9 +262,9 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             // 初始化语音管理器
             this.mVoiceManager = new VoiceManager(getApplicationContext());
         } catch (IOException e) {
-            e.printStackTrace();
+            Logger.e(TAG, "初始化语音管理器失败", e);
         } catch (JSONException e2) {
-            e2.printStackTrace();
+            Logger.e(TAG, "初始化语音管理器失败(JSON)", e2);
         }
 
         // 初始化Live2D管理器
@@ -289,7 +283,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         });
 
         // 创建Live2D视图
-        LAppGLView lAppGLView = this.mLive2dManager.createView(this, new Rect(0, 0, 480, 480));
+        LAppGLView lAppGLView = this.mLive2dManager.createView(this, new Rect(0, 0, LIVE2D_VIEW_SIZE, LIVE2D_VIEW_SIZE));
         this.mRenderer = lAppGLView.getRenderer();
         lAppGLView.setOnTouchListener(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(lAppGLView, 0);
@@ -309,7 +303,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
         // 创建物品列表
         this.mItemList = createItemList();
-        final List<Integer> list = new ArrayList(this.mItemList);
+        final List<Integer> list = new ArrayList<>(this.mItemList);
 
         // 获取传递的场景和物品信息
         Intent intent = getIntent();
@@ -344,14 +338,13 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mMenu = getLayoutInflater().inflate(R.layout.dialog_bath_menu, null);
         updateVoiceNum();
         updateVoiceNumDenominator();
-        this.mChainEvent = new ArrayList();
+        this.mChainEvent = new ArrayList<>();
     }
 
     /**
      * Live2D模型设置完成回调
      * 在Live2D模型设置完成后执行的操作
      */
-    /* access modifiers changed from: private */
     private void onFinishSetup() {
         this.mIsFinishedLive2dSetup = true;
         findViewById(R.id.indicator).setVisibility(View.GONE);
@@ -364,7 +357,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             EventData eventData = (EventData) getIntent().getSerializableExtra(getString(R.string.intent_event));
             ArrayList<String> voiceList = eventData.getVoiceList();
             if (voiceList != null && voiceList.size() > 0) {
-                this.mVoiceQueue = new LinkedList(voiceList);
+                this.mVoiceQueue = new LinkedList<>(voiceList);
                 String voiceName = (String) this.mVoiceQueue.poll();
                 if (voiceName != null) {
                     try {
@@ -402,16 +395,16 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                                         BathActivity.this.startVoiceAndAnimation(voiceName);
                                         return;
                                     } catch (IllegalArgumentException e) {
-                                        e.printStackTrace();
+                                        Logger.e(TAG, "播放语音失败", e);
                                         return;
                                     } catch (IllegalStateException e2) {
-                                        e2.printStackTrace();
+                                        Logger.e(TAG, "播放语音失败", e2);
                                         return;
                                     } catch (FileNotFoundException e3) {
-                                        e3.printStackTrace();
+                                        Logger.e(TAG, "播放语音失败", e3);
                                         return;
                                     } catch (IOException e4) {
-                                        e4.printStackTrace();
+                                        Logger.e(TAG, "播放语音失败", e4);
                                         return;
                                     }
                                 }
@@ -443,13 +436,13 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                         });
                         startVoiceAndAnimation(voiceName);
                     } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
+                        Logger.e(TAG, "播放事件语音失败", e);
                     } catch (IllegalStateException e2) {
-                        e2.printStackTrace();
+                        Logger.e(TAG, "播放事件语音失败", e2);
                     } catch (FileNotFoundException e3) {
-                        e3.printStackTrace();
+                        Logger.e(TAG, "播放事件语音失败", e3);
                     } catch (IOException e4) {
-                        e4.printStackTrace();
+                        Logger.e(TAG, "播放事件语音失败", e4);
                     }
                 }
             }
@@ -470,7 +463,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      *
      * @return 背景音乐监听器
      */
-    /* access modifiers changed from: private */
     private OnCompletionListener getBgmListener() {
         return new OnCompletionListener() {
             @Override
@@ -487,13 +479,13 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                     BathActivity.this.mBgmMp.prepare();
                     BathActivity.this.mBgmMp.start();
                 } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "播放背景音乐失败", e);
                 } catch (SecurityException e2) {
-                    e2.printStackTrace();
+                    Logger.e(TAG, "播放背景音乐失败", e2);
                 } catch (IllegalStateException e3) {
-                    e3.printStackTrace();
+                    Logger.e(TAG, "播放背景音乐失败", e3);
                 } catch (IOException e4) {
-                    e4.printStackTrace();
+                    Logger.e(TAG, "播放背景音乐失败", e4);
                 }
             }
         };
@@ -552,7 +544,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * 释放资源
      * 取消定时器任务
      */
-    /* access modifiers changed from: protected */
     public void release() {
         if (this.mSceneChange != null) {
             this.mSceneChange.cancel();
@@ -579,7 +570,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         final ImageView smoke = (ImageView) findViewById(R.id.smoke);
         final Handler handler = new Handler();
         new Thread(new Runnable() {
-            /* access modifiers changed from: private */
             public int mN;
 
             @Override
@@ -597,7 +587,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                             @Override
                             public void run() {
                                 smoke.setAlpha(255 - Math.abs(mN));
-                                smoke.setPadding(0, mN * -1, 0, mN * -1);
+                                smoke.setPadding(0, -mN, 0, -mN);
                             }
                         });
                     } catch (InterruptedException e) {
@@ -679,7 +669,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * 开始淡入动画
      * 显示白屏动画效果
      */
-    /* access modifiers changed from: private */
     private void startWhitein() {
         final View view = findViewById(R.id.white_screen);
         view.setVisibility(View.VISIBLE);
@@ -758,7 +747,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      *
      * @param next 目标场景
      */
-    /* access modifiers changed from: private */
     private void changeScene(Scene next) {
         startWhiteOutAndIn(next);
         this.mBgmMp.release();
@@ -818,7 +806,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         // 点击结束或未选择物品时才响应触摸
-        if (event.getAction() == 1 || !this.mItemList.contains(Integer.valueOf(this.mSelectedItem))) {
+        if (event.getAction() == MotionEvent.ACTION_UP || !this.mItemList.contains(Integer.valueOf(this.mSelectedItem))) {
             Region region = getRegion(new PointF(event.getX() / ((float) v.getWidth()), event.getY() / ((float) v.getHeight())));
             if (!(this.mVoiceMp.isPlaying() || Region.none == region)) {
                 // 使用物品时显示图标
@@ -837,13 +825,13 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                         startVoiceAndAnimation(this.mVoiceManager.getVoiceName(this.mScene, region, item, this.mUserData.getLevel()));
                     }
                 } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
+                    Logger.e(TAG, "播放触摸语音失败", e);
                 } catch (IllegalStateException e2) {
-                    e2.printStackTrace();
+                    Logger.e(TAG, "播放触摸语音失败", e2);
                 } catch (IOException e3) {
-                    e3.printStackTrace();
+                    Logger.e(TAG, "播放触摸语音失败", e3);
                 } catch (JSONException e4) {
-                    e4.printStackTrace();
+                    Logger.e(TAG, "播放触摸语音失败", e4);
                 }
             }
         }
@@ -860,13 +848,12 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * @throws FileNotFoundException 异常
      * @throws IOException 异常
      */
-    /* access modifiers changed from: private */
     private void startVoiceAndAnimation(String voiceName) throws IllegalArgumentException, IllegalStateException, FileNotFoundException, IOException {
         Log.d(TAG, "startVoiceAndAnimation: " + voiceName);
         this.mVoiceMp.reset();
         VoiceTableController voiceTable = new VoiceTableController(this);
         // 检查语音是否已打开并更新打开状态及弹窗
-        if (!(voiceTable.isOpened(voiceName) || "012".equals(voiceName) || "013".equals(voiceName))) {
+        if (!(voiceTable.isOpened(voiceName) || VOICE_NO_MARK_1.equals(voiceName) || VOICE_NO_MARK_2.equals(voiceName))) {
             voiceTable.update(voiceName);
             updateVoiceNum(voiceTable.countOpened());
             popupNewVoice();

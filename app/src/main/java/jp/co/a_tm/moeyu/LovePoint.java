@@ -1,7 +1,9 @@
 package jp.co.a_tm.moeyu;
 
 public class LovePoint {
+    /** 每种货币使用时获得的经验值: [青铜=1, 黄金=3, 白金=30] */
     private final int[] IN_COIN = new int[]{1, 3, 30};
+    /** 各等级升级所需累计经验值阈值: [Lv1=0, Lv2=2, Lv3=14, Lv4=44, Lv5=100, Lv6=188] */
     private final int[] TERM = new int[]{0, 2, 14, 44, 100, 188};
 
     public int currentLevel(int currentPoint) {

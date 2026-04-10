@@ -16,7 +16,7 @@ public class GachaTask extends BaseTask<Void, Void, GachaResult> {
         this.mCoin = coin;
     }
 
-    /* access modifiers changed from: protected|varargs */
+    @Override
     public GachaResult doInBackground(Void... params) {
         try {
             return this.mApiClient.userGatya(this.mUserId, this.mCoin);
@@ -26,7 +26,7 @@ public class GachaTask extends BaseTask<Void, Void, GachaResult> {
         }
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void onPostExecute(GachaResult result) {
         if (result != null) {
             storeUserData(result.getUserData());

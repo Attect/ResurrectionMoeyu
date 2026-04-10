@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  CollectionRoomActivity 专用尺寸定义
+  
+  说明:
+  - 为 ConstraintLayout 布局提供统一的间距控制
+  - 替代原有的代码 setPadding() 方案
+  
+  任务 ID: TASK-UI-001
+  创建日期：2026-03-31
+-->
+<resources>
+    <!-- CollectionRoom Header 底部边距 -->
+    <dimen name="header_bottom_margin">8dp</dimen>
+    
+    <!-- CollectionRoom Footer 顶部边距 -->
+    <dimen name="footer_top_margin">8dp</dimen>
+</resources>

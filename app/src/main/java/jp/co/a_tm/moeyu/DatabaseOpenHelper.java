@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import jp.co.a_tm.moeyu.util.Logger;
@@ -36,7 +35,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     private Context mContext;
 
     public DatabaseOpenHelper(Context context) {
-        super(context, DB_NAME, null, 1);
+        super(context, DB_NAME, null, DB_VER);
         Logger.d("DatabaseOpenHelper Constructor");
         this.mContext = context;
     }
@@ -61,7 +60,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
         try {
             db.execSQL("create table " + this.TABLE_NAME[0] + "( _id integer primary key autoincrement, " + this.ITEM_COLUMNS[0] + " text not null, " + this.ITEM_COLUMNS[1] + " text not null);");
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "创建物品表失败", e);
         }
     }
 
@@ -70,7 +69,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
         try {
             db.execSQL("create table " + this.TABLE_NAME[1] + "( _id integer primary key autoincrement, " + this.VOICE_COLUMNS[0] + " text not null, " + this.VOICE_COLUMNS[1] + " text not null, " + this.VOICE_COLUMNS[2] + " text not null);");
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "创建语音表失败", e);
         }
     }
 
@@ -79,7 +78,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
         try {
             db.execSQL("create table " + this.TABLE_NAME[2] + "( _id integer primary key autoincrement, " + this.NOTE_COLUMNS[0] + " text not null, " + this.NOTE_COLUMNS[1] + " text not null, " + this.NOTE_COLUMNS[2] + " text not null);");
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "创建笔记表失败", e);
         }
     }
 
@@ -91,7 +90,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.update(tableName, values, "name = '" + fileName + "'", null);
             db.close();
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "更新数据失败", e);
         }
     }
 
@@ -103,7 +102,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.update(tableName, values, "_id = '" + id + "'", null);
             db.close();
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "更新数据失败", e);
         }
     }
 
@@ -117,7 +116,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             }
             db.close();
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "更新数据失败", e);
         }
     }
 
@@ -131,7 +130,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             }
             db.close();
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "更新数据失败", e);
         }
     }
 
@@ -148,7 +147,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return opened;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "查询是否打开失败", e);
             return opened;
         }
     }
@@ -165,7 +164,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return opened;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "查询是否打开失败", e);
             return opened;
         }
     }
@@ -183,12 +182,12 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             cursor.close();
             db.close();
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "批量查询是否打开失败", e);
         }
         return opened;
     }
 
-    public String isName(String tableName, int id) {
+    public String getName(String tableName, int id) {
         String[] columns = new String[]{"_id", "name"};
         String name = "";
         try {
@@ -200,12 +199,12 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return name;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "查询名称失败", e);
             return name;
         }
     }
 
-    public String isTitle(String tableName, int id) {
+    public String getTitle(String tableName, int id) {
         String[] columns = new String[]{"_id", "title"};
         String title = "";
         try {
@@ -217,12 +216,12 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return title;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "查询标题失败", e);
             return title;
         }
     }
 
-    public int isTerm(String tableName, int id) {
+    public int getTerm(String tableName, int id) {
         String[] columns = new String[]{"_id", "term"};
         int name = 0;
         try {
@@ -234,7 +233,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return name;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "查询条件失败", e);
             return name;
         }
     }
@@ -251,7 +250,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return count;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "统计已打开数失败", e);
             return count;
         }
     }
@@ -268,7 +267,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return count;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "统计已打开数失败", e);
             return count;
         }
     }
@@ -284,19 +283,19 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
             db.close();
             return count;
         } catch (Exception e) {
-            Log.e("ERROR", e.toString());
+            Logger.e("DatabaseOpenHelper", "统计行数失败", e);
             return count;
         }
     }
 
     private void initItemRows(SQLiteDatabase db) {
         int i = 0;
-        while (i < 25) {
+        while (i < ITEM_MAX_ROWS) {
             try {
                 db.execSQL("insert into " + this.TABLE_NAME[0] + "(" + this.ITEM_COLUMNS[0] + "," + this.ITEM_COLUMNS[1] + ") values ('" + String.format("%02d", new Object[]{Integer.valueOf(i + 1)}) + "','false');");
                 i++;
             } catch (Exception e) {
-                Log.e("ERROR", e.toString());
+                Logger.e("DatabaseOpenHelper", "初始化物品行失败", e);
                 return;
             }
         }
@@ -310,7 +309,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
                 db.execSQL("insert into " + this.TABLE_NAME[1] + "(" + this.VOICE_COLUMNS[0] + "," + this.VOICE_COLUMNS[1] + "," + this.VOICE_COLUMNS[2] + ") values ('" + ((VoiceTitle) list.get(i)).getFileName() + "','false','" + ((VoiceTitle) list.get(i)).getTitle() + "');");
                 i++;
             } catch (Exception e) {
-                Log.e("ERROR", e.toString());
+                Logger.e("DatabaseOpenHelper", "初始化语音行失败", e);
                 return;
             }
         }
@@ -324,7 +323,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
                 db.execSQL("insert into " + this.TABLE_NAME[2] + "(" + this.NOTE_COLUMNS[0] + "," + this.NOTE_COLUMNS[1] + "," + this.NOTE_COLUMNS[2] + ") values ('" + String.format("%02d", new Object[]{Integer.valueOf(i + 1)}) + "','false','" + ((String) list.get(i)) + "');");
                 i++;
             } catch (Exception e) {
-                Log.e("ERROR", e.toString());
+                Logger.e("DatabaseOpenHelper", "初始化笔记行失败", e);
                 return;
             }
         }

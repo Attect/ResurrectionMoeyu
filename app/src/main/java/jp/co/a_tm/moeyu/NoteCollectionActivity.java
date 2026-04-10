@@ -230,9 +230,9 @@ public class NoteCollectionActivity extends BaseActivity {
         this.mNoteController = new NoteTableController(this);
 
         // 创建笔记列表
-        List<NoteListItem> list = new ArrayList();
+        List<NoteListItem> list = new ArrayList<>();
         for (int i = 1; i <= this.mNoteController.countRows(); i++) {
-            list.add(new NoteListItem(i, this.mNoteController.isTerm(i), checkCleared(i), checkPreCleared(i)));
+            list.add(new NoteListItem(i, this.mNoteController.getTerm(i), checkCleared(i), checkPreCleared(i)));
         }
         // 设置适配器
         ((ListView) findViewById(R.id.listview_notecollec)).setAdapter(new NoteListAdapter(this, list));
@@ -259,12 +259,12 @@ public class NoteCollectionActivity extends BaseActivity {
     private boolean checkCleared(int rowNumber) {
         if (rowNumber % 2 == 1) {
             // 奇数位需要达到指定的语音数量才能解锁
-            if (this.mVoiceCountOpened >= this.mNoteController.isTerm(rowNumber)) {
+            if (this.mVoiceCountOpened >= this.mNoteController.getTerm(rowNumber)) {
                 return true;
             }
         } else {
             // 偶数位需要达到指定的物品数量才能解锁
-            if (this.mItemCountOpened >= this.mNoteController.isTerm(rowNumber)) {
+            if (this.mItemCountOpened >= this.mNoteController.getTerm(rowNumber)) {
                 return true;
             }
         }

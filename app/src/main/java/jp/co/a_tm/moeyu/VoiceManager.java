@@ -1,7 +1,7 @@
 package jp.co.a_tm.moeyu;
 
 import android.content.Context;
-import android.util.Log;
+import jp.co.a_tm.moeyu.util.Logger;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,7 +40,7 @@ public class VoiceManager {
             try {
                 return this.mContext.openFileInput(voiceName + "_cn.ogg").getFD();
             } catch (IOException e) {
-                Log.e("VOICE", "Not found " + voiceName + "_cn.ogg");
+                Logger.e("VoiceManager", "未找到中文语音: " + voiceName + "_cn.ogg");
             }
         }
 

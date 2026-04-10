@@ -184,8 +184,8 @@ public class GatyaResultActivity extends BaseActivity {
      */
     private void setItemImage(int num) {
         ImageView picture = (ImageView) findViewById(R.id.img_gatya_result_body_item_picture);
-        ((ImageView) findViewById(R.id.img_gatya_result_body_item_name)).setImageResource(getResources().getIdentifier("itemname_bar_" + num, "drawable", "jp.co.a_tm.moeyu"));
-        picture.setImageResource(getResources().getIdentifier("item" + num + "_2x", "drawable", "jp.co.a_tm.moeyu"));
+        ((ImageView) findViewById(R.id.img_gatya_result_body_item_name)).setImageResource(getResources().getIdentifier("itemname_bar_" + num, "drawable", getPackageName()));
+        picture.setImageResource(getResources().getIdentifier("item" + num + "_2x", "drawable", getPackageName()));
     }
 
     /**

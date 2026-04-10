@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.ImageButton;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.model.UserData;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
@@ -18,7 +20,7 @@ public class TweetDialog extends Dialog {
     public TweetDialog(final Context context) {
         super(context, R.style.clear_dialog);
         this.mPreferencesHelper = new PreferencesHelper(context);
-        requestWindowFeature(1);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog_tweet);
         setCanceledOnTouchOutside(true);
         ImageButton toBackButton = (ImageButton) findViewById(R.id.imgbutton_tweet_dialog_top_to_back);
@@ -68,7 +70,6 @@ public class TweetDialog extends Dialog {
         super.dismiss();
     }
 
-    /* access modifiers changed from: private */
     public void start(Context context) {
         UserData userData = new UserDataManager(context).loadUserData();
         ItemTableController controller = new ItemTableController(context);
@@ -76,7 +77,7 @@ public class TweetDialog extends Dialog {
         try {
             strTweet = context.getString(R.string.tweet_https) + context.getString(R.string.tweet_text_left) + context.getResources().getStringArray(R.array.tweet_level_array)[userData.getLevel() - 1] + context.getString(R.string.tweet_text_center) + controller.getOpenedPercent() + context.getString(R.string.tweet_text_right) + "+" + URLEncoder.encode(context.getString(R.string.tweet_hash), "UTF-8") + "&url=" + context.getString(R.string.tweet_url);
         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+            Logger.e("TweetDialog", "URL编码失败", e);
         }
         context.startActivity(new Intent("android.intent.action.VIEW", Uri.parse(strTweet)));
     }

@@ -20,6 +20,7 @@ import jp.co.a_tm.moeyu.api.fragment.LoginFragment;
 import jp.co.a_tm.moeyu.api.fragment.SignupFragment;
 import jp.co.a_tm.moeyu.api.listener.UserDataListener;
 import jp.co.a_tm.moeyu.model.UserData;
+import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
 /**
@@ -32,7 +33,6 @@ public class TitleActivity extends BaseActivity {
      */
     private MediaPlayer mBathCall = new MediaPlayer();
     /** 用户ID */
-    /* access modifiers changed from: private */
     public String mUserId;
 
     /**
@@ -42,16 +42,6 @@ public class TitleActivity extends BaseActivity {
     private class InitializeDataTask extends AsyncTask<Void, Void, Void> {
         /** 构造函数 */
         private InitializeDataTask() {
-        }
-
-        /**
-         * 初始化数据任务的构造函数（供合成使用）
-         *
-         * @param x0 外部类实例
-         * @param x1 合成参数
-         */
-        /* synthetic */ InitializeDataTask(TitleActivity x0, InitializeDataTask x1) {
-            this();
         }
 
         /**
@@ -76,7 +66,7 @@ public class TitleActivity extends BaseActivity {
                 TitleActivity.this.initializeData();
                 new PreferencesHelper(TitleActivity.this.getApplicationContext()).setInitBoot(false);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logger.e("TitleActivity", "初始化数据失败", e);
             }
             return null;
         }
@@ -125,7 +115,7 @@ public class TitleActivity extends BaseActivity {
             application.setFirstRun(false);
             if (new PreferencesHelper(this).isInitBoot()) {
                 // 首次运行且需要初始化数据时执行异步任务
-                new InitializeDataTask(this, null).execute();
+                new InitializeDataTask().execute();
                 return;
             } else {
                 // 不需要初始化可以直接登录
@@ -146,7 +136,6 @@ public class TitleActivity extends BaseActivity {
      *
      * @throws IOException IO异常
      */
-    /* access modifiers changed from: private */
     private void initializeData() throws IOException {
         new Decryption(getApplicationContext()).execute();
     }
@@ -189,7 +178,7 @@ public class TitleActivity extends BaseActivity {
      */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode != 4) {
+        if (keyCode != KeyEvent.KEYCODE_BACK) {
             return super.onKeyDown(keyCode, event);
         }
         exit();
@@ -218,7 +207,6 @@ public class TitleActivity extends BaseActivity {
      * 执行登录操作
      * 根据是否有保存用户数据决定是登录还是注册
      */
-    /* access modifiers changed from: private */
     public void login() {
         UserDataManager dataManager = new UserDataManager(this);
         if (dataManager.isSavedUserData()) {
@@ -241,13 +229,13 @@ public class TitleActivity extends BaseActivity {
             player.setDataSource(openFileInput(str).getFD());
             player.prepare();
         } catch (IllegalArgumentException e1) {
-            e1.printStackTrace();
+            Logger.e("TitleActivity", "设置播放器数据源失败", e1);
         } catch (IllegalStateException e12) {
-            e12.printStackTrace();
+            Logger.e("TitleActivity", "设置播放器数据源失败", e12);
         } catch (FileNotFoundException e13) {
-            e13.printStackTrace();
+            Logger.e("TitleActivity", "设置播放器数据源失败", e13);
         } catch (IOException e14) {
-            e14.printStackTrace();
+            Logger.e("TitleActivity", "设置播放器数据源失败", e14);
         }
     }
 
@@ -359,7 +347,6 @@ public class TitleActivity extends BaseActivity {
      * 标题呼叫音乐播放
      * 播放标题界面的语音
      */
-    /* access modifiers changed from: private */
     public void titleCall() {
         MediaPlayer mp = new MediaPlayer();
         getFileDescriptor(mp, "002_2b.ogg");

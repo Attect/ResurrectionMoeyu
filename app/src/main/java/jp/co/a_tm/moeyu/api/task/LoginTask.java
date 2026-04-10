@@ -13,7 +13,7 @@ public class LoginTask extends BaseTask<Void, Void, UserData> {
         this.mUserId = userId;
     }
 
-    /* access modifiers changed from: protected|varargs */
+    @Override
     public UserData doInBackground(Void... params) {
         try {
             return this.mApiClient.userData(this.mUserId);
@@ -23,7 +23,7 @@ public class LoginTask extends BaseTask<Void, Void, UserData> {
         }
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void onPostExecute(UserData result) {
         if (result != null) {
             storeUserData(result);
