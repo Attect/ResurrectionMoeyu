@@ -1,230 +1,28 @@
 version: "1.0"
+updated_at: "2026-04-10T14:00:00Z"
+updated_by: "product-manager"
 
-metadata:
-  title: "ResurrectionMoeyu 项目任务索引"
-  description: "项目全生命周期任务索引，包含活动任务和已完成任务的集中管理"
-  created_at: "2026-03-27T21:30:00Z"
-  updated_at: "2026-03-27T23:18:00Z"
-  version: "1.1.0"
+statistics:
+  total: 2
+  pending: 1
+  in_progress: 1
+  completed: 0
+  blocked: 0
 
-summary:
-  total_tasks: 7
-  active_tasks: 1
-  completed_tasks: 6
-  blocked_tasks: 0
-
-active_tasks:
-  - task_id: "IMPLEMENTATION-PHASE1-001"
-    title: "Phase 1 - P0 优先级任务实施"
-    type: "implementation"
+tasks:
+  - id: "ANALYSIS-001"
+    title: "ResurrectionMoeyu项目逆向分析"
+    status: "completed"
     priority: "P0"
+    assignee: "project-analyzer"
+    created_at: "2026-04-10T10:00:00Z"
+    completed_at: "2026-04-10T12:00:00Z"
+    file: "active/task-ANALYSIS-001.yaml"
+
+  - id: "REFACTOR-001"
+    title: "ResurrectionMoeyu代码规范化重构"
     status: "in_progress"
-    progress_percent: 35
-    assignee: "@code-builder"
-    created_at: "2026-03-27T22:00:00Z"
-    updated_at: "2026-03-27T22:15:00Z"
-    file_path: "ai/tasks/active/task-IMPLEMENTATION-PHASE1-001.yaml"
-    key_deliverables:
-      - "SHA-256 签名算法升级 (75%)"
-      - "OkHttp+Retrofit 网络层引入 (进行中)"
-      - "AsyncTask 框架迁移规划 (待启动)"
-    
-completed_tasks:
-  - task_id: "ANALYSIS-001"
-    title: "ResurrectionMoeyu 项目逆向分析"
-    type: "analysis"
     priority: "P0"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@project-analyzer"
-    created_at: "2026-03-27T20:21:00Z"
-    completed_at: "2026-03-27T21:35:00Z"
-    file_path: "ai/tasks/completed/task-ANALYSIS-001.yaml"
-    key_deliverables:
-      - "项目概览文档 (ai/analysis/overview.md)"
-      - "架构文档 (ai/dev/project.md)"
-      - "需求规格说明书 (ai/design_by_user_say.md)"
-      - "技术债务报告 (ai/analysis/tech-debt.md)"
-      - "部署文档 (ai/deployment.md)"
-      - "交接总报告 (ai/handover-report.md)"
-    
-  - task_id: "ANALYSIS-001-DEPLOY"
-    title: "部署文档标准化"
-    type: "devops"
-    priority: "P1"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@dev-ops"
-    created_at: "2026-03-27T20:21:00Z"
-    completed_at: "2026-03-27T19:45:00Z"
-    file_path: "ai/tasks/completed/task-ANALYSIS-001-DEPLOY.yaml"
-    key_deliverables:
-      - "部署文档 (ai/deployment.md)"
-      - "构建分析报告 (ai/build/report_20260327.md)"
-      - "CI/CD 集成方案"
-    
-  - task_id: "IMPROVEMENT-001-BUILD"
-    title: "构建系统优化与现代化"
-    type: "improvement"
-    priority: "P1"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@dev-ops"
-    created_at: "2026-03-27T21:07:00Z"
-    completed_at: "2026-03-27T20:45:00Z"
-    file_path: "ai/tasks/completed/task-IMPROVEMENT-001-BUILD.yaml"
-    key_deliverables:
-      - "Gradle 构建配置优化 (app/build.gradle)"
-      - "ProGuard 规则配置 (app/proguard-rules.pro)"
-      - "实施报告 (ai/build/implementation-report_20260327.md)"
-    
-  - task_id: "ANALYSIS-001-ARCH"
-    title: "架构文档标准化"
-    type: "architecture"
-    priority: "P0"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@code-framework"
-    created_at: "2026-03-27T20:21:00Z"
-    completed_at: "2026-03-27T21:05:00Z"
-    file_path: "ai/tasks/completed/task-ANALYSIS-001-ARCH.yaml"
-    key_deliverables:
-      - "架构文档 (ai/dev/project.md)"
-      - "设计模式应用清单"
-      - "分层架构说明"
-    
-  - task_id: "ANALYSIS-001-FUNC"
-    title: "需求规格说明书生成"
-    type: "requirement"
-    priority: "P0"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@requirement-analyst"
-    created_at: "2026-03-27T20:21:00Z"
-    completed_at: "2026-03-27T21:10:00Z"
-    file_path: "ai/tasks/completed/task-ANALYSIS-001-FUNC.yaml"
-    key_deliverables:
-      - "需求规格文档 (ai/design_by_user_say.md)"
-      - "功能模块清单 (7 大模块)"
-      - "业务流程定义"
-    
-  - task_id: "ANALYSIS-001-QA"
-    title: "技术债务评估与审查"
-    type: "quality_assurance"
-    priority: "P0"
-    status: "completed"
-    progress_percent: 100
-    assignee: "@code-review-qa"
-    created_at: "2026-03-27T20:21:00Z"
-    completed_at: "2026-03-27T21:15:00Z"
-    file_path: "ai/tasks/completed/task-ANALYSIS-001-QA.yaml"
-    key_deliverables:
-      - "技术债务报告 (ai/analysis/tech-debt.md)"
-      - "8 项技术债务清单 (P0-P3 优先级)"
-      - "改进路线图建议"
-
-task_categories:
-  analysis:
-    count: 1
-    description: "项目分析和逆向工程任务"
-  
-  architecture:
-    count: 1
-    description: "架构设计与标准化任务"
-  
-  requirement:
-    count: 1
-    description: "需求分析与规格定义任务"
-  
-  quality_assurance:
-    count: 1
-    description: "质量保证与代码审查任务"
-  
-  devops:
-    count: 2
-    description: "部署运维与构建优化任务"
-  
-  improvement:
-    count: 1
-    description: "系统改进与现代化任务"
-  
-  implementation:
-    count: 1
-    description: "核心功能实施与技术债务改进任务"
-
-priority_distribution:
-  P0:
-    count: 5
-    percentage: 83.3
-    description: "最高优先级 - 核心功能和关键路径"
-  
-  P1:
-    count: 1
-    percentage: 16.7
-    description: "高优先级 - 重要功能和改进项"
-
-status_distribution:
-  in_progress:
-    count: 1
-    percentage: 14.3
-  
-  completed:
-    count: 6
-    percentage: 85.7
-
-key_milestones:
-  - milestone_id: "M1"
-    name: "逆向分析阶段完成"
-    target_date: "2026-03-27"
-    status: "achieved"
-    deliverables:
-      - "项目概览文档"
-      - "架构文档"
-      - "需求规格说明书"
-      - "技术债务报告"
-      - "部署文档"
-  
-  - milestone_id: "M2"
-    name: "核心架构现代化完成"
-    target_date: "2026-04-24"
-    status: "planned"
-    deliverables:
-      - "SHA-256 密码算法升级"
-      - "OkHttp+Retrofit 网络层引入"
-      - "AsyncTask 框架迁移启动"
-  
-  - milestone_id: "M3"
-    name: "异步框架升级与功能增强完成"
-    target_date: "2026-05-22"
-    status: "planned"
-    deliverables:
-      - "Coroutines 异步框架全面迁移"
-      - "Live2D 渲染性能优化"
-      - "Gacha 抽卡算法改进"
-      - "语音识别准确率提升"
-  
-  - milestone_id: "M4"
-    name: "可维护性提升与项目交付"
-    target_date: "2026-06-19"
-    status: "planned"
-    deliverables:
-      - "单元测试体系建设 (≥80% 覆盖)"
-      - "配置管理集中化改造"
-      - "API 文档完善与接口规范"
-      - "CI/CD 流水线优化"
-
-risk_summary:
-  high_priority_risks: 4
-  medium_priority_risks: 4
-  low_priority_risks: 0
-  risk_details_file: "ai/develop-progress.md#四、风险登记册"
-
-contact_information:
-  project_manager: "@product-manager"
-  technical_lead: "@code-framework"
-    development_lead: "@code-builder"
-  frontend_lead: "@frontend-builder"
-  qa_lead: "@code-review-qa"
-  devops_lead: "@dev-ops"
-
-next_review_date: "2026-04-03"
+    assignee: "requirement-analyst"
+    created_at: "2026-04-10T14:00:00Z"
+    file: "active/task-REFACTOR-001.yaml"

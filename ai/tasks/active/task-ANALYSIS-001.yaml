@@ -1,0 +1,99 @@
+version: "1.0"
+
+metadata:
+  id: "ANALYSIS-001"
+  title: "ResurrectionMoeyu项目逆向分析"
+  description: |
+    分析已有Android项目ResurrectionMoeyu(もえゆ)的结构、功能、架构,
+    生成标准文档体系。
+    该项目是一个日系Live2D互动应用，包含浴室互动、扭蛋抽卡、收藏等核心功能。
+  type: "analysis"
+  priority: "P0"
+  scope: "整体"
+
+assignment:
+  created_by: "project-analyzer"
+  created_at: "2026-04-10T10:00:00Z"
+  assignee: "project-analyzer"
+
+status:
+  current: "completed"
+  progress_percent: 100
+  started_at: "2026-04-10T10:00:00Z"
+  actual_completion: "2026-04-10T12:00:00Z"
+
+execution:
+  workflow:
+    - step: 1
+      name: "项目概览分析"
+      status: "completed"
+      outputs:
+        - "ai/analysis/overview.md"
+      notes: "已完成技术栈、目录结构、模块划分、入口点识别"
+
+    - step: 2
+      name: "架构逆向分析"
+      status: "completed"
+      delegate_to: "code-framework"
+      delegate_result: "success"
+      outputs:
+        - "ai/dev/project.md"
+      notes: "完成30+核心文件分析，识别10种设计模式和6种反模式"
+
+    - step: 3
+      name: "功能清单梳理"
+      status: "completed"
+      delegate_to: "requirement-analyst"
+      delegate_result: "success"
+      outputs:
+        - "ai/design_by_user_say.md"
+      notes: "完成全部13个功能模块41项功能的详细规格分析"
+
+    - step: 4
+      name: "构建部署分析"
+      status: "completed"
+      delegate_to: "dev-ops"
+      delegate_result: "success"
+      outputs:
+        - "ai/deployment.md"
+      notes: "完成构建配置、依赖评估、签名配置、开发工具分析"
+
+checkpoints:
+  - id: "CP-001"
+    created_at: "2026-04-10T10:30:00Z"
+    trigger: "step_completed"
+    step: 1
+    summary: "项目概览分析完成，识别为单体Android项目"
+    resumable: true
+
+  - id: "CP-002"
+    created_at: "2026-04-10T12:00:00Z"
+    trigger: "all_completed"
+    step: 4
+    summary: "全部4个阶段分析完成，所有文档已生成"
+
+history:
+  - timestamp: "2026-04-10T10:00:00Z"
+    agent: "project-analyzer"
+    action: "created"
+    details: "任务创建，开始项目逆向分析"
+  - timestamp: "2026-04-10T10:30:00Z"
+    agent: "project-analyzer"
+    action: "step_completed"
+    details: "步骤1完成：项目概览分析"
+  - timestamp: "2026-04-10T11:30:00Z"
+    agent: "requirement-analyst"
+    action: "step_completed"
+    details: "步骤3完成：功能清单梳理，生成ai/design_by_user_say.md"
+  - timestamp: "2026-04-10T11:45:00Z"
+    agent: "dev-ops"
+    action: "step_completed"
+    details: "步骤4完成：构建部署分析，生成ai/deployment.md"
+  - timestamp: "2026-04-10T12:00:00Z"
+    agent: "code-framework"
+    action: "step_completed"
+    details: "步骤2完成：架构逆向分析，生成ai/dev/project.md"
+  - timestamp: "2026-04-10T12:00:00Z"
+    agent: "project-analyzer"
+    action: "completed"
+    details: "全部阶段完成，任务关闭"

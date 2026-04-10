@@ -1,408 +1,196 @@
-# ResurrectionMoeyu 项目概览
+# ResurrectionMoeyu 项目概览分析
 
-**版本**: v1.0  
-**创建日期**: 2026-03-27  
-**分析代理**: project-analyzer  
-**任务 ID**: ANALYSIS-001
+> 分析日期: 2026-04-10
+> 分析者: project-analyzer
+> 任务ID: ANALYSIS-001
 
 ---
 
-## 一、项目基本信息
+## 1. 项目基本信息
 
-### 1.1 项目概述
+| 项目属性 | 值 |
+| --- | --- |
+| 项目名称 | ResurrectionMoeyu |
+| 应用包名 | jp.co.a_tm.moeyu |
+| 应用ID | jp.co.a_tm.moeyu |
+| 原始来源 | 疑似日本a_tm公司的もえゆ(MoeYu)应用逆向重建 |
+| 项目类型 | 单体Android应用项目 |
+| 版本号 | 1.0 (versionCode: 1) |
+| 构建版本日志 | 7 (versionFile.log) |
 
-ResurrectionMoeyu 是一个基于 **Live2D 技术**的 Android 应用程序，实现了虚拟角色的交互式展示系统。项目包含完整的用户交互、内购计费、抽卡系统和数据持久化功能。
+## 2. 技术栈
 
-### 1.2 技术栈
+| 分类 | 技术 | 说明 |
+| --- | --- | --- |
+| 开发语言 | Java | 纯Java项目，无Kotlin |
+| 构建工具 | Gradle (Groovy DSL) | AGP 9.0.0 |
+| Android SDK | compileSdk 34 / targetSdk 34 / minSdk 19 | 支持Android 4.4+ |
+| 兼容库 | AndroidX AppCompat 1.6.1 | |
+| 2D渲染 | Live2D SDK (live2d_android.jar) | 本地JAR依赖，位于libs/ |
+| HTTP客户端 | Apache HttpClient (legacy) | 使用useLibrary 'org.apache.http.legacy' |
+| 数据库 | SQLite (SQLiteOpenHelper) | 本地数据库 |
+| 序列化 | Java Serializable | 用户数据持久化 |
+| 加密 | 自定义XOR加密 + SHA-1/SHA-256签名 | 语音文件解密和API签名 |
+| 网络通信 | HTTP (非HTTPS) | usesCleartextTraffic=true |
+| 音频 | MediaPlayer (android.media) | OGG格式语音 |
+| 相机 | Camera API | AR模式支持 |
+| 支付 | Google Play Billing (v2) | 应用内购买 |
 
-| 类别 | 技术/框架 | 版本/说明 |
-|------|----------|-----------|
-| **平台** | Android | SDK 28 (Android 9.0) |
-| **最低支持** | Android 5.0+ | API Level 19 |
-| **开发语言** | Java | Java 8 |
-| **构建工具** | Gradle | 9.0.0 |
-| **核心引擎** | Live2D Android SDK | live2d_android.jar |
-| **网络层** | Apache HttpClient | 3.x (旧版) |
-| **UI 渲染** | OpenGL ES | GLSurfaceView |
-| **计费系统** | Google Play Billing | V1 API |
-
-### 1.3 项目结构
+## 3. 项目结构
 
 ```
 ResurrectionMoeyu/
-├── app/                          # 主应用模块
-│   ├── src/main/
-│   │   ├── java/jp/co/a_tm/moeyu/
-│   │   │   ├── MainActivity.java           # 应用入口
-│   │   │   ├── api/                        # API 网络层 (16 文件)
-│   │   │   ├── billing/                    # 计费模块 (9 文件)
-│   │   │   ├── live2d/                     # Live2D 核心引擎 (9 文件)
-│   │   │   ├── model/                      # 数据模型层
-│   │   │   ├── util/                       # 工具类
-│   │   │   └── [Activity/Fragment]         # UI 组件 (17 文件)
-│   │   ├── assets/                         # Live2D 资源
-│   │   │   ├── model/moeyu.1024/          # MOC 模型文件
-│   │   │   ├── motion/                    # 动画配置
-│   │   │   ├── voice/                     # 语音资源
-│   │   │   └── voice.json                 # 语音映射表
-│   │   ├── res/                            # Android 资源
-│   │   └── libs/live2d_android.jar        # Live2D 依赖库
-│   └── build.gradle                        # 模块构建配置
-├── build/                              # 根构建配置
-├── dev_tools/                          # 开发工具
-└── gradle/                             # Gradle 配置
+├── .gitignore
+├── build.gradle                    # 根项目构建配置
+├── settings.gradle                 # 包含 :app 模块
+├── gradle.properties               # Gradle属性配置
+├── gradle/                         # Gradle Wrapper
+├── gradlew / gradlew.bat           # Gradle执行脚本
+├── local.properties                # SDK路径(已gitignore)
+├── versionFile.log                 # 版本号日志(值为7)
+├── dev_tools/                      # 开发工具
+│   └── okk/                        # 语音加密工具
+│       ├── ogg2okk.c / ogg2okk.exe # OGG转OKK加密工具
+│       ├── okk2ogg.c / okk2ogg.exe # OKK转OGG解密工具
+│       ├── CMakeLists.txt          # CMake构建配置
+│       └── 276.ogg                 # 示例OGG文件
+└── app/                            # 主应用模块
+    ├── build.gradle                # 应用模块构建配置
+    ├── proguard-rules.pro          # ProGuard混淆规则
+    ├── libs/
+    │   └── live2d_android.jar      # Live2D SDK
+    └── src/
+        ├── main/
+        │   ├── AndroidManifest.xml
+        │   ├── assets/             # 资源文件
+        │   │   ├── voice.json      # 语音配置(场景/区域/物品/等级映射)
+        │   │   ├── voice/          # 日文语音(.okk加密格式)
+        │   │   ├── voice_cn/       # 中文语音(.okk加密格式)
+        │   │   ├── *.png           # Live2D水纹理等
+        │   │   └── live2d/         # Live2D模型资源
+        │   ├── java/               # Java源码
+        │   │   └── jp/co/a_tm/moeyu/
+        │   └── res/                # Android资源
+        └── test/                   # 测试代码(基本为空)
 ```
 
-### 1.4 规模统计
+## 4. 代码模块划分
 
-| 指标 | 数量 |
-|------|------|
-| **Java 源文件** | 74 个 |
-| **Activity 组件** | 13 个 |
-| **Fragment 组件** | 4 个 |
-| **API Task** | 5 个 |
-| **Model 类** | 6 个 |
-| **包路径** | jp.co.a_tm.moeyu |
+### 4.1 Activity层(页面)
+
+| Activity | 功能 | 说明 |
+| --- | --- | --- |
+| `MainActivity` | 主入口/导航控制器 | 播放开场视频，作为所有Activity跳转的中枢 |
+| `TitleActivity` | 标题页面 | 支持DeepLink(moeyu://moe-yu.com) |
+| `BathActivity` | 浴室互动(核心页面) | Live2D模型展示、触摸互动、语音播放、物品使用 |
+| `GatyaActivity` | 扭蛋/抽卡页面 | 使用铜/金/白金币抽取物品 |
+| `GatyaResultActivity` | 抽卡结果页面 | 展示抽到的物品 |
+| `MomorisRoomActivity` | 桃璃房间页面 | 角色房间展示 |
+| `CollectionRoomActivity` | 收藏房间页面 | 收藏品总览 |
+| `ItemCollectionActivity` | 物品收藏页面 | 已获取物品列表 |
+| `VoiceCollectionActivity` | 语音收藏页面 | 已解锁语音列表 |
+| `NoteCollectionActivity` | 笔记收藏页面 | 日记/笔记收藏 |
+| `PreferenceActivity` | 设置页面 | 应用偏好设置 |
+
+### 4.2 核心功能模块
+
+| 包/类 | 功能 | 说明 |
+| --- | --- | --- |
+| `live2d/` | Live2D渲染引擎集成 | 包含模型管理、动画、渲染、视图等 |
+| `api/` | API客户端 | 网络请求(注册/登录/扭蛋/支付)，已改为本地实现 |
+| `billing/` | Google Play支付 | v2版Billing服务 |
+| `model/` | 数据模型 | UserData、EventData、GachaResult |
+| `util/` | 工具类 | Config、Logger、UserDataManager、AspectRatioUtils |
+| `security/` | 安全工具 | SecurityUtils签名工具 |
+
+### 4.3 核心业务类
+
+| 类名 | 职责 |
+| --- | --- |
+| `BaseActivity` | 所有Activity基类，提供页面跳转路由和全屏UI控制 |
+| `MoeyuApplication` | Application类，管理首次运行标记 |
+| `Decryption` | 语音文件解密(XOR 58加密) |
+| `VoiceManager` | 语音管理，根据场景/区域/物品/等级选择语音 |
+| `VoiceTableController` | 语音收藏表数据库控制器 |
+| `ItemTableController` | 物品收藏表数据库控制器 |
+| `NoteTableController` | 笔记收藏表数据库控制器 |
+| `DatabaseOpenHelper` | SQLite数据库帮助类(3张表) |
+| `CoinController` | 货币(铜/金/白金币)管理 |
+| `EventController` | 事件控制器 |
+| `LovePoint` | 好感度管理 |
+| `SpecialEvent` | 特殊事件触发逻辑 |
+| `Scene` | 场景枚举(bath_a/bath_b/head/body) |
+| `Region` | 触摸区域枚举(face/head/brest/belly/arm/none) |
+| `CSV` | CSV文件加载(语音和笔记标题) |
+| `PreferencesHelper` | SharedPreferences帮助类 |
+| `TweetDialog` | Twitter分享对话框 |
+
+## 5. 入口点分析
+
+### 5.1 应用启动入口
+- **Launcher Activity**: `MainActivity`
+  - 来源: `AndroidManifest.xml` 第52-56行
+  - 功能: 播放开场视频 → 跳转TitleActivity
+
+### 5.2 DeepLink入口
+- **Scheme**: `moeyu://moe-yu.com`
+  - 来源: `AndroidManifest.xml` 第61-70行
+  - 目标: `TitleActivity`
+
+### 5.3 导航架构
+- **模式**: 单Activity路由(MainActivity) + 多子Activity
+- 所有子Activity通过`startActivityForResult`启动
+- 返回时通过`EXTRA_NEXT_ACTIVITY`整型值决定下一个页面
+- 页面跳转码定义在`BaseActivity`中
+
+## 6. 数据存储
+
+### 6.1 本地数据库(SQLite)
+- 数据库名: `collection.db` (版本1)
+- 表结构:
+
+| 表名 | 字段 | 说明 |
+| --- | --- | --- |
+| ItemTable | _id, name, opened | 物品收藏(25行) |
+| VoiceTable | _id, name, opened, title | 语音收藏(动态行数) |
+| NoteTable | _id, name, opened, term | 笔记收藏(动态行数) |
+
+### 6.2 本地文件存储
+- **用户数据**: 缓存目录下的`localUserData.dat`(Java序列化)
+- **解密语音**: 应用私有目录下的`.ogg`文件
+- **SharedPreferences**: 应用偏好设置(相机开关等)
+
+### 6.3 资源文件
+- **加密语音**: assets/voice/和assets/voice_cn/下的`.okk`文件
+- **语音配置**: assets/voice.json(场景/区域/物品/等级→语音映射)
+- **Live2D模型**: assets/live2d/目录下
+
+## 7. 关键发现与风险
+
+### 7.1 技术债务
+1. **已废弃API**: 使用Apache HttpClient(legacy)、Camera API(旧版)
+2. **明文HTTP**: API地址`http://api.moeapk.com`(非HTTPS)，但已改为本地实现
+3. **Google Billing v2**: 已被Google Play废弃，需要升级到BillingClient
+4. **最低SDK 19**: 支持非常老的Android版本，可能限制了新API使用
+5. **无测试代码**: test目录基本为空
+
+### 7.2 安全相关
+1. **XOR 58加密**: 语音文件使用简单异或加密，安全性低
+2. **API密钥硬编码**: `local_secret`、`appId=MOEYU_001`等直接写在代码中
+3. **签名算法**: SHA-1/SHA-256用于API签名验证
+
+### 7.3 架构特征
+1. **单Activity路由模式**: 所有页面跳转通过MainActivity中转
+2. **已脱机化**: API客户端已改为本地实现，不依赖远程服务器
+3. **中文适配**: 存在voice_cn目录，支持中文语音
+4. **版本控制**: git仓库已初始化，有提交历史
+
+## 8. 总结
+
+ResurrectionMoeyu是一个基于原有日本もえゆ(MoeYu)应用进行逆向重建的Android项目。核心功能是展示Live2D角色模型，用户可以在"浴室"场景中与角色互动（触摸不同区域触发语音和动画），通过扭蛋系统获取物品，收集语音和笔记等。
+
+项目采用纯Java编写，使用较老的Android技术栈，已将服务端逻辑本地化（不依赖远程API）。代码结构为典型的Activity驱动模式，无MVP/MVVM架构。
 
 ---
 
-## 二、核心模块分析
-
-### 2.1 Live2D 引擎模块 (live2d/)
-
-**职责**: Live2D 模型的加载、渲染、交互控制
-
-#### 核心组件
-
-```
-LAppLive2DManager (控制器)
-    ├── LAppGLView (视图容器)
-    │   └── LAppRenderer (OpenGL 渲染器)
-    ├── LAppModel (模型管理器)
-    │   └── Live2DModelAndroid (第三方引擎)
-    └── LAppAnimation (动画系统)
-        ├── MotionQueueManager (主运动队列)
-        ├── ExpressionMgr (表情队列)
-        └── EyeBlinkMotion (眨眼控制)
-```
-
-#### 关键技术特性
-
-1. **模型加载流程**
-   - 从 Assets 读取 `moeyu.moc` 二进制模型文件
-   - 加载 4 张纹理贴图 (`texture_00~03.png`)
-   - 支持 27 个 Parts 的透明度映射
-
-2. **动画系统**
-   - **Idle 循环**: 4 组场景 × 随机 Idle 动作，带淡入淡出
-   - **Touch 交互**: 
-     - `touchesBegan`: 记录触摸起点、切换眨眼间隔 (1.5s→0.4s)
-     - `touchesMoved`: 计算拖拽距离 → 触发 Head/Body Flip
-     - `tapEvent`: 双击/单击事件回调
-   - **物理模拟**: Spring-Damper 模型的 Face Drag（面部跟随）
-
-3. **传感器集成**
-   - 加速度传感器监听 (`AccelHelper`)
-   - 一阶低通滤波平滑加速度值
-   - 映射到 Live2D 参数：`PARAM_ANGLE_X/Y`, `PARAM_BASE_X/Y`
-   - 震动检测：加速度差值 >1.5 → 触发 `shakeEvent()`
-
-4. **OpenGL 渲染**
-   - 正交投影矩阵设置
-   - 背景纹理绘制（浴场场景）
-   - Model 坐标变换：`(x=-80, y=-20, scale=0.13)`
-   - 支持 AR 模式切换
-
----
-
-### 2.2 API 网络层模块 (api/)
-
-**职责**: 处理所有 HTTP 请求、用户数据管理、Gacha 抽卡逻辑
-
-#### 技术架构
-
-```java
-// 异步任务框架
-BaseTask<Params, Progress, Result> extends AsyncTask
-    ├── LoginTask (登录)
-    ├── SignupTask (注册)
-    ├── GachaTask (抽卡)
-    └── BillingTask (计费回调)
-```
-
-#### 核心功能
-
-1. **网络请求实现**
-   - 基于 `Apache HttpClient 3.x`
-   - Base URL: `http://api.moeapk.com/third_party/moeyu/`
-   - SHA-1 签名算法防止重放攻击
-
-2. **用户数据管理** (`UserData.java`)
-   ```java
-   public class UserData implements Serializable {
-       // 金币系统 (三阶)
-       int bronzeCoin;      // 青铜币 (每日奖励)
-       int goldCoin;        // 黄金币 (内购)
-       int platinumCoin;    // 白金币 (高级)
-       
-       // 物品收集 (25 种)
-       List<Integer> items;
-       
-       // 等级系统
-       int level;           // 1-6 级
-       int exp;             // 经验值
-   }
-   ```
-
-3. **Gacha 抽卡系统**
-   - **概率分层**:
-     - BRONZE: rate=2 (10% 触发)
-     - GOLD: rate=3 (50% 触发)
-     - PLATINUM: rate=4 (90% 触发)
-   - 物品上限保护：`MAX_COIN_COUNT = 99`
-   - 未收集物品优先判定
-
-4. **数据持久化**
-   - `UserData.dat` 本地序列化存储
-   - 支持 "local" userId 离线模式
-   - 每日登录奖励自动发放
-
----
-
-### 2.3 Billing 计费模块 (billing/)
-
-**职责**: Google Play 内购集成、安全验证、购买流程管理
-
-#### 完整购买流程
-
-```
-用户点击购买
-    ↓
-BillingService.requestPurchase()
-    ↓
-Google Play Store (PendingIntent)
-    ↓
-Payment Complete → BroadcastReceiver
-    ↓
-Security.verifyPurchase() (RSA 验证)
-    ├─ RSA-2048 公钥验证
-    └─ Base64 签名数据解析
-    ↓
-MoeyuAPIClient.userBilling() (服务器确认)
-    ↓
-UserData.update() + Live2D 奖励发放
-```
-
-#### 核心组件
-
-1. **BillingService** - Service 层封装
-   - 管理 `Google Play Billing Service` 连接
-   - 请求队列管理 (`PendingRequestQueue`)
-   - 购买状态观察者模式
-
-2. **Security** - 安全验证核心
-   ```java
-   // RSA 公钥 (硬编码)
-   generatePublicKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtvGL...");
-   
-   // 验证逻辑
-   public VerifiedPurchase verifyPurchase(String signedData, String signature);
-   ```
-
-3. **ResponseHandler** - 响应处理
-   - 处理 `PURCHASED/RESTORED/CANCELLED` 状态
-   - UI 跳转和 Toast 提示
-
-4. **PurchaseObserver** - 观察者模式
-   - 购买状态变化回调
-   - 与 API 层的 `BillingTask` 集成
-
----
-
-### 2.4 UI 组件层
-
-#### Activity 架构 (13 个)
-
-| Activity | 功能描述 | 关键交互 |
-|----------|---------|---------|
-| **MainActivity** | 应用入口点 | 片头播放 → TitleActivity |
-| **TitleActivity** | 标题/登录页 | 登录注册、UserData 保存 |
-| **GatyaActivity** | 抽卡主界面 | 金币选择、转盘动画、Billing 集成 |
-| **BathActivity** | 浴室 Live2D 交互 | Live2D 渲染、触摸事件、场景切换 |
-| **CollectionRoomActivity** | 收藏房间管理 | 物品/语音/笔记分类 |
-| **ItemCollectionActivity** | 物品收藏 | 25 种物品收集状态展示 |
-| **VoiceCollectionActivity** | 语音收藏 | 语音列表管理 (`voice.json` 映射) |
-| **GatyaResultActivity** | 抽卡结果展示 | GachaResult 详情、UserData 更新 |
-| **PreferenceActivity** | 设置界面 | 相机开关、声音设置等 |
-
-#### Fragment 架构 (4 个)
-
-- `LoginFragment` - 登录交互
-- `SignupFragment` - 注册流程
-- `NetworkBaseFragment` - 网络请求基类
-- `GachaFragment` - 抽卡操作集成
-
----
-
-## 三、模块间依赖关系
-
-### 3.1 整体架构视图
-
-```
-┌─────────────────────────────────────────┐
-│           UI 层 (Activity/Fragment)        │
-│  ┌─────────────┬──────────────┬────────┐ │
-│  │ BathActivity│ GatyaActivity│ 其他   │ │
-│  └─────────────┴──────────────┴────────┘ │
-└───────────┬─────────────────┬────────────┘
-            │                 │
-            ↓                 ↓
-    ┌───────────────┐   ┌───────────────┐
-    │  Live2D 引擎层 │   │   API 网络层   │
-    │  (live2d/)    │   │   (api/)      │
-    └───────┬───────┘   └───────┬───────┘
-            │                   │
-            └─────────┬─────────┘
-                      ↓
-              ┌───────────────┐
-              │  Billing 计费层 │
-              │   (billing/)   │
-              └───────┬─────────┘
-                      ↓
-              ┌───────────────┐
-              │  Model 数据层   │
-              │ (UserData等)   │
-              └───────────────┘
-```
-
-### 3.2 关键交互点
-
-#### Live2D ↔ API
-
-```java
-// BathActivity.java - Live2D 触摸事件触发语音
-LAppLive2DManager.getTouchPosition()
-    ↓
-getRegion(pointF) → Scene 枚举判定
-    ↓
-startVoiceAndAnimation(voiceName)
-    ├─ LAppAnimation.startTouchMotion()
-    └─ VoiceManager.playSound()
-```
-
-#### API ↔ Billing
-
-```java
-// MoeyuAPIClient.java - 计费回调处理
-public void userBilling(String signedData, String signature) {
-    // RSA 验证后的服务器确认请求
-    HttpPost post = new HttpPost(BASE_URL + "user/billing");
-    // ...
-}
-```
-
-#### Billing ↔ Live2D (通过 API)
-
-```java
-// 购买成功后触发 Live2D 奖励动画
-BillingService.purchaseStateChanged(PURCHASED)
-    ↓
-MoeyuAPIClient.userBilling()
-    ↓
-UserData.updateItems()
-    ↓
-ItemTableController.update() → Live2D 模型更新
-```
-
----
-
-## 四、资源文件结构
-
-### 4.1 Assets 目录
-
-```
-assets/
-├── model/moeyu.1024/
-│   ├── moeyu.moc              # Live2D 模型文件 (二进制)
-│   └── texture_00~03.png      # 4 张纹理贴图
-├── motion/
-│   ├── idle/                  # Idle 动画目录
-│   └── touch/                 # Touch 交互动画
-├── voice/                     # 日语语音资源
-├── voice_cn/                  # 中文语音资源
-├── voice.json                # 语音映射表 (134KB)
-└── water_*.png               # 浴场场景背景图 (4 张)
-```
-
-### 4.2 依赖库
-
-- **live2d_android.jar** - Live2D Android SDK 核心库
-  - 提供 `Live2DModelAndroid`、`MotionQueueManager`、`ExpressionMgr` 等类
-  - OpenGL ES 渲染支持
-  - MOC 模型加载和动画管理
-
----
-
-## 五、关键技术特点
-
-### 5.1 架构设计模式
-
-| 模式 | 应用场景 | 实现类 |
-|------|---------|--------|
-| **MVC** | Live2D 引擎层 | Manager-Model-View |
-| **Observer** | Billing 购买状态 | PurchaseObserver |
-| **AsyncTask** | 网络请求处理 | BaseTask |
-| **Singleton** | 管理器实例 | LAppLive2DManager |
-| **Factory** | 模型创建 | FileManager |
-
-### 5.2 数据流设计
-
-```
-用户操作 (UI) 
-    ↓
-异步任务 (AsyncTask)
-    ↓
-网络请求 (HttpClient) / 本地文件 (UserData.dat)
-    ↓
-数据处理 (Model/Service)
-    ↓
-状态更新 (LiveData/回调)
-    ↓
-UI 刷新 (Activity/Fragment)
-```
-
-### 5.3 安全机制
-
-- **API 签名**: SHA-1 + Nonce + Timestamp
-- **Billing 验证**: RSA-2048 公钥验证
-- **本地缓存**: Object Serialization + 文件存储
-
----
-
-## 六、待确认事项
-
-| 项目 | 说明 | 优先级 |
-|------|------|--------|
-| **API 接口文档** | 需要确认完整的 API 端点和请求/响应格式 | 高 |
-| **ItemTableController** | 需要了解物品更新如何触发 Live2D 模型变化 | 中 |
-| **VoiceManager 实现** | 语音队列管理和播放逻辑需详细分析 | 中 |
-| **Scene 状态机** | 场景切换的完整状态流转需要梳理 | 低 |
-| **测试覆盖率** | 当前项目缺少单元测试和集成测试代码 | 高 |
-
----
-
-## 七、下一步分析计划
-
-根据 AGENT 系统标准流程，后续将进行：
-
-1. **架构逆向分析** (@code-framework) - 深入分析核心组件设计模式
-2. **功能清单梳理** (@requirement-analyst) - 明确所有功能点和业务流程
-3. **代码质量评估** (@code-review-qa) - 识别技术债务和潜在风险
-4. **构建部署分析** (@dev-ops) - 理解构建流程和依赖管理
-5. **开发任务规划** (@product-manager) - 制定后续改进计划
-
----
-
-**文档版本**: v1.0  
-**最后更新**: 2026-03-27  
-**分析进度**: 阶段一完成 (项目概览)
+*下一步: 委托@code-framework进行架构逆向分析, 委托@requirement-analyst梳理功能清单, 委托@dev-ops分析构建部署流程。*

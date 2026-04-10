@@ -1,0 +1,182 @@
+version: "1.0"
+
+metadata:
+  id: "REFACTOR-001"
+  title: "ResurrectionMoeyu代码规范化重构"
+  description: |
+    对逆向重建的ResurrectionMoeyu项目进行代码规范化重构，分为两个阶段：
+    阶段1: 修复不规范的代码编写方式、改善资源ID引用方式、统一编码规范
+    阶段2: 优化在线功能的本地化实现（用户已做部分改造但规则方面实现不好）
+    
+    主要问题：
+    - 逆向工程导致代码编写不规范
+    - 资源ID引用方式不规范
+    - 在线功能（如付费购买道具）需要移除或本地化
+    - 用户已做了部分本地化但实现质量不佳
+  type: "refactor"
+  priority: "P0"
+  scope: "整体"
+
+assignment:
+  created_by: "product-manager"
+  created_at: "2026-04-10T14:00:00Z"
+  assignee: "requirement-analyst"
+  assigned_at: "2026-04-10T14:00:00Z"
+  parent_task: null
+  sub_tasks:
+    - "REFACTOR-001-1"
+    - "REFACTOR-001-2"
+
+  status:
+  current: "completed"
+  progress_percent: 100
+  started_at: "2026-04-10T14:00:00Z"
+  estimated_completion: null
+  actual_completion: "2026-04-11T16:30:00Z"
+
+context:
+  requirements_file: "ai/design_by_user_say.md"
+  architecture_file: "ai/dev/project.md"
+  analysis_file: "ai/analysis/overview.md"
+  deployment_file: "ai/deployment.md"
+  related_files:
+    - "app/src/main/java/jp/co/a_tm/moeyu/"
+  constraints:
+    - "重构不能破坏现有功能的正常运行"
+    - "阶段2中用户已做的本地化改造需要保留并优化，不要重写"
+    - "Live2D模块(live2d/)和billing模块暂不在代码规范化范围内"
+  dependencies:
+    - task_id: "ANALYSIS-001"
+      type: "blocks"
+      description: "依赖项目分析任务完成"
+
+specification:
+  acceptance_criteria:
+    - criterion: "所有资源ID引用方式规范化"
+      status: "pending"
+    - criterion: "代码编写风格统一规范"
+      status: "pending"
+    - criterion: "消除明显的代码异味（硬编码、魔法值等）"
+      status: "pending"
+    - criterion: "在线功能的本地化实现规则合理"
+      status: "pending"
+    - criterion: "项目可正常编译运行"
+      status: "pending"
+
+execution:
+  workflow:
+    - step: 1
+      name: "需求分析：识别具体不规范模式"
+      status: "completed"
+      assignee: "requirement-analyst"
+      outputs:
+        - "ai/dev/refactoring-spec.md"
+      notes: "扫描源码，识别资源ID引用不规范、代码编写不规范的具体位置和模式。共识别约115处不规范模式，涉及15个文件"
+
+    - step: 2
+      name: "阶段1实施：代码规范化重构（P0+P1批次）"
+      status: "completed"
+      assignee: "code-builder"
+      outputs:
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/CoinController.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/GatyaActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/MainActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/BathActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/TitleActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/PreferenceActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/DatabaseOpenHelper.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/DatabaseTableController.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/PreferencesHelper.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/GatyaResultActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/ItemCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/TweetDialog.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/VoiceManager.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/VoiceCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/NoteCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/BaseTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/live2d/motion/LAppAnimation.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/util/Logger.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/security/SecurityUtils.java"
+      notes: "完成P0(3项)和P1(8项)共11项规范化重构，修改20个文件约100+处，构建验证通过"
+
+    - step: 3
+      name: "阶段1实施：代码规范化重构（P2批次）"
+      status: "completed"
+      assignee: "code-builder"
+      outputs:
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/BathActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/GatyaActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/SpecialEvent.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/Decryption.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/PreferencesHelper.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/LovePoint.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/ItemCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/TweetDialog.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/CameraPreview.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/SignupTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/LoginTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/GachaTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/BillingTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/fragment/SignupFragment.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/fragment/LoginFragment.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/fragment/GachaFragment.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/fragment/BillingFragment.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/VoiceCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/NoteCollectionActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/model/UserData.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/EventController.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/CSV.java"
+      notes: "完成P2批次代码整洁度改进，含逆向注释清除(20处)、魔法数字常量化(15处)、命名规范化(6处)、菱形运算符补全(12处)，构建验证通过"
+
+    - step: 4
+      name: "阶段2实施：在线功能本地化优化"
+      status: "completed"
+      assignee: "code-builder"
+      outputs:
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/GatyaActivity.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/model/UserData.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/task/BillingTask.java"
+        - "app/src/main/java/jp/co/a_tm/moeyu/api/fragment/BillingFragment.java"
+        - "app/src/main/AndroidManifest.xml"
+        - "app/build.gradle"
+      notes: "统一数据存储、清理远程代码、本地化userBilling、修复扭蛋经验值、删除billing模块(8个文件)、每日赠送金币，构建验证通过"
+
+    - step: 5
+      name: "代码审查"
+      status: "completed"
+      assignee: "code-review-qa"
+      outputs:
+        - "ai/review/report_20260411.md"
+      notes: "审查通过（附条件），发现4个低风险问题，不影响功能正确性和安全性"
+
+    - step: 6
+      name: "构建验证"
+      status: "completed"
+      assignee: "dev-ops"
+      outputs: []
+      notes: "最终构建验证通过: BUILD SUCCESSFUL"
+
+  history:
+  - timestamp: "2026-04-10T14:00:00Z"
+    agent: "product-manager"
+    action: "created"
+    details: "任务创建，开始代码规范化重构"
+  - timestamp: "2026-04-10T14:00:00Z"
+    agent: "product-manager"
+    action: "assigned"
+    details: "分配给requirement-analyst进行需求分析"
+  - timestamp: "2026-04-10T15:30:00Z"
+    agent: "requirement-analyst"
+    action: "completed"
+    details: "完成源码扫描和需求分析，输出ai/dev/refactoring-spec.md，识别约115处不规范模式"
+  - timestamp: "2026-04-11T10:00:00Z"
+    agent: "code-builder"
+    action: "step_completed"
+    details: "完成P2批次代码整洁度改进，修改23个文件约53处，构建验证通过"
+  - timestamp: "2026-04-11T16:00:00Z"
+    agent: "code-review-qa"
+    action: "step_completed"
+    details: "代码审查完成，结果：Pass（附条件通过），发现4个低风险问题，报告输出至ai/review/report_20260411.md"

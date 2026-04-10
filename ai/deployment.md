@@ -1,1205 +1,435 @@
-# ResurrectionMoeyu 部署文档
+# ResurrectionMoeyu 构建部署分析文档
 
-**版本**: v1.1  
-**创建日期**: 2026-03-27  
-**更新日期**: 2026-03-27  
-**文档代理**: dev-ops  
-**任务 ID**: ANALYSIS-001-DEPLOY, IMPROVEMENT-001-BUILD
+> 分析日期: 2026-04-10
+> 分析者: dev-ops
+> 项目: ResurrectionMoeyu (jp.co.a_tm.moeyu)
 
 ---
 
-## 变更日志
+## 1. 构建配置详解
 
-| 版本 | 日期 | 变更内容 | 负责人 |
-|------|------|---------|--------|
-| v1.0 | 2026-03-27 | 初始部署文档创建 | dev-ops (ANALYSIS-001-DEPLOY) |
-| v1.1 | 2026-03-27 | 构建体系优化实施更新：targetSdkVersion 升级至 API 34、ProGuard 启用、依赖版本更新 | dev-ops (IMPROVEMENT-001-BUILD) |
+### 1.1 构建工具版本
+
+| 组件 | 版本 | 说明 |
+| --- | --- | --- |
+| Android Gradle Plugin (AGP) | 9.0.0 | 根build.gradle中声明 |
+| Gradle Wrapper | 9.1.0 | gradle-wrapper.properties中配置 |
+| Gradle分发源 | 阿里云镜像 | `mirrors.aliyun.com/macports/distfiles/gradle/` |
+| Java兼容版本 | 1.8 (Java 8) | compileOptions中配置 |
+
+### 1.2 根项目配置 (build.gradle)
+
+```
+构建脚本仓库: google(), mavenCentral()
+AGP依赖: com.android.tools.build:gradle:9.0.0
+项目结构: 单模块 (:app)
+```
+
+**注意事项:**
+- AGP 9.0.0 配合 Gradle 9.1.0 属于较新版本组合
+- 仓库源使用默认的google()和mavenCentral()，在国内网络环境下可能需要配置代理或镜像
+
+### 1.3 应用模块配置 (app/build.gradle)
+
+#### Android SDK版本
+
+| 配置项 | 值 | 说明 |
+| --- | --- | --- |
+| compileSdkVersion | 34 | 对应Android 14 |
+| minSdkVersion | 19 | 支持Android 4.4+ |
+| targetSdkVersion | 34 | 目标Android 14 |
+| namespace | jp.co.a_tm.moeyu | 在build.gradle中声明 |
+
+#### 版本信息
+
+| 配置项 | 值 | 说明 |
+| --- | --- | --- |
+| applicationId | jp.co.a_tm.moeyu | 应用包名 |
+| versionCode | 1 | 版本号(整数) |
+| versionName | 1.0 | 版本名称(字符串) |
+| versionFile.log | 7 | 独立版本日志，与versionCode不一致，待确认用途 |
+
+#### 构建类型 (buildTypes)
+
+| 构建类型 | 配置 | 说明 |
+| --- | --- | --- |
+| **release** | minifyEnabled: true, shrinkResources: true | 开启代码混淆和资源压缩 |
+| **debug** | 未显式配置(使用默认值) | 默认不混淆 |
+
+**release构建详细配置:**
+- ProGuard规则文件: `proguard-android-optimize.txt`(AGP默认) + `proguard-rules.pro`(自定义)
+- 资源压缩: 开启(shrinkResources true)
+- 代码混淆: 开启(minifyEnabled true)
+
+#### 签名配置
+
+**当前状态: 未配置签名**
+
+- build.gradle中未定义`signingConfigs`块
+- release构建类型未引用任何签名配置
+- 项目中未找到`.jks`或`.keystore`签名文件
+- .gitignore中`*.jks`行被注释掉了
+
+**影响:**
+- release构建将使用默认的debug签名，无法发布到Google Play
+- 需要创建签名密钥库并配置签名信息才能生成可发布的APK
+
+### 1.4 Gradle属性配置 (gradle.properties)
+
+| 属性 | 值 | 说明 |
+| --- | --- | --- |
+| android.builtInKotlin | false | 不使用Kotlin |
+| android.defaults.buildfeatures.resvalues | true | 启用资源值生成 |
+| android.dependency.useConstraints | true | 使用依赖约束 |
+| android.enableAppCompileTimeRClass | false | 禁用编译时R类 |
+| android.enableJetifier | true | 启用Jetifier(AndroidX迁移支持) |
+| android.newDsl | false | 不使用新版DSL |
+| android.r8.optimizedResourceShrinking | false | R8优化资源压缩关闭 |
+| android.r8.strictFullModeForKeepRules | false | R8严格模式关闭 |
+| android.useAndroidX | true | 使用AndroidX |
+| android.usesSdkInManifest.disallowed | false | 允许Manifest中声明SDK版本 |
+| org.gradle.jvmargs | -Xmx1536m | JVM最大堆内存1536MB |
+
+**潜在问题:**
+- `android.enableJetifier=true` 适用于仍在使用Support Library的项目，本项目已使用AndroidX，理论上可以关闭以加快构建速度
+- `org.gradle.jvmargs=-Xmx1536m` 堆内存设置偏小，对于大型项目可能导致OOM，但本项目规模较小，影响不大
+- `android.newDsl=false` 在AGP 9.0下是否兼容待确认
+
+### 1.5 ProGuard混淆规则分析 (proguard-rules.pro)
+
+#### 保留规则概览
+
+| 保留目标 | 规则 | 说明 |
+| --- | --- | --- |
+| AndroidX | `-keep class androidx.** { *; }` | 保留所有AndroidX类 |
+| Live2D SDK | `-keep class com.github.hiroshi_nakamura.live2d.**` 和 `jp.co.live2d.**` | 保留Live2D所有类 |
+| Activity类 | `-keep public class jp.co.a_tm.moeyu.**.*Activity` | 保留所有Activity |
+| Fragment类 | `-keep public class jp.co.a_tm.moeyu.**.*Fragment` | 保留所有Fragment |
+| View类 | `-keep public class jp.co.a_tm.moeyu.**.*View` | 保留所有View |
+| Apache HttpClient | `-keep class org.apache.http.** { *; }` | 保留HTTP客户端类 |
+| 网络层 | `-keep class jp.co.a_tm.moeyu.network.** { *; }` | 保留网络相关类 |
+| 数据模型 | `-keep class jp.co.a_tm.moeyu.model.**` 和 `jp.co.a_tm.moeyu.data.**` | 保留数据模型类 |
+
+#### 通用属性保留
+
+```
+-keepattributes Signature, *Annotation*, EnclosingMethod, InnerClass, SourceFile, LineNumberTable
+```
+
+**潜在问题:**
+1. `-keep class androidx.** { *; }` 过于宽泛，会保留大量不必要的AndroidX类，增大APK体积
+2. 调试选项被注释掉(`-printseeds`, `-printusage`, `-printmapping`)，如果需要排查混淆问题需手动开启
+3. 项目源码中`jp.co.a_tm.moeyu.network`和`jp.co.a_tm.moeyu.data`包可能不存在，这些规则为冗余配置
 
 ---
 
-## 一、构建环境配置
+## 2. 依赖清单及版本评估
 
-### 1.1 系统要求
+### 2.1 依赖列表
 
-#### 硬件要求
-| 组件 | 最低配置 | 推荐配置 |
-|------|---------|---------|
-| **CPU** | 4 核 | 8 核 + |
-| **内存** | 8GB RAM | 16GB RAM |
-| **磁盘空间** | 20GB 可用空间 | 50GB SSD |
-| **网络** | 10Mbps | 100Mbps+ |
+| 依赖 | 类型 | 版本 | 用途 | 最新稳定版(估算) | 状态评估 |
+| --- | --- | --- | --- | --- | --- |
+| `androidx.appcompat:appcompat` | implementation | 1.6.1 | AndroidX兼容库 | 1.7.x | 偏旧 |
+| `live2d_android.jar` | 本地JAR(libs/) | 未知 | Live2D SDK渲染引擎 | 待确认 | 无法评估 |
+| `junit:junit` | testImplementation | 4.13.2 | 单元测试框架 | 4.13.2 | 正常 |
+| `androidx.test:runner` | androidTestImplementation | 1.5.2 | AndroidX测试运行器 | 1.6.x | 偏旧 |
+| `androidx.test.espresso:espresso-core` | androidTestImplementation | 3.5.1 | UI测试框架 | 3.6.x | 偏旧 |
+| Apache HttpClient | useLibrary | legacy(系统内置) | HTTP客户端 | 已废弃 | 已废弃 |
+| Google Play Billing | 源码内嵌 | v2 | 应用内支付 | v7+ | 已废弃 |
 
-#### 软件环境
-| 组件 | 版本要求 | 说明 |
-|------|---------|------|
-| **JDK** | Java 8 (1.8.0_201+) | 构建工具运行环境 |
-| **Gradle** | 9.1.0 | 项目构建管理系统 |
-| **Android SDK** | API Level 34 (Android 14) | 目标开发版本 (已升级) |
-| **Android Studio** | 2022.2+ (Arctic Fox 或更高) | 推荐 IDE，支持 API 34 |
-| **Git** | 2.20+ | 版本控制工具 |
+### 2.2 依赖管理方式
 
-### 1.2 Gradle 配置详解
+**当前方式:** 混合模式
+- 远程依赖: 通过Maven仓库自动解析(appcompat, junit等)
+- 本地依赖: `fileTree(include: ['*.jar'], dir: 'libs')` + `files('libs/live2d_android.jar')`
+  - **注意:** live2d_android.jar被声明了两次(通过fileTree通配和通过files显式声明)，存在重复引用
 
-#### 根项目构建配置 (build.gradle)
+**缺失的依赖管理:**
+- 无版本目录(Version Catalog)配置
+- 无依赖约束统一管理
+- 无BOM(Bill of Materials)对齐
 
-```groovy
-// Gradle 插件版本
-classpath 'com.android.tools.build:gradle:9.0.0'
+### 2.3 依赖风险评估
 
-// 仓库配置
-repositories {
-    google()           // Google Maven 仓库
-    mavenCentral()     // Maven Central 仓库
-}
-
-// 清理任务
-tasks.register('clean', Delete) {
-    delete rootProject.buildDir
-}
-```
-
-**配置特点**:
-- **插件版本**: Android Gradle Plugin 9.0.0，支持最新构建特性
-- **仓库配置**: Google 和 Maven Central 双仓库，确保依赖获取稳定性
-- **清理任务**: 提供统一的 clean 任务，便于构建环境管理
-
-#### 应用模块构建配置 (app/build.gradle)
-
-```groovy
-android {
-    compileSdkVersion 34           // 编译 SDK 版本 (已升级至 Android 14)
-    namespace "jp.co.a_tm.moeyu"   // 包名空间
-    
-    defaultConfig {
-        applicationId "jp.co.a_tm.moeyu"
-        minSdkVersion 19            // 最低支持 Android 5.0
-        targetSdkVersion 34         // 目标 SDK Android 14 (已升级)
-        versionCode 1               // 版本代码
-        versionName "1.0"           // 版本名称
-        
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-    
-    buildTypes {
-        release {
-            minifyEnabled true      // 已启用 ProGuard/R8 代码压缩
-            shrinkResources true    // 已启用资源压缩
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-}
-```
-
-**关键配置项说明**:
-
-1. **SDK 版本配置**
-   - `compileSdkVersion 34`: 使用 Android 14 API 进行编译 (2026-03-27 升级)
-   - `minSdkVersion 19`: 支持 Android 5.0 及以上设备 (覆盖约 95% 用户)
-   - `targetSdkVersion 34`: 针对 Android 14 优化，符合 Google Play 最新要求
-
-2. **构建类型配置**
-   - **Debug**: 开发调试版本，包含调试符号
-   - **Release**: 发布版本，已启用 ProGuard/R8 代码压缩和资源压缩 (2026-03-27 启用)
-   - **预期优化效果**: APK 体积减少 15-25%，代码安全性和反逆向能力增强
-
-3. **Java 兼容性**
-   - Java 8 完全支持，可使用 Lambda 表达式、Stream API 等现代特性
-
-4. **ProGuard 规则配置**
-   - 完整的项目专属规则 (proguard-rules.pro)
-   - 覆盖范围：AndroidX、Live2D SDK、UI 组件、网络层、数据层
-   - 支持调试输出和性能分析
-
-### 1.3 Gradle Wrapper 配置
-
-```properties
-distributionUrl=https\://mirrors.aliyun.com/macports/distfiles/gradle/gradle-9.1.0-bin.zip
-```
-
-**配置说明**:
-- **Gradle 版本**: 9.1.0 (最新稳定版)
-- **镜像源**: 阿里云镜像，提升国内下载速度
-- **Wrapper 优势**: 确保团队使用一致的 Gradle 版本
-
-### 1.4 项目级配置 (gradle.properties)
-
-```properties
-# Android 配置
-android.useAndroidX=true                    # 启用 AndroidX 支持
-android.enableJetifier=true                 # 启用 Jetifier 兼容工具
-
-# JVM 内存配置
-org.gradle.jvmargs=-Xmx1536m               # Gradle Daemon 堆内存 1.5GB
-
-# 构建优化选项
-android.enableAppCompileTimeRClass=false   # 禁用编译时 R 类
-android.newDsl=false                       # 使用传统 DSL
-```
-
-**配置优化建议**:
-
-1. **内存优化**
-   ```properties
-   # 推荐配置 (根据实际硬件调整)
-   org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
-   ```
-
-2. **并行构建**
-   ```properties
-   # 启用并行构建 (适用于多模块项目)
-   org.gradle.parallel=true
-   
-   # 启用构建缓存
-   org.gradle.caching=true
-   
-   # 启用配置缓存 (Gradle 7.0+)
-   org.gradle.configuration-cache=true
-   ```
+| 风险项 | 严重程度 | 说明 |
+| --- | --- | --- |
+| Apache HttpClient(legacy) | 高 | Android 9+已标记为废弃，使用`useLibrary`强制引入，仅用于兼容旧代码 |
+| Google Play Billing v2 | 高 | Google已停止支持v2版本API，新应用无法使用，BillingService和BillingReceiver需要重写 |
+| Live2D SDK版本未知 | 中 | 本地JAR无法得知确切版本，可能存在已知漏洞或兼容性问题 |
+| appcompat 1.6.1 | 低 | 非最新但仍在维护线内，功能正常 |
 
 ---
 
-## 二、依赖管理说明
+## 3. 构建问题清单及建议
 
-### 2.1 核心依赖库
+### 3.1 严重问题
 
-#### 本地 JAR 依赖
+#### 问题1: AGP 9.0.0 + Gradle 9.1.0 兼容性
 
-| 依赖库 | 位置 | 用途 | 大小 |
-|--------|------|------|------|
-| **live2d_android.jar** | app/libs/ | Live2D 渲染引擎核心库 | 101KB |
+- **描述:** AGP 9.0.0 是非常新的版本(截至分析日期)，部分Gradle属性和API可能已变更
+- **影响:** `gradle.properties`中的部分属性(如`android.newDsl=false`, `android.enableAppCompileTimeRClass=false`)可能不再被识别或行为已改变
+- **建议:** 执行一次完整构建验证，确认所有配置项在新版AGP下仍有效
 
-**Live2D SDK 功能**:
-- Live2DModelAndroid: MOC 模型加载和渲染
-- MotionQueueManager: 动画运动队列管理
-- ExpressionMgr: 表情队列控制
-- EyeBlinkMotion: 自动眨眼系统
-- OpenGL ES 渲染支持
+#### 问题2: 缺少签名配置
 
-#### AndroidX 依赖
+- **描述:** build.gradle中未配置release签名，无法生成可发布的APK
+- **影响:** 无法发布到应用商店，release构建使用debug签名
+- **建议:** 创建签名密钥库并在build.gradle中配置signingConfigs
 
-```groovy
-dependencies {
-    // AndroidX 核心库 (已更新至推荐版本)
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    
-    // 测试依赖 (已更新至推荐版本)
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-}
-```
+#### 问题3: Google Play Billing v2已废弃
 
-**依赖说明**:
-- **appcompat 1.6.1**: AndroidX 兼容性库，提供主题、样式支持 (2026-03-27 从 1.0.2 升级)
-- **JUnit 4.13.2**: 单元测试框架，性能优化 (2026-03-27 从 4.12 升级)
-- **Test Runner 1.5.2**: Android 测试运行器，兼容性增强 (2026-03-27 从 1.1.1 升级)
-- **Espresso 3.5.1**: UI 测试工具，特性丰富 (2026-03-27 从 3.1.1 升级)
+- **描述:** Manifest中声明了BillingService和BillingReceiver，使用v2版Billing API
+- **影响:** Google Play已停止支持v2 Billing API，支付功能无法正常工作
+- **建议:** 如需保留支付功能，需升级到Google Play Billing Library(BillingClient)
 
-**版本更新收益**:
-- ✅ appcompat 1.6.1 包含 Material Design 组件优化
-- ✅ Test Runner 1.5.2 提升仪器测试稳定性和执行速度
-- ✅ Espresso 3.5.1 增强同步机制和测试覆盖能力
-- ✅ 所有依赖均为长期支持版本，减少未来升级频率
+### 3.2 一般问题
 
-### 2.2 依赖版本策略
+#### 问题4: Gradle Wrapper使用阿里云镜像
 
-#### 当前版本评估
+- **描述:** `gradle-wrapper.properties`中distributionUrl指向阿里云镜像
+- **影响:** 在非中国大陆网络环境下可能导致下载失败；镜像同步可能存在延迟
+- **建议:** 根据团队网络环境选择合适的分发源，或配置本地Gradle分发
 
-| 依赖 | 当前版本 | 最新稳定版 | 评估 | 建议 |
-|------|---------|-----------|------|------|
-| Android Gradle Plugin | 9.0.0 | 9.0.0 | ✅ 最新 | 保持 |
-| appcompat | 1.6.1 | 1.7.0 | ✅ 推荐版本 (已升级) | 稳定使用 |
-| JUnit | 4.13.2 | 4.13.2 | ✅ 最新稳定版 (已升级) | 保持 |
-| Test Runner | 1.5.2 | 1.6.1 | ✅ 推荐版本 (已升级) | 稳定使用 |
-| Espresso | 3.5.1 | 3.6.1 | ✅ 推荐版本 (已升级) | 稳定使用 |
+#### 问题5: 本地JAR重复声明
 
-**版本更新记录**:
-- **2026-03-27**: 完成核心依赖版本升级 (任务：IMPROVEMENT-001-BUILD)
-  - appcompat: 1.0.2 → 1.6.1
-  - JUnit: 4.12 → 4.13.2
-  - Test Runner: 1.1.1 → 1.5.2
-  - Espresso: 3.1.1 → 3.5.1
+- **描述:** `fileTree(include: ['*.jar'], dir: 'libs')`已经包含了libs/下所有JAR，又额外通过`files('libs/live2d_android.jar')`显式声明
+- **影响:** 虽然Gradle会自动去重不会导致编译错误，但属于冗余配置
+- **建议:** 保留fileTree即可，移除显式的`files()`声明
 
-#### 依赖更新历史
+#### 问题6: ProGuard规则过于宽泛
 
-**已完成更新 (2026-03-27)**:
-```groovy
-// AndroidX 核心库升级 (1.0.2 → 1.6.1)
-implementation 'androidx.appcompat:appcompat:1.6.1'
+- **描述:** `-keep class androidx.** { *; }`保留所有AndroidX类
+- **影响:** 混淆效果减弱，APK体积增大
+- **建议:** 精确指定需要保留的AndroidX类，或让AGP自动处理AndroidX的保留规则
 
-// 测试库升级
-testImplementation 'junit:junit:4.13.2'                    // 4.12 → 4.13.2
-androidTestImplementation 'androidx.test:runner:1.5.2'      // 1.1.1 → 1.5.2
-androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'  // 3.1.1 → 3.5.1
-```
+#### 问题7: JVM堆内存设置偏小
 
-**升级收益**:
-- ✅ 性能优化和 Bug 修复已完成应用
-- ✅ Android 新版本 (API 34) 支持已增强
-- ✅ 测试功能已提升，稳定性和覆盖率改善
-- ✅ 长期维护成本降低
+- **描述:** `org.gradle.jvmargs=-Xmx1536m`
+- **影响:** 构建速度可能受限，但对于本项目的规模影响有限
+- **建议:** 可适当增大到2048m或4096m
 
-**未来更新规划**:
-- 定期评估依赖更新 (建议每季度审查)
-- 关注 Breaking Changes，适时升级至最新版本
+### 3.3 轻微问题
 
-#### 依赖冲突解决机制
+#### 问题8: compileSdkVersion/targetSdkVersion写法
 
-**当前策略**:
-1. **版本锁定**: 在 build.gradle 中明确指定依赖版本
-2. **Jetifier 启用**: `android.enableJetifier=true` 确保 Support Library 兼容
-3. **AndroidX 迁移**: `android.useAndroidX=true` 全面使用 AndroidX
+- **描述:** 使用`compileSdkVersion 34`而非AGP新DSL的`compileSdk 34`
+- **影响:** 旧写法在当前版本仍可工作，但在未来AGP版本中可能被移除
+- **建议:** 待确认AGP 9.0是否仍支持旧DSL
 
-**冲突处理建议**:
-```groovy
-// 在根项目 build.gradle 中添加依赖约束
-dependencies {
-    constraints {
-        implementation('androidx.appcompat:appcompat') {
-            version {
-                strictly '1.6.1'
-            }
-        }
-    }
-}
-```
+#### 问题9: AndroidManifest中声明了不必要的前置权限
 
-### 2.3 Apache HttpClient 集成
+- **描述:** `READ_PHONE_STATE`权限在新版Android中可能触发敏感权限审核
+- **影响:** 可能影响应用在Google Play上的审核流程
+- **建议:** 确认该权限是否实际使用，如未使用应移除
 
-**当前配置**:
-```groovy
-android {
-    useLibrary 'org.apache.http.legacy'
-}
-```
+#### 问题10: compatible-screens限制过严
 
-**说明**:
-- 使用 Apache HttpClient 3.x 进行网络通信
-- `org.apache.http.legacy` 库提供向后兼容支持
-
-**现代化建议**:
-根据技术债务报告，建议迁移至 OkHttp + Retrofit:
-
-```groovy
-dependencies {
-    // HTTP 客户端
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    
-    // REST API 框架
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    
-    // JSON 序列化
-    implementation 'com.google.code.gson:gson:2.10.1'
-}
-```
+- **描述:** Manifest中的`compatible-screens`只声明了small和normal屏幕，且密度只覆盖到xhdpi
+- **影响:** 平板设备和高密度屏幕设备可能被过滤
+- **建议:** 评估是否需要支持平板设备，至少添加large和xlarge屏幕以及xxhdpi密度
 
 ---
 
-## 三、构建流程详解
+## 4. 开发工具使用说明
 
-### 3.1 本地开发构建
+### 4.1 OKK语音加密工具 (dev_tools/okk/)
 
-#### 基础构建命令
+#### 功能概述
 
-| 命令 | 说明 | 使用场景 |
-|------|------|---------|
-| `./gradlew clean` | 清理构建产物 | 构建前清理 |
-| `./gradlew assembleDebug` | 编译 Debug 版本 | 日常开发 |
-| `./gradlew assembleRelease` | 编译 Release 版本 | 发布准备 |
-| `./gradlew test` | 运行单元测试 | 代码验证 |
-| `./gradlew connectedCheck` | 运行设备测试 | 集成测试 |
+OKK工具用于语音文件的加密和解密，采用XOR 58算法(密钥值: 58)。项目中的`.okk`文件是OGG音频文件经过XOR加密后的产物，应用运行时由`Decryption`类在内存中解密还原为OGG格式播放。
 
-#### 快速构建优化
+#### 工具组成
+
+| 文件 | 类型 | 说明 |
+| --- | --- | --- |
+| `ogg2okk.c` | C源码 | OGG → OKK加密工具 |
+| `okk2ogg.c` | C源码 | OKK → OGG解密工具 |
+| `ogg2okk.exe` | Windows可执行文件 | 已编译的加密工具 |
+| `okk2ogg.exe` | Windows可执行文件 | 已编译的解密工具 |
+| `CMakeLists.txt` | CMake构建配置 | 用于编译C源码 |
+| `276.ogg` | 示例文件 | 用于测试的OGG音频文件 |
+| `build/` | 构建目录 | CMake生成的构建缓存 |
+
+#### 使用方法
+
+**加密(OGG → OKK):**
+```bash
+# Windows环境
+ogg2okk.exe <输入.ogg> <输出.okk>
+
+# 示例
+ogg2okk.exe 276.ogg 276.okk
+```
+
+**解密(OKK → OGG):**
+```bash
+# Windows环境
+okk2ogg.exe <输入.okk> <输出.ogg>
+
+# 示例
+okk2ogg.exe 276.okk 276.ogg
+```
+
+**从源码编译:**
+```bash
+# 需要安装CMake和C编译器(MinGW/MSVC)
+mkdir build && cd build
+cmake ..
+cmake --build .
+```
+
+#### 加密原理
+
+```
+加密/解密算法: XOR 58
+对每个字节: output_byte = input_byte XOR 58
+XOR运算的对称性使得加密和解密使用相同的操作
+```
+
+#### 应用场景
+
+1. **添加新语音文件:** 将OGG音频通过ogg2okk加密后放入`app/src/main/assets/voice/`(日文)或`app/src/main/assets/voice_cn/`(中文)
+2. **提取现有语音:** 使用okk2ogg将assets中的.okk文件解密为OGG音频
+3. **语音配置更新:** 同时需要更新`app/src/main/assets/voice.json`配置文件
+
+---
+
+## 5. 部署流程建议
+
+### 5.1 开发环境搭建
+
+#### 前置要求
+
+| 工具 | 最低版本要求 | 推荐版本 |
+| --- | --- | --- |
+| Android Studio | Ladybug+ | 最新稳定版 |
+| JDK | 17+ | JDK 21 |
+| Android SDK | compileSdk 34 | 最新 |
+| Gradle | (通过Wrapper自动下载) | 9.1.0 |
+| CMake(可选,用于okk工具) | 3.10+ | 最新 |
+
+#### 环境搭建步骤
+
+1. **安装Android Studio:** 下载安装最新版Android Studio
+2. **配置SDK:** 通过SDK Manager安装Android 14(API 34) SDK Platform和Build Tools
+3. **克隆项目:** `git clone <仓库地址>`
+4. **打开项目:** Android Studio → Open → 选择项目根目录
+5. **Gradle同步:** 等待Gradle自动下载依赖和构建配置
+6. **配置签名(发布构建时):** 创建keystore文件并配置到build.gradle
+
+### 5.2 Debug构建
 
 ```bash
-# 使用 --build-cache 启用构建缓存
-./gradlew assembleDebug --build-cache
+# 使用Gradle Wrapper构建debug APK
+./gradlew assembleDebug
 
-# 使用 --parallel 并行构建 (多模块项目)
-./gradlew assembleDebug --parallel
-
-# 使用 --daemon 保持 Gradle Daemon 运行
-./gradlew assembleDebug --daemon
-
-# 组合优化选项
-./gradlew assembleDebug --build-cache --parallel --daemon
+# 产物位置
+# app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 3.2 Debug 构建配置
+Debug构建使用Android SDK自动生成的debug签名，可直接安装到设备调试。
 
-**特点**:
-- 包含调试符号
-- 未启用代码压缩 (minifyEnabled=false)
-- 签名使用 debug.keystore
+### 5.3 Release构建
 
-**输出位置**:
-```
-app/build/outputs/apk/debug/app-debug.apk
-app/build/outputs/mapping/debug/         # ProGuard 映射文件 (如启用)
-```
+#### 前置准备: 配置签名
 
-### 3.3 Release 构建配置
-
-**当前配置**:
-```groovy
-buildTypes {
-    release {
-        minifyEnabled false              // 代码压缩 (当前未启用)
-        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 
-                          'proguard-rules.pro'
-        signingConfig signingConfigs.release  // 发布签名配置
-    }
-}
-```
-
-**优化建议**:
-
-1. **启用 ProGuard 代码压缩**
-   ```groovy
-   buildTypes {
-       release {
-           minifyEnabled true            // 启用代码压缩
-           shrinkResources true          // 启用资源压缩
-           proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 
-                             'proguard-rules.pro'
-       }
-   }
-   ```
-
-2. **ProGuard 规则配置** (app/proguard-rules.pro)
-   ```proguard
-   # Live2D SDK 保留规则
-   -keep class com.live2d.** { *; }
-   
-   # 数据模型保留
-   -keepclassmembers class jp.co.a_tm.moeyu.model.** {
-       public <fields>;
-       public <methods>;
-   }
-   
-   # API 相关保留
-   -keep class jp.co.a_tm.moeyu.api.** { *; }
-   
-   # Billing 模块保留
-   -keep class jp.co.a_tm.moeyu.billing.** { *; }
-   ```
-
-### 3.4 构建产物管理
-
-#### APK 输出结构
-
-```
-app/build/outputs/apk/
-├── debug/
-│   └── app-debug.apk              # Debug 版本 APK
-└── release/
-    ├── app-release-unsigned.apk   # 未签名的 Release APK
-    └── app-release.apk            # 已签名的 Release APK (如配置签名)
-```
-
-#### 构建产物大小优化建议
-
-1. **资源优化**
-   ```groovy
-   android {
-       buildTypes {
-           release {
-               shrinkResources true    // 移除未使用资源
-           }
-       }
-       
-       // 启用 R8 代替 ProGuard (性能更好)
-       buildFeatures {
-           buildConfig true
-       }
-   }
-   ```
-
-2. **Shrink 配置**
-   ```groovy
-   // 使用 R8 进行代码和资源优化
-   android {
-       compileOptions {
-           coreLibraryDesugaringEnabled true
-       }
-   }
-   
-   dependencies {
-       coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
-   }
-   ```
-
----
-
-## 四、部署指南
-
-### 4.1 APK 生成流程
-
-#### 标准发布构建步骤
-
+1. **生成密钥库:**
 ```bash
-# 步骤 1: 清理之前的构建
-./gradlew clean
-
-# 步骤 2: 编译 Release 版本
-./gradlew assembleRelease
-
-# 步骤 3: 运行测试验证
-./gradlew testReleaseUnitTest
-
-# 步骤 4: 生成签名 APK (如配置 keystore)
-./gradlew bundleRelease
-
-# 步骤 5: 验证 APK
-# 输出位置：app/build/outputs/apk/release/app-release.apk
+keytool -genkey -v -keystore release.keystore -alias moeyu -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-#### 自动化构建脚本示例
-
-**scripts/build-release.sh**:
-```bash
-#!/bin/bash
-
-set -e  # 遇到错误立即退出
-
-echo "==================================="
-echo "ResurrectionMoeyu Release Build"
-echo "==================================="
-
-# 配置参数
-BUILD_VERSION="1.0"
-BUILD_DATE=$(date +%Y%m%d)
-OUTPUT_DIR="build/distributions/${BUILD_DATE}"
-
-# 创建输出目录
-mkdir -p ${OUTPUT_DIR}
-
-# 执行构建
-echo "[1/4] Cleaning previous builds..."
-./gradlew clean
-
-echo "[2/4] Assembling Release APK..."
-./gradlew assembleRelease
-
-echo "[3/4] Running tests..."
-./gradlew testReleaseUnitTest
-
-echo "[4/4] Packaging artifacts..."
-cp app/build/outputs/apk/release/app-release-unsigned.apk ${OUTPUT_DIR}/
-cp app/build/outputs/mapping/release/mapping.txt ${OUTPUT_DIR}/
-
-echo "==================================="
-echo "Build completed successfully!"
-echo "Output directory: ${OUTPUT_DIR}"
-echo "APK: app-release-unsigned.apk"
-echo "==================================="
-```
-
-### 4.2 签名配置
-
-#### Keystore 管理
-
-**发布签名配置** (app/build.gradle):
-
+2. **在app/build.gradle中添加签名配置:**
 ```groovy
 android {
-    // ... 其他配置
-    
     signingConfigs {
         release {
-            storeFile file("../keystore/release.keystore")
-            storePassword "your_store_password"
-            keyAlias "release_key"
-            keyPassword "your_key_password"
+            storeFile file("../release.keystore")
+            storePassword "待配置"
+            keyAlias "moeyu"
+            keyPassword "待配置"
         }
     }
-    
     buildTypes {
         release {
             signingConfig signingConfigs.release
             minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
 ```
 
-#### Keystore 生成命令
+> **安全提示:** 密码不应明文写入build.gradle，建议使用`local.properties`或环境变量存储
 
+3. **执行Release构建:**
 ```bash
-# 使用 keytool 生成 Keystore
-keytool -genkey -v \
-  -keystore release.keystore \
-  -alias release_key \
-  -keyalg RSA \
-  -keysize 2048 \
-  -validity 10000
+./gradlew assembleRelease
 
-# 或使用 Android Studio GUI 工具
-# File -> Project Structure -> Modules -> app -> Signs
+# 产物位置
+# app/build/outputs/apk/release/app-release.apk
 ```
 
-**安全建议**:
-- Keystore 文件应纳入版本控制但设置访问权限
-- 密码通过环境变量或 CI/CD 密钥管理存储
-- 定期备份 keystore 文件
+### 5.4 版本管理建议
 
-#### 环境变量配置
+#### 版本号规范
 
-**gradle.properties 中添加**:
-```properties
-# 签名配置 (生产环境建议使用 CI/CD 注入)
-RELEASE_STORE_FILE=../keystore/release.keystore
-RELEASE_STORE_PASSWORD=${RELEASE_STORE_PASSWORD}
-RELEASE_KEY_ALIAS=release_key
-RELEASE_KEY_PASSWORD=${RELEASE_KEY_PASSWORD}
-```
+当前版本: `versionCode: 1, versionName: "1.0"`
 
-### 4.3 多环境支持
+建议遵循语义化版本(SemVer):
+- `versionName`: MAJOR.MINOR.PATCH (如 1.0.0)
+- `versionCode`: 递增整数，每次发布+1
 
-#### 环境配置方案
+#### versionFile.log
 
-**推荐采用 Product Flavors 实现多环境**:
+当前值为`7`，与build.gradle中的versionCode(1)不一致。此文件的用途待确认，可能是:
+- 原始应用的内部版本标记
+- 构建系统自动生成的版本递增记录
+- 资源版本标记
 
-```groovy
-android {
-    flavorDimensions "environment"
-    
-    productFlavors {
-        development {
-            dimension "environment"
-            applicationId "jp.co.a_tm.moeyu.dev"
-            versionName "1.0-dev"
-            buildConfigField "String", "API_BASE_URL", "\"http://dev-api.moeapk.com/\""
-            buildConfigField "boolean", "IS_DEBUG", "true"
-        }
-        
-        staging {
-            dimension "environment"
-            applicationId "jp.co.a_tm.moeyu.staging"
-            versionName "1.0-staging"
-            buildConfigField "String", "API_BASE_URL", "\"http://staging-api.moeapk.com/\""
-            buildConfigField "boolean", "IS_DEBUG", "true"
-        }
-        
-        production {
-            dimension "environment"
-            applicationId "jp.co.a_tm.moeyu"
-            versionName "1.0"
-            buildConfigField "String", "API_BASE_URL", "\"http://api.moeapk.com/third_party/moeyu/\""
-            buildConfigField "boolean", "IS_DEBUG", "false"
-        }
-    }
-}
-```
+### 5.5 构建验证清单
 
-#### 环境构建命令
+| 检查项 | 命令/方法 | 预期结果 |
+| --- | --- | --- |
+| Gradle同步 | Android Studio Sync | 无错误 |
+| Debug构建 | `./gradlew assembleDebug` | BUILD SUCCESSFUL |
+| Release构建 | `./gradlew assembleRelease` | BUILD SUCCESSFUL(需先配置签名) |
+| 单元测试 | `./gradlew test` | SecurityUtilsTest全部通过 |
+| Lint检查 | `./gradlew lint` | 无严重警告 |
+| APK安装 | adb install app.apk | 成功安装 |
+| 启动运行 | adb shell am start -n jp.co.a_tm.moeyu/.MainActivity | 正常启动 |
 
-```bash
-# Development 环境
-./gradlew assembleDevelopmentDebug
-./gradlew installDevelopmentDebug
+### 5.6 CI/CD注意事项
 
-# Staging 环境
-./gradlew assembleStagingRelease
-./gradlew installStagingRelease
-
-# Production 环境
-./gradlew assembleProductionRelease
-./gradlew bundleProductionRelease  # 生成 AAB (Android App Bundle)
-```
-
-### 4.4 发布流程
-
-#### Google Play 发布步骤
-
-1. **准备阶段**
-   - 确认版本号和变更日志
-   - 生成 Release APK/AAB
-   - 准备发布资源 (截图、描述等)
-
-2. **内部测试**
-   ```bash
-   # 生成_signed APK
-   ./gradlew assembleProductionRelease
-   
-   # 验证 APK
-   ./gradlew lintProductionRelease
-   ```
-
-3. ** staged Rollout (分批发布)**
-   - Phase 1: 内部测试 (5%)
-   - Phase 2: 封闭测试 (20%)
-   - Phase 3: 开放测试 (50%)
-   - Phase 4: 全量发布 (100%)
-
-4. **监控和反馈**
-   - 监控崩溃率 (Crashlytics/Firebase)
-   - 收集用户反馈
-   - 性能指标跟踪
+如需配置持续集成:
+1. 需要配置Android SDK环境
+2. Gradle Wrapper需要可执行权限(`chmod +x gradlew`)
+3. 签名密钥需要通过安全方式注入(环境变量/密钥管理服务)
+4. 注意阿里云Gradle镜像在CI环境中可能需要替换
 
 ---
 
-## 五、CI/CD集成方案
+## 6. 构建兼容性总结
 
-### 5.1 持续集成架构
+### 6.1 当前构建可行性评估
 
-#### 推荐 CI/CD 工具栈
+| 构建场景 | 可行性 | 阻塞因素 |
+| --- | --- | --- |
+| Debug构建 | 可行(需验证AGP 9.0兼容性) | AGP 9.0.0较新，需确认本地环境支持 |
+| Release构建 | 需配置 | 缺少签名配置 |
+| 单元测试 | 可行 | 仅SecurityUtilsTest一个测试类 |
+| 发布到Google Play | 不可行 | Billing v2已废弃、缺少签名、READ_PHONE_STATE权限审核问题 |
 
-| 组件 | 推荐工具 | 说明 |
-|------|---------|------|
-| **CI Server** | Jenkins / GitLab CI / GitHub Actions | 自动化构建和测试 |
-| **Artifact Repository** | JFrog Artifactory / Google Artifact Registry | APK 存储和管理 |
-| **测试平台** | Firebase Test Lab | 真机测试和兼容性验证 |
-| **质量门控** | SonarQube | 代码质量和安全扫描 |
-| **部署管理** | Fastlane | 自动化发布流程 |
+### 6.2 推荐的构建配置优化路径
 
-#### GitHub Actions CI 配置示例
+> 注意: 以下为参考路径，实际修改需由code-builder或架构师评估后执行
 
-**.github/work/android-ci.yml**:
-
-```yaml
-name: Android CI/CD
-
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  GRADLE_VERSION: '9.1.0'
-  JAVA_VERSION: '8'
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-      
-    - name: Set up JDK
-      uses: actions/setup-java@v3
-      with:
-        java-version: ${{ env.JAVA_VERSION }}
-        distribution: 'temurin'
-        cache: 'gradle'
-        
-    - name: Grant execute permission for Gradle Wrapper
-      run: chmod +x gradlew
-      
-    - name: Validate Gradle Wrapper
-      uses: gradle/wrapper-validation-action@v1
-      
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        cmdline-tools-version: 'latest'
-        sdk-components: |
-          platforms;android-28
-          build-tools;28.0.3
-          extra-android-m2repository
-          
-    - name: Cache Gradle packages
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-        
-    - name: Run Lint Check
-      run: ./gradlew lint
-      
-    - name: Build Debug
-      run: ./gradlew assembleDevelopmentDebug
-      
-    - name: Run Unit Tests
-      run: ./gradlew testDevelopmentUnitTest
-      
-    - name: Publish Test Results
-      uses: dorny/paths-filter@v2
-      with:
-        filters: |
-          test-results:
-            - 'app/build/test-results/**'
-      if: always()
-      
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: app-debug-apk
-        path: app/build/outputs/apk/development/debug/app-development-debug.apk
-        
-    - name: Code Quality Scan (SonarQube)
-      uses: SonarSource/sonarqube-scan-action@v1
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.projectKey=ResurrectionMoeyu
-          -Dsonar.sources=app/src/main
-          -Dsonar.tests=app/src/test
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-
-  deploy-staging:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
-    
-    steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v3
-      
-    - name: Build Staging Release
-      run: ./gradlew assembleStagingRelease
-      
-    - name: Deploy to Staging
-      uses: wzieba/Fastlane-action@v3
-      with:
-        working_directory: .
-        ios: false
-        android: true
-        ci_settings: true
-        task: deploy_staging
-        options: |
-          default_output_directory: build/output
-```
-
-### 5.2 自动化测试集成
-
-#### 测试策略分层
-
-| 测试类型 | 工具框架 | 执行时机 | 目标覆盖率 |
-|---------|---------|---------|-----------|
-| **单元测试** | JUnit + Mockito | 每次提交 | ≥80% |
-| **集成测试** | Espresso + MockWebServer | CI 流水线 | 核心流程 100% |
-| **UI 测试** | Espresso + Firebase Test Lab | 每日构建 | 关键用户路径 |
-| **性能测试** | Android Profiler + Perfetto | 发布前 | 基准对比 |
-
-#### 自动化测试配置
-
-**app/build.gradle 增强**:
-
-```groovy
-android {
-    // ... 现有配置
-    
-    testOptions {
-        unitTests.all {
-            useJUnitPlatform()
-            
-            testLogging {
-                events "passed", "skipped", "failed", "standardOut", "standardError"
-                exceptionFormat = "full"
-            }
-            
-            // Jacoco 代码覆盖率
-            jacoco {
-                toolVersion = "0.8.8"
-            }
-        }
-        
-        unitTests.returnDefaultValues = true
-    }
-}
-
-dependencies {
-    // 测试依赖增强
-    testImplementation 'org.mockito:mockito-core:4.11.0'
-    testImplementation 'org.assertj:assertj-core:3.24.2'
-    
-    // Jacoco 覆盖率
-    testImplementation 'org.jacoco:org.jacoco.core:0.8.8'
-}
-
-// Jacoco 报告任务
-tasks.register('testCoverage', JacocoReport) {
-    dependsOn testDevelopmentUnitTest
-    
-    group = "Verification"
-    description = "Generate Jacoco coverage reports for the project."
-    
-    reports {
-        xml.required = true
-        html.required = true
-        csv.required = false
-    }
-}
-```
-
-### 5.3 部署流水线设计
-
-#### Fastlane 自动化部署
-
-**fastfile 配置示例**:
-
-```ruby
-default_platform(:android)
-
-platform :android do
-  desc "Build and deploy staging version"
-  lane :deploy_staging do
-    # 清理
-    clean_project
-    
-    # 构建 Staging Release
-    gradle(
-      task: 'assembleStagingRelease',
-      build_type: 'release'
-    )
-    
-    # 运行测试
-    gradle(
-      task: 'testStagingReleaseUnitTest'
-    )
-    
-    # 生成覆盖率报告
-    gradle(
-      task: 'testCoverage'
-    )
-    
-    # 上传到 Firebase App Distribution
-    firebase_app_distribution(
-      app: "123456789",
-      tracks: ["internal"],
-      file_path: "app/build/outputs/apk/staging/release/app-staging-release-unsigned.apk",
-      testers: ["team@example.com"]
-    )
-    
-    # 生成变更日志
-    changelog(
-      output_path: "CHANGELOG.md"
-    )
-  end
-  
-  desc "Build and deploy production version"
-  lane :deploy_production do |options|
-    # 获取版本号
-    version_code = options[:version_code] || get_gradle_version_code
-    version_name = options[:version_name] || get_gradle_version_name
-    
-    say "Building version #{version_name} (code: #{version_code})", verbose: true
-    
-    # 签名构建
-    gradle(
-      task: 'assembleProductionRelease',
-      properties: {
-        'RELEASE_STORE_PASSWORD' => ENV['RELEASE_STORE_PASSWORD'],
-        'RELEASE_KEY_PASSWORD' => ENV['RELEASE_KEY_PASSWORD']
-      }
-    )
-    
-    # 上传到 Google Play Console (Internal Track)
-    supply(
-      track: 'internal',
-      release_status: 'draft',
-      apk: "app/build/outputs/apk/production/release/app-production-release.apk",
-      resolution_strategy: :immediate_upload,
-      user_email: 'publisher@example.com'
-    )
-    
-    # 通知团队
-    slack(
-      message: "✅ Release #{version_name} deployed to Internal Track",
-      channel: '#releases',
-      color: 'good'
-    )
-  end
-end
-```
-
-#### 部署流程图
-
-```
-┌─────────────┐
-│   Git Push   │
-└──────┬──────┘
-       ↓
-┌─────────────┐
-│  Code Build  │ → Lint Check
-│  & Test      │ → Unit Tests
-└──────┬──────┘ → Integration Tests
-       ↓         → Coverage Report
-┌─────────────┐
-│  Artifact    │ → APK/AAB Generation
-│  Creation    │ → Version Tagging
-└──────┬──────┘
-       ↓
-┌─────────────┐
-│  Staging     │ → Firebase App Distribution
-│  Deployment  │ → Internal Testing
-└──────┬──────┘
-       ↓
-┌─────────────┐
-│  Production │ → Google Play (Internal Track)
-│  Release    │ → Staged Rollout
-└──────┬──────┘         → Monitoring & Analytics
-       ↓
-┌─────────────┐
-│  Monitoring  │ → Crash Reports
-│  & Feedback │ → Performance Metrics
-└─────────────┘ → User Feedback Collection
-```
+1. **优先级P0 - 签名配置:** 创建release签名并配置到构建系统
+2. **优先级P1 - AGP兼容性验证:** 确认AGP 9.0.0与当前配置的完整兼容性
+3. **优先级P2 - Billing升级:** 如需支付功能，升级到Google Play Billing Library
+4. **优先级P3 - 依赖清理:** 移除重复JAR声明、精简ProGuard规则
 
 ---
 
-## 六、优化建议
-
-### 6.1 构建性能优化
-
-#### Gradle 构建优化配置
-
-**gradle.properties 增强**:
-
-```properties
-# 并行构建
-org.gradle.parallel=true
-
-# 构建缓存
-org.gradle.caching=true
-
-# Configuration Cache (Gradle 7.0+)
-org.gradle.configuration-cache=true
-
-# Daemon 优化
-org.gradle.daemon=true
-
-# JVM 内存配置 (根据实际硬件调整)
-org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m -Dfile.encoding=UTF-8
-
-# Android 特定优化
-android.defaults.buildfeatures.buildconfig=true
-android.nonTransitiveRClass=false
-android.nonFinalResIds=false
-```
-
-#### 构建性能监控
-
-**推荐工具**:
-- **Gradle Build Dashboard**: `./gradlew buildDashboard`
-- **Build Scan**: `./gradlew assembleDebug --scan`
-
-**Build Scan 集成**:
-```groovy
-// 根项目 build.gradle
-plugins {
-    id 'com.gradle.build-scan' version '3.10.1'
-}
-
-gradleBuildScan {
-    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-    termsOfServiceAgree = 'yes'
-    
-    publishAlways()
-    capture {
-        fileFingerprints = true
-        buildLogs = true
-    }
-}
-```
-
-### 6.2 资源管理优化
-
-#### Assets 资源组织
-
-**当前结构**:
-```
-assets/
-├── model/moeyu.1024/      # Live2D 模型文件
-│   ├── moeyu.moc
-│   └── texture_*.png (4 张)
-├── motion/                 # 动画配置
-├── voice/                  # 日语语音资源
-├── voice_cn/               # 中文语音资源
-├── voice.json             # 语音映射表 (134KB)
-└── water_*.png            # 背景图片 (4 张)
-```
-
-**优化建议**:
-
-1. **资源压缩**
-   ```groovy
-   android {
-       buildTypes {
-           release {
-               // 启用资源压缩
-               shrinkResources = true
-               
-               // PNG 优化
-               packagingOptions {
-                   resources {
-                       pickFirst 'META-INF/**'
-                   }
-               }
-           }
-       }
-   }
-   ```
-
-2. **按需加载**
-   - Live2D 模型支持延迟加载
-   - 语音资源分片管理
-   - 纹理图集优化 (Texture Atlas)
-
-#### APK 大小优化策略
-
-| 优化项 | 预期收益 | 实施优先级 |
-|--------|---------|-----------|
-| **启用 R8/ProGuard** | 减少 15-25% | P0 (高) |
-| **资源压缩 (shrinkResources)** | 减少 10-15% | P0 (高) |
-| **WebP 格式转换** | 减少 30% 图片体积 | P1 (中) |
-| **代码拆分 (Dynamic Features)** | 基础包减少 20% | P2 (低) |
-
-### 6.3 增量构建策略
-
-#### 模块化构建优化
-
-**当前架构**: 单体应用模块  
-**建议演进**: 逐步模块化
-
-```
-ResurrectionMoeyu/
-├── app/                    # 主应用模块
-├── core/                   # 核心公共模块
-│   ├── live2d-engine/     # Live2D 引擎封装
-│   └── api-client/        # API 客户端库
-├── feature/               # 功能模块
-│   ├── gacha/             # 抽卡功能
-│   ├── billing/           # 计费功能
-│   └── collection/        # 收藏管理
-└── data/                  # 数据层
-    └── model/             # 数据模型
-```
-
-**增量构建收益**:
-- 独立模块编译，提升构建速度
-- 模块间依赖清晰，便于维护
-- 支持按需打包 (Dynamic Feature Modules)
-
-### 6.4 监控和告警配置
-
-#### 构建质量门控
-
-**SonarQube 集成规则**:
-
-```groovy
-// quality-profile 配置示例
-sonarqube {
-    properties {
-        property 'sonar.qualitygate.wait', 'true'
-        property 'sonar.qualitygate.timeout', '300'
-        
-        // 代码质量阈值
-        property 'sonar.core.codeCoverageMinimum', '70'
-        property 'sonar.java.suppressWarningsThreshold', '4'
-        
-        // 安全扫描
-        property 'sonar.security.hotspots.review', 'true'
-    }
-}
-```
-
-#### 关键指标监控
-
-| 指标类别 | 监控项 | 目标值 |
-|---------|--------|--------|
-| **构建性能** | 平均构建时间 | < 5 分钟 (全量) |
-| **代码质量** | 单元测试覆盖率 | ≥ 80% |
-| **APK 大小** | Release APK 体积 | < 30MB |
-| **测试稳定性** | 测试通过率 | ≥ 95% |
-| **部署频率** | 发布周期 | 每周 (Staging) / 每月 (Production) |
-
----
-
-## 七、附录
-
-### A. 常用构建命令速查表
-
-| 操作 | 命令 | 说明 |
-|------|------|------|
-| **清理构建** | `./gradlew clean` | 删除所有构建产物 |
-| **Debug 构建** | `./gradlew assembleDebug` | 编译 Debug APK |
-| **Release 构建** | `./gradlew assembleRelease` | 编译 Release APK |
-| **运行测试** | `./gradlew test` | 执行单元测试 |
-| **代码检查** | `./gradlew lint` | 静态代码分析 |
-| **生成文档** | `./gradlew javadoc` | 生成 API 文档 |
-| **依赖分析** | `./gradlew dependencies` | 显示依赖树 |
-| **构建扫描** | `./gradlew assembleDebug --scan` | 生成构建报告 |
-
-### B. 环境变量参考
-
-```bash
-# Android SDK 路径
-export ANDROID_HOME=/path/to/android-sdk
-export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
-
-# Gradle 优化
-export GRADLE_USER_HOME=/path/to/gradle-user-home
-
-# 签名配置 (CI/CD)
-export RELEASE_STORE_PASSWORD=your_store_password
-export RELEASE_KEY_PASSWORD=your_key_password
-
-# 构建输出
-export BUILD_VARIANT=release
-export BUILD_FLAVOR=production
-```
-
-### C. 故障排查指南
-
-#### 常见问题处理
-
-1. **依赖下载缓慢**
-   ```properties
-   # 使用国内镜像源 (阿里云)
-   allprojects {
-       repositories {
-           maven { url 'https://maven.aliyun.com/repository/public' }
-           maven { url 'https://maven.aliyun.com/repository/google' }
-       }
-   }
-   ```
-
-2. **内存不足**
-   ```properties
-   # 调整 JVM 参数
-   org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m
-   ```
-
-3. **构建缓存清理**
-   ```bash
-   # 清理 Gradle 缓存
-   ./gradlew cleanBuildCache
-   
-   # 清理所有缓存
-   rm -rf ~/.gradle/caches/
-   ```
-
----
-
-**文档版本**: v1.0  
-**最后更新**: 2026-03-27  
-**维护人**: dev-ops AGENT  
-**下次审查日期**: 2026-04-27  
-
----
-
-## 变更日志
-
-| 日期 | 版本 | 变更内容 | 变更人 |
-|------|------|---------|--------|
-| 2026-03-27 | v1.0 | 初始版本 - 基于项目分析和架构文档生成 | dev-ops AGENT |
-
----
-
-**相关文档**:
-- [项目概览](ai/analysis/overview.md)
-- [架构文档](ai/dev/project.md)
-- [技术债务报告](ai/analysis/tech-debt.md)
+*文档变更记录:*
+- [2026-04-10] [dev-ops] [初始版本] 项目构建部署分析文档创建

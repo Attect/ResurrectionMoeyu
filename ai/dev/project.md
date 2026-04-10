@@ -1,1958 +1,892 @@
 # ResurrectionMoeyu 项目架构文档
 
-**版本**: v2.0  
-**创建日期**: 2026-03-27  
-**架构代理**: code-framework  
-**任务 ID**: ANALYSIS-001-ARCH  
-**基于分析**: ai/analysis/overview.md
+> 文档版本: 1.0
+> 分析日期: 2026-04-10
+> 分析者: code-framework (架构师AGENT)
+> 任务ID: ARCH-001
 
 ---
 
-## 一、系统架构总览
+## 变更日志
 
-### 1.1 分层架构视图
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    表现层 (Presentation Layer)               │
-│  ┌──────────────────┬──────────────────┬──────────────────┐ │
-│  │   Activity 层    │   Fragment 层    │   UI Components  │ │
-│  │ (13 个 Activity) │  (4 个 Fragment) │   (Views/Dialogs) │ │
-│  └──────────────────┴──────────────────┴──────────────────┘ │
-└─────────────────────┬──────────────────┬────────────────────┘
-                      │                  │
-                      ↓                  ↓
-        ┌─────────────┴────────┐  ┌─────┴──────────────┐
-        │   Live2D 引擎层       │  │    API 网络层        │
-        │  (Engine Layer)      │  │  (Network Layer)   │
-        │  - LAppLive2DManager │  │  - MoeyuAPIClient  │
-        │  - LAppModel         │  │  - BaseTask 框架    │
-        │  - LAppAnimation     │  │  - UserDataManager  │
-        └──────────┬───────────┘  └──────────┬──────────┘
-                   │                         │
-                   └───────────┬─────────────┘
-                               ↓
-                    ┌──────────┴──────────┐
-                    │   Billing 计费层     │
-                    │  (Billing Layer)    │
-                    │  - BillingService   │
-                    │  - Security         │
-                    │  - PurchaseObserver │
-                    └──────────┬──────────┘
-                               ↓
-                    ┌──────────┴──────────┐
-                    │    数据层            │
-                    │  (Data Layer)       │
-                    │  - UserData         │
-                    │  - GachaResult      │
-                    │  - EventData        │
-                    └─────────────────────┘
-```
-
-### 1.2 架构特点
-
-**核心设计理念**:
-- **分层架构**: 清晰的四层架构，职责分离明确
-- **MVC 模式**: Live2D 引擎层采用 Manager-Model-View 架构
-- **异步处理**: 基于 AsyncTask 的网络请求框架
-- **观察者模式**: Billing 层的状态变化通知机制
-- **单例管理**: 核心管理器采用单例模式
+| 日期 | 变更人 | 变更内容 |
+|------|--------|----------|
+| 2026-04-10 | code-framework | 初版：基于源码逆向分析生成完整架构文档 |
 
 ---
 
-## 二、技术栈配置
+## 1. 架构概述
 
-### 2.1 核心技术栈
+### 1.1 整体架构风格
 
-| 类别 | 技术/框架 | 版本 | 说明 |
-|------|----------|------|------|
-| **平台** | Android SDK | API 28 (Android 9.0) | 目标开发版本 |
-| **最低支持** | Android | 5.0+ (API 19) | 兼容范围 |
-| **开发语言** | Java | Java 8 | 主要编程语言 |
-| **构建工具** | Gradle | 9.0.0 | 项目构建管理 |
-| **核心引擎** | Live2D Android SDK | 自定义版本 | live2d_android.jar |
-| **网络层** | Apache HttpClient | 3.x | HTTP 客户端 |
-| **UI 渲染** | OpenGL ES | GLSurfaceView | 图形渲染 |
-| **计费系统** | Google Play Billing | V1 API | 内购集成 |
-| **数据持久化** | Java Serialization | - | 对象序列化存储 |
+ResurrectionMoeyu 采用 **Activity驱动的单体架构（Monolithic Activity-Driven Architecture）**，没有使用MVP、MVVM或MVI等现代架构模式。所有业务逻辑直接内嵌于Activity类中，数据访问通过工具类和数据库帮助类实现。
 
-### 2.2 依赖库
+### 1.2 架构特征总结
 
-**核心依赖**:
-```gradle
-implementation fileTree(dir: 'libs', include: ['*.jar'])
-implementation 'live2d_android.jar'  // Live2D 核心引擎
+| 特征 | 描述 |
+|------|------|
+| 架构模式 | Activity驱动单体架构（无分层） |
+| 导航模式 | 中央路由器模式（MainActivity作为路由中枢） |
+| 数据持久化 | 混合持久化：Java序列化 + SQLite + SharedPreferences |
+| 异步处理 | AsyncTask（已废弃API） |
+| 网络层 | 已本地化，原HTTP客户端保留但主要逻辑在本地执行 |
+| 渲染层 | OpenGL ES + Live2D SDK |
+| 依赖注入 | 无DI框架，直接在Activity中new对象 |
+
+### 1.3 架构分层（实际状况）
+
+```
+┌─────────────────────────────────────────────┐
+│            Activity层（UI + 业务逻辑）        │
+│  BaseActivity → MainActivity / BathActivity  │
+│  / TitleActivity / GatyaActivity / ...       │
+├─────────────────────────────────────────────┤
+│          API Fragment层（异步任务协调）        │
+│  NetworkBaseFragment → LoginFragment /       │
+│  GachaFragment / SignupFragment / ...        │
+├─────────────────────────────────────────────┤
+│         AsyncTask层（后台执行）               │
+│  BaseTask → LoginTask / GachaTask /          │
+│  SignupTask / BillingTask                    │
+├─────────────────────────────────────────────┤
+│        服务/数据层（数据访问与业务计算）        │
+│  MoeyuAPIClient / VoiceManager /             │
+│  DatabaseOpenHelper / UserDataManager         │
+├─────────────────────────────────────────────┤
+│          Live2D渲染引擎层                     │
+│  LAppLive2DManager → LAppModel →             │
+│  LAppAnimation → LAppRenderer → LAppGLView   │
+└─────────────────────────────────────────────┘
 ```
 
-**第三方集成**:
-- **Live2D Android SDK**: 虚拟角色渲染引擎
-- **Apache HttpClient 3.x**: HTTP 通信客户端
-- **Google Play Billing Library**: 内购服务集成
+> **说明**：上述分层是基于代码实际职责的描述，项目本身并未显式地进行分层设计。Activity直接包含了大量业务逻辑。
 
 ---
 
-## 三、核心模块架构
+## 2. 模块架构图
 
-### 3.1 Live2D 引擎层 (live2d/)
-
-#### 3.1.1 模块职责
-
-负责 Live2D 模型的加载、渲染、动画管理和用户交互控制，是应用的核心可视化引擎。
-
-#### 3.1.2 核心组件架构
+### 2.1 模块依赖关系
 
 ```
-LAppLive2DManager (控制器/管理器)
+┌────────────────────────────────────────────────────────────┐
+│                        Activity 模块                        │
+│  ┌──────────┐  ┌───────────┐  ┌──────────┐  ┌──────────┐  │
+│  │ Main     │→│ Title     │→│ Bath     │  │ Gatya    │  │
+│  │ Activity │  │ Activity  │  │ Activity │  │ Activity │  │
+│  └────┬─────┘  └─────┬─────┘  └────┬─────┘  └────┬─────┘  │
+│       │              │              │              │         │
+│       │  (中央路由器，所有Activity通过   │              │         │
+│       │   startActivityForResult启动) │              │         │
+└───────┼──────────────┼──────────────┼──────────────┼─────────┘
+        │              │              │              │
+        v              v              v              v
+┌────────────────────────────────────────────────────────────┐
+│                      API 客户端模块                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ MoeyuAPI     │  │ Fragment层   │  │ AsyncTask层      │  │
+│  │ Client       │←─│ LoginFragment│←─│ LoginTask        │  │
+│  │ (本地化)     │  │ GachaFragment│  │ GachaTask        │  │
+│  └──────┬───────┘  └──────────────┘  └──────────────────┘  │
+│         │                                                    │
+└─────────┼──────────────────────────────────────────────────┘
+          │
+          v
+┌────────────────────────────────────────────────────────────┐
+│                      数据持久层                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ UserData     │  │ SQLite       │  │ SharedPrefs      │  │
+│  │ (Java序列化) │  │ (collection  │  │ (Preferences     │  │
+│  │ .dat文件     │  │  .db)        │  │  Helper)         │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                     Live2D 渲染模块                         │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ LAppLive2D   │→│ LAppModel    │→│ Live2D SDK       │  │
+│  │ Manager      │  │ (模型加载)   │  │ (live2d_android  │  │
+│  │ (生命周期)   │  │              │  │  .jar)           │  │
+│  └──────┬───────┘  └──────────────┘  └──────────────────┘  │
+│         │                                                   │
+│         v                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ LAppAnimation│  │ LAppRenderer │  │ LAppGLView       │  │
+│  │ (动画控制)   │  │ (OpenGL渲染) │  │ (GLSurfaceView)  │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────────┐
+│                      辅助模块                              │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ VoiceManager │  │ Decryption   │  │ SecurityUtils    │  │
+│  │ (语音选择)   │  │ (XOR解密)    │  │ (SHA签名)        │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ Event        │  │ LovePoint    │  │ CoinController   │  │
+│  │ Controller   │  │ (好感度计算) │  │ (货币管理)        │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+└────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 模块职责表
+
+| 模块 | 包路径 | 核心类 | 职责 |
+|------|--------|--------|------|
+| Activity模块 | `jp.co.a_tm.moeyu` (根包) | BaseActivity, MainActivity, BathActivity 等 | 页面展示、用户交互、业务逻辑编排 |
+| API客户端模块 | `jp.co.a_tm.moeyu.api` | MoeyuAPIClient | 用户数据管理、扭蛋逻辑（已本地化） |
+| API异步任务 | `jp.co.a_tm.moeyu.api.task` | BaseTask, LoginTask, GachaTask 等 | AsyncTask封装，后台执行API调用 |
+| API Fragment | `jp.co.a_tm.moeyu.api.fragment` | NetworkBaseFragment, LoginFragment 等 | UI片段，协调异步任务与Activity |
+| API回调 | `jp.co.a_tm.moeyu.api.listener` | MoeyuAPITaskListener, GachaResultListener 等 | 异步任务结果回调接口 |
+| API模型 | `jp.co.a_tm.moeyu.api.model` | GachaResult | 扭蛋结果数据模型 |
+| Live2D模块 | `jp.co.a_tm.moeyu.live2d` | LAppLive2DManager, LAppModel, LAppAnimation 等 | Live2D角色模型加载、动画、渲染 |
+| 数据模型 | `jp.co.a_tm.moeyu.model` | UserData, EventData | 核心数据实体 |
+| 数据库 | `jp.co.a_tm.moeyu` (根包) | DatabaseOpenHelper, DatabaseTableController | SQLite数据库管理 |
+| 安全 | `jp.co.a_tm.moeyu.security` | SecurityUtils | SHA-1/SHA-256签名工具 |
+| 支付 | `jp.co.a_tm.moeyu.billing` | BillingService, PurchaseObserver | Google Play Billing v2 |
+| 工具 | `jp.co.a_tm.moeyu.util` | Config, Logger, UserDataManager | 通用工具类 |
+
+---
+
+## 3. 核心模块说明
+
+### 3.1 Activity导航模块
+
+#### BaseActivity（基类）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/BaseActivity.java`
+- **职责**: 所有Activity的抽象基类，提供：
+  - 全屏UI控制（隐藏状态栏）
+  - 统一的页面跳转方法（通过 `setResult` + `EXTRA_NEXT_ACTIVITY` 模式）
+  - 资源释放钩子（`release()`）
+- **核心常量**: 定义了12个页面跳转码（NEXT_ACTIVITY_*）
+
+#### MainActivity（路由中枢）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/MainActivity.java`
+- **职责**: 
+  - 应用入口，Launcher Activity
+  - 播放开场视频
+  - **中央路由器**: 所有子Activity通过 `startActivityForResult` 启动，返回时由 `onActivityResult` 中的 `switch` 语句分发到下一个Activity
+  - 屏幕比例修正值计算（`FIX_HEIGHT`）
+- **关键逻辑**: `onActivityResult` 方法（第116-172行）是整个应用的路由核心
+
+#### BathActivity（核心交互页面）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/BathActivity.java`
+- **职责**: 浴室互动场景，应用核心功能页面
+- **核心功能**:
+  - Live2D模型展示与触摸交互
+  - 场景切换（bath_a → head → body → bath_b 循环）
+  - 触摸区域识别（face/head/brest/belly/arm/none）
+  - 语音播放与动画联动
+  - 物品选择与使用
+  - 事件处理（升级事件、物品收集完成事件）
+  - AR模式（相机预览）
+- **代码量**: 1080行，是项目中最大的类，承载了过多职责
+
+#### TitleActivity（标题页）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/TitleActivity.java`
+- **职责**: 登录/注册、数据初始化（首次运行时解密语音文件）、页面导航入口
+- **关键流程**: 首次运行 → `InitializeDataTask` → `Decryption.execute()` → 登录/注册
+
+#### GatyaActivity（扭蛋页）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/GatyaActivity.java`
+- **职责**: 扭蛋抽卡交互、金币管理、Google Play支付集成
+- **交互模式**: 转盘旋转手势识别（自定义触摸角度计算）
+
+### 3.2 Live2D渲染模块
+
+#### 模块架构
+
+```
+BathActivity
     │
-    ├─ LAppGLView (视图容器)
-    │   └─ LAppRenderer (OpenGL 渲染器)
-    │       ├─ 背景纹理渲染
-    │       ├─ Model 坐标变换
-    │       └─ AR 模式支持
+    ├── 创建 LAppLive2DManager (管理器)
+    │       ├── FileManager (资源文件管理)
+    │       ├── AccelHelper (加速度传感器)
+    │       └── FinishListener (模型加载完成回调)
     │
-    ├─ LAppModel (模型管理器)
-    │   ├─ Live2DModelAndroid (第三方引擎封装)
-    │   ├─ 模型加载 (MOC 文件 + 纹理贴图)
-    │   ├─ Parts 透明度管理 (27 个 Parts)
-    │   └─ 加速度传感器数据集成
+    ├── 创建 LAppGLView (GLSurfaceView)
+    │       └── LAppRenderer (OpenGL渲染器)
+    │               ├── 场景状态 (Scene枚举)
+    │               ├── 纹理管理 (墙壁/水面/前景)
+    │               └── 加速度数据处理
     │
-    └─ LAppAnimation (动画系统)
-        ├─ MotionQueueManager (主运动队列)
-        ├─ ExpressionMgr (表情队列管理器)
-        ├─ EyeBlinkMotion (自动眨眼控制)
-        ├─ 场景管理 (Scene 枚举)
-        └─ 触摸交互处理
+    └── 加载 LAppModel (Live2D模型)
+            ├── Live2DModelAndroid (SDK核心)
+            ├── LAppAnimation (动画管理)
+            │       ├── 闲置动画 (4组，按场景)
+            │       ├── 触摸动画 (动态加载)
+            │       ├── 表情系统 (expression.json)
+            │       └── 眨眼动画
+            └── LAppExpressionMotion (表情动画)
 ```
 
-#### 3.1.3 LAppLive2DManager - 管理器模式实现
+#### LAppLive2DManager
 
-**核心接口定义**:
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/live2d/LAppLive2DManager.java`
+- **职责**: Live2D模块的总管理器
+- **核心方法**:
+  - `createView()`: 创建GLSurfaceView和渲染器
+  - `setupModel()` / `setupModel_later()`: 初始化Live2D模型（异步）
+  - `startAnimation()` / `stopAnimation()`: 控制动画循环
+  - `releaseModel()` / `releaseView()`: 资源释放
 
-```java
-public class LAppLive2DManager implements LAppDefine {
-    
-    // FinishListener 回调接口
-    public interface FinishListener {
-        void onFinishSetupModel();
-    }
-    
-    // 视图创建
-    public LAppGLView createView(Activity a, Rect rect);
-    
-    // 动画控制
-    public void startAnimation();
-    public void stopAnimation();
-    
-    // 模型管理
-    public LAppModel getModel(GL10 gl) throws Exception;
-    public boolean setupModel();
-    public void releaseModel();
-    
-    // 背景管理
-    public boolean setBackgroundImage(String filepath);
-    
-    // 资源管理
-    public FileManager getFileManager();
-}
+#### LAppModel
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/live2d/model/LAppModel.java`
+- **职责**: Live2D模型封装
+- **模型资源**: 
+  - 模型文件: `assets/live2d/model/moeyu.moc`
+  - 纹理贴图: `assets/live2d/model/moeyu.1024/texture_00~03.png`
+- **硬编码参数**: 模型名称 "moeyu" 和纹理路径直接写在代码中
+
+#### LAppAnimation
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/live2d/motion/LAppAnimation.java`
+- **职责**: 动画控制系统
+- **动画分类**:
+  - **闲置动画**: 按场景分组，bath_a有3个、head有2个、body有1个、bath_b有3个
+  - **触摸动画**: 从 `assets/live2d/motion/touch/` 目录动态加载所有 `.mtn` 文件
+  - **表情系统**: 从 `expression.json` 加载
+  - **眨眼动画**: `EyeBlinkMotion`，正常间隔4000ms，触摸时间隔1500ms
+- **场景切换**: `setScene()` 方法切换动画组和渲染背景
+
+#### LAppRenderer
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/live2d/view/LAppRenderer.java`
+- **职责**: OpenGL ES渲染器
+- **渲染层次**（从底到顶）:
+  1. 墙壁背景纹理（bath_a/bath_b 用 `water_wall00.png`，head/body 用 `water_wall01.png`）
+  2. 水面后层纹理（仅 bath 场景，`water_back00.png`）
+  3. Live2D角色模型
+  4. 水面前层纹理（仅 bath 场景，`water_front00.png`）
+- **AR模式**: 启用时跳过背景渲染，由 CameraPreview 提供背景
+
+### 3.3 API客户端模块（已本地化）
+
+#### MoeyuAPIClient
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java`
+- **职责**: 原本为远程API客户端，已改为本地实现
+- **本地化特征**:
+  - `userSignUp()`: 直接返回本地 UserData
+  - `userData()`: 直接返回本地 UserData
+  - `userGatya()`: 本地实现扭蛋逻辑（随机数 + 概率计算）
+  - `userBilling()`: 仍然保留远程HTTP调用（未本地化）
+- **数据持久化**: 使用 `localUserData.dat`（Java序列化），位于缓存目录
+- **扭蛋逻辑**:
+  - 铜币：rate=2（20%概率获得新物品）
+  - 金币：rate=3（30%概率获得新物品）
+  - 白金币：rate=4（40%概率获得新物品）
+  - 无物品时100%获得新物品
+
+#### API调用链（以扭蛋为例）
+
+```
+GatyaActivity.executeGachaTask()
+    → GachaFragment.gacha()
+        → GachaTask.doInBackground() [AsyncTask]
+            → MoeyuAPIClient.userGatya() [本地计算]
+                → GachaResult (包含新UserData和itemId)
+        → GachaTask.onPostExecute()
+            → BaseTask.storeUserData() [保存用户数据到文件+数据库]
+            → MoeyuAPITaskListener.onSuccess()
+                → GachaFragment回调
+                    → GatyaActivity跳转到GatyaResultActivity
 ```
 
-**设计特点**:
-- **单例模式**: 全局唯一的 Live2D 管理器实例
-- **工厂模式**: 通过 FileManager 创建资源和模型
-- **回调机制**: FinishListener 异步完成通知
-- **延迟加载**: dirtyFlag 标记实现按需初始化
+### 3.4 语音系统模块
 
-#### 3.1.4 LAppModel - 模型加载和渲染流程
+#### VoiceManager
 
-**模型加载流程**:
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/VoiceManager.java`
+- **职责**: 根据场景、区域、物品、等级选择语音
+- **语音选择算法**:
+  1. 从 `voice.json` 中查询: `scene → region → item → level`
+  2. 获取语音列表，每条有概率权重（probability）
+  3. 生成1-100的随机数，累减概率直到命中
+- **语音文件获取**:
+  - 优先尝试中文语音: `voiceName_cn.ogg`（应用私有目录）
+  - 回退到日文语音: `voiceName.ogg`（应用私有目录）
+  - 原始加密文件: `assets/voice/*.okk` 和 `assets/voice_cn/*.okk`
 
-```java
-public class LAppModel {
-    
-    // 模型初始化
-    public void setupModel(LAppLive2DManager mgr, GL10 gl) throws Exception {
-        // 1. 加载 MOC 模型文件
-        InputStream in = fileManager.open_resource("model/moeyu.moc");
-        live2DModel = Live2DModelAndroid.loadModel(in);
-        
-        // 2. 加载 4 张纹理贴图
-        String[] tex = {
-            "moeyu.1024/texture_00.png",
-            "moeyu.1024/texture_01.png",
-            "moeyu.1024/texture_02.png",
-            "moeyu.1024/texture_03.png"
-        };
-        
-        // 3. 配置 Parts 透明度 (27 个 Parts)
-        live2DModel.setupPartsOpacityGroup_alphaImpl(...);
-    }
-    
-    // 渲染流程
-    public void drawModel_core(GL10 gl) throws Exception {
-        // 1. 动画参数更新
-        live2dAnimation.updateParam(live2DModel);
-        
-        // 2. 加速度传感器数据融合
-        if (accel != null) {
-            live2DModel.addToParamFloat("PARAM_ANGLE_X", ...);
-            live2DModel.addToParamFloat("PARAM_ANGLE_Y", ...);
-        }
-        
-        // 3. Parts 透明度动态调整
-        live2DModel.setupPartsOpacityGroup_alphaImpl(...);
-        
-        // 4. OpenGL 渲染
-        live2DModel.setGL(gl);
-        live2DModel.update();
-        live2DModel.draw();
-    }
-}
+#### Decryption（语音解密）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/Decryption.java`
+- **职责**: 将加密的 `.okk` 文件解密为 `.ogg` 文件
+- **加密算法**: XOR 58（每个字节与58异或）
+- **执行时机**: 首次运行时由 `TitleActivity.InitializeDataTask` 调用
+- **优化**: 已解密的文件不会重复处理
+
+#### SpecialEvent（特殊事件语音链）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/SpecialEvent.java`
+- **职责**: 特定物品+场景+区域的组合触发链式语音事件
+- **硬编码规则**:
+  - 物品20 + bath_b + belly → 语音 227,228,229,230
+  - 物品1 + head + head → 语音 143,222,223,201
+  - 物品13 + bath_a + face → 语音 157,186,187,188
+  - 物品16 + bath_b + face → 语音 206,207,208
+
+### 3.5 数据持久层
+
+#### 三层持久化架构
+
+| 存储方式 | 文件/位置 | 内容 | 管理类 |
+|----------|-----------|------|--------|
+| Java序列化 | `cacheDir/localUserData.dat` (MoeyuAPIClient) | 用户数据(金币/等级/物品/经验) | MoeyuAPIClient |
+| Java序列化 | `fileDir/userData.dat` (UserDataManager) | 用户数据(同上，另一份拷贝) | UserDataManager |
+| SQLite | `collection.db` | 物品/语音/笔记收藏状态 | DatabaseOpenHelper + TableController |
+| SharedPreferences | 系统默认 | 首次运行标记/相机设置等 | PreferencesHelper |
+
+#### UserData（用户数据模型）
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/model/UserData.java`
+- **字段**:
+  - `userId`: 用户标识（本地模式为 "local"）
+  - `bronzeCoin / goldCoin / platinumCoin`: 三种货币
+  - `items`: 已获取物品ID列表（List\<Integer\>，最多25个）
+  - `exp / level`: 经验值和等级（最高6级）
+  - `bonus`: 每日登录奖励标记
+  - `state`: 用户状态
+  - `lastLoginTime`: 上次登录时间戳
+- **序列化**: 实现 `Serializable` 接口，通过 `ObjectOutputStream`/`ObjectInputStream` 持久化
+
+> **问题**: UserData存在两份序列化存储（MoeyuAPIClient的 `localUserData.dat` 和 UserDataManager的 `userData.dat`），可能导致数据不一致。
+
+#### DatabaseOpenHelper
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/DatabaseOpenHelper.java`
+- **数据库**: `collection.db`（版本1，无升级逻辑）
+- **三张表**:
+
+| 表名 | 字段 | 初始行数 | 初始化数据来源 |
+|------|------|----------|----------------|
+| ItemTable | _id, name, opened | 25行 | 硬编码01-25 |
+| VoiceTable | _id, name, opened, title | 动态 | CSV文件(R.raw.voice) |
+| NoteTable | _id, name, opened, term | 动态 | CSV文件(R.raw.note) |
+
+#### DatabaseTableController体系
+
+```
+DatabaseTableController (抽象基类)
+    ├── ItemTableController (物品收藏)
+    ├── VoiceTableController (语音收藏)
+    └── NoteTableController (笔记收藏)
 ```
 
-**关键技术特性**:
-- **纹理管理**: 4 张 1024x1024 纹理贴图
-- **Parts 系统**: 27 个可独立控制的 Parts 层
-- **传感器融合**: 加速度数据映射到模型参数
-- **坐标变换**: OpenGL 矩阵变换 (translate + scale)
+- **源文件**: `DatabaseTableController.java`
+- **设计模式**: 简化的Template Method模式，子类通过设置 `TABLE_NAME` 区分表
+- **功能**: 统一的CRUD操作（open/update/isOpened/count）
 
-#### 3.1.5 LAppAnimation - 动画系统架构
+### 3.6 事件系统
 
-**动画系统核心**:
+#### EventController
 
-```java
-public class LAppAnimation {
-    
-    // 运动队列管理器
-    MotionQueueManager mainMotionMgr = new MotionQueueManager();
-    MotionQueueManager expressionMgr = new MotionQueueManager();
-    
-    // 眨眼控制
-    EyeBlinkMotion eyeMotion;
-    
-    // 场景管理
-    private Scene mScene = Scene.bath_a;
-    
-    // Idle 动画集合 (4 组场景)
-    final List<Live2DMotion[]> motionIdle = new ArrayList();
-    
-    // Touch 交互动画映射
-    final Map<String, Live2DMotion> motionTouchMap = new HashMap();
-}
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/EventController.java`
+- **职责**: 检测并管理游戏事件
+- **事件类型**:
+  - Level2~Level6: 等级升级事件
+  - Complete: 物品全收集完成事件
+- **检测逻辑**: 检查用户等级和对应语音是否已解锁，未解锁则生成事件
+- **FIFO队列**: 使用ArrayList模拟事件队列（push/pop）
+
+#### EventData
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/model/EventData.java`
+- **内容**: 事件类型 + 语音列表（从strings.xml资源数组加载）
+
+### 3.7 好感度系统
+
+#### LovePoint
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/LovePoint.java`
+- **等级阈值**: [0, 2, 14, 44, 100, 188]
+- **等级**: 1~6级
+- **硬币对应的经验值**: 铜币=1, 金币=3, 白金币=30
+
+### 3.8 安全模块
+
+#### SecurityUtils
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/security/SecurityUtils.java`
+- **功能**: SHA-1和SHA-256签名生成与验证
+- **用途**: 原API请求签名验证（本地化后仅签名方法保留，无实际验证）
+
+#### Decryption
+
+- **源文件**: `app/src/main/java/jp/co/a_tm/moeyu/Decryption.java`
+- **算法**: XOR 58 对称加密
+- **用途**: 语音文件(.okk → .ogg)解密
+- **安全性**: 极低，简单的单字节XOR
+
+---
+
+## 4. 数据流说明
+
+### 4.1 应用启动数据流
+
+```
+App启动
+  │
+  v
+MainActivity.onCreate()
+  ├── 计算屏幕修正值 (FIX_HEIGHT)
+  └── 设置Logger配置
+  │
+  v (onResume, 首次运行)
+MainActivity.playOpeningMovie()
+  │ 播放开场视频
+  v
+MainActivity.startTitleActivity()
+  │ startActivityForResult(TitleActivity, REQUEST_CODE_NAV)
+  v
+TitleActivity.onResume()
+  ├── [首次运行] MoeyuApplication.isFirstRun() == true
+  │     ├── [需要初始化] InitializeDataTask
+  │     │     └── Decryption.execute() ← 解密所有语音文件
+  │     │           ├── assets/voice/*.okk → appFiles/*.ogg
+  │     │           └── assets/voice_cn/*.okk → appFiles/*_cn.ogg
+  │     └── login()
+  │           ├── [有用户数据] LoginFragment.login()
+  │           │     └── LoginTask → MoeyuAPIClient.userData() → 返回本地UserData
+  │           └── [无用户数据] SignupFragment.signup()
+  │                 └── SignupTask → MoeyuAPIClient.userSignUp() → 创建本地UserData
+  │
+  └── [非首次运行] 直接加载用户数据
 ```
 
-**动画管理流程**:
+### 4.2 浴室互动数据流（核心业务流）
 
-1. **Idle 循环系统**
-   - 4 组场景 × 随机 Idle 动作
-   - 淡入淡出时间：4000ms
-   - 自动循环播放
+```
+BathActivity.onCreate()
+  ├── 初始化VoiceManager (加载voice.json)
+  ├── 初始化LAppLive2DManager (加载Live2D模型)
+  ├── 加载UserData (UserDataManager.loadUserData())
+  ├── 创建物品列表 (根据UserData.isItemGet判断灰度)
+  └── 恢复场景状态 (从Intent读取scene和item)
+  │
+  v (用户触摸屏幕)
+BathActivity.onTouch()
+  ├── getRegion() ← 根据触摸坐标判断区域(Region枚举)
+  ├── [有链式事件] SpecialEvent.get() ← 检查特殊事件
+  │     └── 返回链式语音列表
+  ├── [无链式事件] VoiceManager.getVoiceName()
+  │     ├── 查询 voice.json: scene → region → item → level
+  │     └── 概率加权随机选择语音名
+  │
+  v
+startVoiceAndAnimation(voiceName)
+  ├── VoiceTableController.isOpened() ← 检查语音是否已解锁
+  ├── [未解锁] VoiceTableController.update() ← 标记为已解锁
+  │           └── updateVoiceNum() ← 更新界面上的语音计数
+  ├── LAppAnimation.startTouchMotion(voiceName + sceneSuffix)
+  │     └── 从motionTouchMap中查找并播放对应.mtn动画
+  └── VoiceManager.getVoiceFileDescripter(voiceName)
+        ├── [优先] voiceName_cn.ogg (中文语音)
+        └── [回退] voiceName.ogg (日文语音)
+        └── MediaPlayer播放
+```
 
-2. **Touch 交互响应**
-   ```java
-   // 触摸开始
-   public void touchesBegan(float logicalX, float logicalY, int touchNum) {
-       // 记录触摸起点
-       _flipStartX = logicalX;
-       _flipStartY = logicalY;
-       
-       // 计算面部跟随目标位置
-       mouseX = ((logicalX - 640.0f) * 2.0f) / 1280.0f;
-       mouseY = ((logicalY - 640.0f) * 2.0f) / 1280.0f;
-       
-       // 调整眨眼间隔 (正常 4s → 触摸时 1.5s)
-       eyeMotion.setInterval(EYE_INTERVAL_TOUCHING);
-   }
-   
-   // 拖拽移动
-   public void touchesMoved(float logicalX, float logicalY, int touchNum) {
-       // 计算拖拽距离
-       _totalD += sqrt(dx*dx + dy*dy);
-       
-       // Flip 触发判定 (>500px)
-       if (_totalD > 500.0f && _flipAvailable) {
-           // 头部/身体翻转检测
-           contains(flipStartX, flipStartY, ...);
-       }
-   }
-   ```
+### 4.3 扭蛋数据流
 
-3. **物理模拟 - Spring-Damper 模型**
-   ```java
-   private void updateDragMotion(ALive2DModel model) {
-       // Spring-Damper 算法实现面部跟随
-       float deltaTimeWeight = (curTimeSec - lastTimeSec) * 30.0f / 1000.0f;
-       
-       // 加速度限制
-       float MAX_A = (0.17777778f * deltaTimeWeight) / 4.5f;
-       
-       // 速度计算和限制
-       float dx = faceTargetX - faceX;
-       float dy = faceTargetY - faceY;
-       float d = sqrt(dx*dx + dy*dy);
-       
-       // 参数映射到 Live2D 模型
-       model.addToParamFloat("PARAM_ANGLE_X", range(faceX * 30.0f, -30.0f, 30.0f), 1.0f);
-       model.addToParamFloat("PARAM_EYE_BALL_X", range(faceX, -1.0f, 1.0f), 1.0f);
-   }
-   ```
+```
+GatyaActivity.onCreate()
+  ├── 加载UserData → 获取userId
+  └── executeLogin() → LoginFragment → LoginTask
+        └── MoeyuAPIClient.userData() → 获取最新本地数据
+              └── 每日登录奖励检查（bronzeCoin +1）
+  │
+  v (用户旋转转盘满360度)
+GatyaActivity.executeGachaTask()
+  → GachaFragment.gacha()
+    → GachaTask.doInBackground()
+      → MoeyuAPIClient.userGatya(userId, coin)
+        ├── 收集未拥有物品列表(noHolds)
+        ├── 根据coin类型确定rate(2/3/4)
+        ├── 扣除对应金币
+        ├── 随机决定是否获得新物品:
+        │     ├── rate > random(0-9) → 从noHolds中随机选一个
+        │     └── 否则 → 从已拥有items中随机选一个
+        ├── UserData.addItem(itemId)
+        ├── saveUserData() → 序列化到localUserData.dat
+        └── 返回 GachaResult(userData, itemId)
+    → GachaTask.onPostExecute()
+      ├── BaseTask.storeUserData() 
+      │     ├── UserDataManager.saveUserData() → userData.dat
+      │     └── ItemTableController.update() → SQLite ItemTable
+      └── listener.onSuccess(result)
+        → GatyaActivity跳转到GatyaResultActivity
+```
 
-**动画常量定义**:
-```java
-public static final int EYE_INTERVAL_NORMAL = 4000;     // 正常眨眼间隔
-public static final int EYE_INTERVAL_TOUCHING = 1500;   // 触摸时眨眼间隔
-public static final int FLIP_LENGTH = 500;              // Flip 触发距离
-public static final float MOUSE_TO_FACE_TARGET_SCALE = 1.5f;  // 鼠标到面部目标缩放
+### 4.4 Live2D渲染数据流
+
+```
+[每帧渲染循环]
+LAppRenderer.onDrawFrame(GL10)
+  ├── updateAccel() ← 更新加速度传感器数据
+  ├── [非AR模式] 绘制背景层:
+  │     ├── 墙壁纹理 (根据Scene选择)
+  │     └── [bath场景] 水面后层
+  ├── 绘制Live2D模型:
+  │     ├── LAppLive2DManager.getModel(gl)
+  │     │     └── [首次] setupModel_later() → 加载.moc和纹理
+  │     ├── LAppModel.setAccelarationValue(accel)
+  │     └── LAppModel.drawModel(gl)
+  │           └── LAppAnimation.updateParam(model)
+  │                 ├── [动画完成] startMainMotion() → 播放闲置动画
+  │                 ├── [动画进行中] mainMotionMgr.updateParam()
+  │                 ├── expressionMgr.updateParam() → 表情
+  │                 ├── updateDragMotion() → 追踪触摸/加速度
+  │                 ├── 呼吸动画 (sin波)
+  │                 └── 身体/头部微动 (sin波)
+  └── [非AR模式] 绘制前景层:
+        └── [bath场景] 水面前层
+```
+
+### 4.5 场景自动切换数据流
+
+```
+BathActivity.onCreate()
+  └── startWhitein()
+        └── [淡入动画结束]
+              └── changeSceneAuto()
+                    └── Timer定时器
+                          └── [超时] Scene.next()
+                                │ bath_a → head → body → bath_b → null
+                                └── [next非null] changeScene(nextScene)
+                                      ├── startWhiteOutAndIn() → 淡出淡入动画
+                                      │     └── LAppRenderer.setScene(scene)
+                                      │           └── LAppAnimation.setScene(scene)
+                                      │                 └── startMainMotion() → 播放对应场景闲置动画
+                                      └── 切换BGM
 ```
 
 ---
 
-### 3.2 API 网络层 (api/)
+## 5. Activity导航架构
 
-#### 3.2.1 模块职责
+### 5.1 中央路由器模式
 
-处理所有 HTTP 请求、用户数据管理、Gacha 抽卡逻辑和异步任务调度。
+项目采用 **Central Router Pattern（中央路由器模式）**，MainActivity充当路由中枢：
 
-#### 3.2.2 MoeyuAPIClient - HTTP 客户端封装
-
-**核心架构**:
-
-```java
-public class MoeyuAPIClient {
-    
-    // Base URL 配置
-    private static String BASE_URL = "http://api.moeapk.com/third_party/moeyu/";
-    
-    // 应用标识
-    private static final String appId = "MOEYU_001";
-    private static final String appVersion = "1";
-    
-    // 用户数据管理
-    private static UserData userData;
-    
-    // Gacha 金币类型枚举
-    public enum GachaCoin {
-        BRONZE("bronze_coin"),
-        GOLD("gold_coin"),
-        PLATINUM("platinum_coin"),
-        None("none");
-    }
-}
+```
+                    ┌──────────────┐
+                    │  MainActivity │ (中央路由器)
+                    │  (永不销毁)   │
+                    └──────┬───────┘
+                           │
+         onActivityResult()│ switch(nextPageType)
+                           │
+    ┌──────────┬───────────┼───────────┬──────────┐
+    v          v           v           v          v
+┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐
+│ Title  │ │ Bath   │ │ Gatya  │ │ Prefer │ │Collect │
+│Activty │ │Activity│ │Activity│ │Activity│ │RoomAct │
+└───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘ └───┬────┘
+    │          │          │          │          │
+    │ setResult(EXTRA_NEXT_ACTIVITY, code)       │
+    │ finish()                                   │
+    └──────────┴──────────┴──────────┴──────────┘
 ```
 
-**API 接口定义**:
+### 5.2 导航码映射表
 
-1. **用户管理接口**
-   ```java
-   // 用户注册
-   public UserData userSignUp() throws MoeyuAPIException;
-   
-   // 用户数据获取
-   public UserData userData(String userId) throws MoeyuAPIException;
-   ```
+| 导航码 | 常量名 | 目标Activity | 触发场景 |
+|--------|--------|-------------|----------|
+| -1 | NEXT_EXIT | 退出应用 | 用户选择退出 |
+| 0 | NEXT_ACTIVITY_TITLE | TitleActivity | 返回标题页 |
+| 1 | NEXT_ACTIVITY_GACHA | GatyaActivity | 进入扭蛋 |
+| 2 | NEXT_ACTIVITY_BATH | BathActivity | 进入浴室 |
+| 3 | NEXT_ACTIVITY_PREFERENCE | PreferenceActivity | 进入设置 |
+| 4 | NEXT_ACTIVITY_PREFERENCE_FROM_BATH | PreferenceActivity | 从浴室进入设置 |
+| 5 | NEXT_ACTIVITY_GACHA_RESULT | GatyaResultActivity | 扭蛋结果 |
+| 6 | NEXT_ACTIVITY_COLLECTION | CollectionRoomActivity | 收藏房间 |
+| 7 | NEXT_ACTIVITY_ITEM_COLLECTION | ItemCollectionActivity | 物品收藏 |
+| 8 | NEXT_ACTIVITY_VOICE_COLLECTION | VoiceCollectionActivity | 语音收藏 |
+| 9 | NEXT_ACTIVITY_ROOM | MomorisRoomActivity | 桃璃房间 |
+| 10 | NEXT_ACTIVITY_DIARY | NoteCollectionActivity | 笔记收藏 |
 
-2. **Gacha 抽卡接口**
-   ```java
-   /**
-    * 执行 Gacha 抽卡操作
-    * @param userId 用户 ID
-    * @param use 使用的金币类型 (BRONZE/GOLD/PLATINUM)
-    * @return GachaResult 抽卡结果
-    * @throws MoeyuAPIException API 异常
-    */
-   public GachaResult userGatya(String userId, GachaCoin use) throws MoeyuAPIException {
-       // 1. 构建未持有物品列表 (优先判定)
-       ArrayList<Integer> noHolds = new ArrayList<>();
-       for (int i = 0; i < 25; i++) {
-           if (!userData.hasItem(i+1)) {
-               noHolds.add(i+1);
-           }
-       }
-       
-       // 2. 根据金币类型设置 rate 并扣除
-       int rate = 0;
-       switch (use) {
-           case BRONZE:  rate = 2; userData.setBronzeCoin(...-1); break;
-           case GOLD:    rate = 3; userData.setGoldCoin(...-1); break;
-           case PLATINUM: rate = 4; userData.setPlatinumCoin(...-1); break;
-       }
-       
-       // 3. 概率计算和物品获取
-       GachaResult result = getGachaResult(rate, noHolds);
-       
-       // 4. 持久化用户数据
-       saveUserData();
-       
-       return result;
-   }
-   ```
+### 5.3 导航数据传递
 
-3. **Billing 回调接口**
-   ```java
-   /**
-    * 处理计费回调 (购买验证后)
-    * @param signedData RSA 签名的购买数据
-    * @param signature Base64 编码的签名
-    * @return UserData 更新后的用户数据
-    */
-   public UserData userBilling(String signedData, String signature) throws MoeyuAPIException {
-       List<NameValuePair> params = createBaseParams();
-       params.add(new BasicNameValuePair("inapp_signed_data", signedData));
-       params.add(new BasicNameValuePair("inapp_signature", signature));
-       
-       HttpPost post = new HttpPost(BASE_URL + "user/billing");
-       DefaultHttpClient client = new DefaultHttpClient();
-       post.setEntity(new UrlEncodedFormEntity(params));
-       
-       HttpResponse response = client.execute(post);
-       // 处理响应...
-   }
-   ```
+页面间数据通过Intent Extra传递：
 
-**安全机制**:
+| 数据 | Key（字符串资源） | 类型 | 使用场景 |
+|------|-------------------|------|----------|
+| 下一个页面 | `extra_next_activity` | int | 所有页面（路由码） |
+| 场景 | `intent_scene` (R.string.intent_scene) | String | → BathActivity |
+| 物品ID | `intent_item` (R.string.intent_item) | int | → BathActivity |
+| 事件数据 | `intent_event` (R.string.intent_event) | EventData(Serializable) | → BathActivity |
+| 抽卡前用户数据 | `EXTRA_PRE_USER_DATA` | UserData(Serializable) | → GatyaResultActivity |
+| 抽卡结果 | `EXTRA_GACHA_RESULT` | GachaResult(Serializable) | → GatyaResultActivity |
 
-```java
-// SHA-1 签名算法
-private String createSignature(List<NameValuePair> params) {
-    StringBuffer sb = new StringBuffer();
-    String baseString = createBaseString(params);
-    
-    try {
-        MessageDigest md = MessageDigest.getInstance("SHA-1");
-        md.update(baseString.getBytes());
-        byte[] hash = md.digest();
-        
-        // 转换为 Hex 字符串
-        for (byte b : hash) {
-            sb.append(Integer.toHexString((b >> 4) & 15));
-            sb.append(Integer.toHexString(b & 15));
-        }
-    } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
-    }
-    
-    return sb.toString();
-}
+### 5.4 请求码
 
-// 基础字符串构建 (参数排序 + Secret)
-private String createBaseString(List<NameValuePair> params) {
-    String secret = "local_secret";
-    
-    // 按参数名排序
-    Collections.sort(params, new Comparator<NameValuePair>() {
-        public int compare(NameValuePair o1, NameValuePair o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    });
-    
-    StringBuffer sb = new StringBuffer();
-    for (NameValuePair param : params) {
-        sb.append(param.getValue());
-    }
-    
-    return sb.toString() + secret;
-}
-```
+| 请求码 | 常量名 | 用途 |
+|--------|--------|------|
+| 1 | REQUEST_CODE_NAV | 常规导航请求 |
+| 2 | REQUEST_CODE_PREFERENCE | 从浴室进入设置后的返回处理 |
 
-#### 3.2.3 BaseTask - 异步任务框架设计
+### 5.5 设置页面返回的特殊处理
 
-**核心架构**:
-
-```java
-public abstract class BaseTask<Params, Progress, Result> 
-        extends AsyncTask<Params, Progress, Result> {
-    
-    protected MoeyuAPIClient mApiClient;
-    protected Context mContext;
-    protected MoeyuAPIException mException = null;
-    protected MoeyuAPITaskListener<Result> mListener;
-    
-    /**
-     * 基础任务构造函数
-     * @param context Android 上下文
-     * @param listener 任务完成监听器
-     */
-    public BaseTask(Context context, MoeyuAPITaskListener<Result> listener) {
-        this.mContext = context;
-        this.mListener = listener;
-        this.mApiClient = new MoeyuAPIClient(this.mContext);
-    }
-    
-    /**
-     * 任务完成回调 (覆盖 AsyncTask)
-     */
-    @Override
-    protected void onPostExecute(Result result) {
-        if (this.mListener != null) {
-            this.mListener.onPreCallback();
-            
-            if (this.mException == null) {
-                // 成功处理
-                this.mListener.onSuccess(result);
-            } else {
-                // 错误处理 (非生产环境输出详细日志)
-                if (!Config.getInstance(this.mContext).isProd()) {
-                    Logger.d("Moeyu API status code = " + mException.getStatusCode());
-                    mException.printStackTrace();
-                }
-                this.mListener.onError(mException);
-            }
-        }
-    }
-    
-    /**
-     * 任务取消回调
-     */
-    @Override
-    protected void onCancelled() {
-        if (this.mListener != null) {
-            this.mListener.onPreCallback();
-            this.mListener.onCancel();
-        }
-    }
-    
-    /**
-     * 用户数据持久化
-     */
-    protected void storeUserData(UserData userData) {
-        if (userData != null) {
-            UserDataManager.getInstance().saveUserData(userData);
-            // 触发物品表更新
-            new ItemTableController(this.mContext).update(userData.getItems());
-        }
-    }
-}
-```
-
-**任务子类实现**:
-
-1. **LoginTask** - 登录任务
-   ```java
-   public class LoginTask extends BaseTask<LoginParams, Void, UserData> {
-       @Override
-       protected UserData doInBackground(LoginParams... params) {
-           try {
-               return mApiClient.userData(params[0].userId);
-           } catch (MoeyuAPIException e) {
-               mException = e;
-               return null;
-           }
-       }
-   }
-   ```
-
-2. **GachaTask** - 抽卡任务
-   ```java
-   public class GachaTask extends BaseTask<GachaParams, Void, GachaResult> {
-       @Override
-       protected GachaResult doInBackground(GachaParams... params) {
-           try {
-               return mApiClient.userGatya(params[0].userId, params[0].coinType);
-           } catch (MoeyuAPIException e) {
-               mException = e;
-               return null;
-           }
-       }
-       
-       @Override
-       protected void onPostExecute(GachaResult result) {
-           super.onPostExecute(result);
-           if (mException == null && result != null) {
-               storeUserData(result.getUserData());
-           }
-       }
-   }
-   ```
-
-3. **BillingTask** - 计费任务
-   ```java
-   public class BillingTask extends BaseTask<BillingParams, Void, UserData> {
-       @Override
-       protected UserData doInBackground(BillingParams... params) {
-           try {
-               return mApiClient.userBilling(params[0].signedData, params[0].signature);
-           } catch (MoeyuAPIException e) {
-               mException = e;
-               return null;
-           }
-       }
-   }
-   ```
-
-**监听器接口**:
-
-```java
-public interface MoeyuAPITaskListener<Result> {
-    /** 回调前处理 (UI 加载指示等) */
-    void onPreCallback();
-    
-    /** 任务成功回调 */
-    void onSuccess(Result result);
-    
-    /** 任务错误回调 */
-    void onError(MoeyuAPIException exception);
-    
-    /** 任务取消回调 */
-    void onCancel();
-}
-```
-
-#### 3.2.4 UserDataManager - 数据管理架构
-
-**用户数据模型**:
-
-```java
-public class UserData implements Serializable {
-    
-    // 三阶金币系统
-    private int bronzeCoin;      // 青铜币 (每日奖励)
-    private int goldCoin;        // 黄金币 (内购)
-    private int platinumCoin;    // 白金币 (高级)
-    
-    // 物品收集 (25 种)
-    private List<Integer> items = new ArrayList();
-    
-    // 等级系统
-    private int level;           // 1-6 级
-    private int exp;             // 经验值
-    
-    // 用户标识
-    private String userId;
-    private String state;
-    
-    // 每日奖励标记
-    private boolean bonus;
-    private long lastLoginTime;
-    
-    // 常量定义
-    public static final int MAX_ITEM_COUNT = 25;
-    private static final int MAX_LEVEL = 6;
-}
-```
-
-**数据持久化**:
-
-```java
-// 本地用户创建
-public static UserData createLocal() {
-    UserData user = new UserData();
-    user.userId = "local";
-    user.bronzeCoin = 10;  // 初始青铜币
-    user.level = 1;
-    user.exp = 0;
-    user.bonus = true;
-    user.lastLoginTime = System.currentTimeMillis();
-    return user;
-}
-
-// JSON 反序列化
-public static UserData fromJson(JSONObject json) throws JSONException {
-    UserData user = new UserData();
-    user.setUserId(String.valueOf(json.get("user_id")));
-    user.setBronzeCoin(json.getInt("bronze_coin"));
-    user.setGoldCoin(json.getInt("gold_coin"));
-    user.setPlatinumCoin(json.getInt("platinum_coin"));
-    
-    JSONArray itemsArray = json.getJSONArray("items");
-    for (int i = 0; i < itemsArray.length(); i++) {
-        user.addItem(itemsArray.getInt(i));
-    }
-    
-    return user;
-}
-
-// 对象序列化存储
-public boolean store(OutputStream os) {
-    ObjectOutputStream oos = new ObjectOutputStream(os);
-    oos.writeObject(this);
-    return true;
-}
-
-// 对象反序列化恢复
-public static UserData restore(InputStream is) {
-    ObjectInputStream ois = new ObjectInputStream(is);
-    return (UserData) ois.readObject();
-}
-```
+从浴室进入设置(码=4)后，设置页面返回时不经过路由分发，直接重新启动BathActivity（无数据），这确保了从设置返回后回到浴室场景。
 
 ---
 
-### 3.3 Billing 计费层 (billing/)
+## 6. 设计模式识别
 
-#### 3.3.1 模块职责
+### 6.1 已识别的设计模式
 
-Google Play 内购集成、安全验证、购买流程管理和状态观察者实现。
+| 模式 | 应用位置 | 说明 |
+|------|----------|------|
+| **中央路由器模式** | MainActivity + BaseActivity | 所有页面跳转通过MainActivity中转，子页面通过setResult+导航码告知下一步 |
+| **模板方法模式** | BaseActivity → 各子Activity | 基类定义导航方法(toBath/toGacha等)，子类直接调用 |
+| **观察者模式** | MoeyuAPITaskListener体系 | 异步任务通过回调接口通知调用方（onSuccess/onError/onCancel） |
+| **单例模式** | Config.getInstance() | 应用配置类的懒加载单例 |
+| **命令模式** | BaseTask → LoginTask/GachaTask等 | 将API调用封装为AsyncTask命令对象 |
+| **策略模式(简化)** | DatabaseTableController子类 | 通过TABLE_NAME字段区分不同表的访问策略 |
+| **门面模式** | LAppLive2DManager | 封装Live2D SDK的复杂初始化和渲染流程 |
+| **工厂方法** | UserData.createLocal() / UserData.fromJson() | 静态工厂方法创建UserData实例 |
+| **队列模式** | EventController (push/pop) | FIFO事件队列 |
+| **链式处理** | BathActivity.mChainEvent (LinkedList) | 特殊事件的链式语音播放 |
 
-#### 3.3.2 BillingService - 服务层架构
+### 6.2 反模式识别
 
-**核心架构**:
-
-```java
-public class BillingService extends Service implements ServiceConnection {
-    
-    // 待处理请求队列
-    public static LinkedList<BillingRequest> mPendingRequests = new LinkedList();
-    
-    // 已发送请求映射
-    public static HashMap<Long, BillingRequest> mSentRequests = new HashMap();
-    
-    /**
-     * 抽象计费请求基类
-     */
-    abstract class BillingRequest {
-        protected long mRequestId;
-        private final int mStartId;
-        
-        public abstract long run() throws RemoteException;
-        
-        /**
-         * 执行请求 (连接服务或加入队列)
-         */
-        public boolean runRequest() {
-            if (runIfConnected()) {
-                return true;
-            }
-            if (!bindToMarketBillingService()) {
-                return false;
-            }
-            mPendingRequests.add(this);
-            return true;
-        }
-    }
-}
-```
-
-**请求类型实现**:
-
-1. **CheckBillingSupported** - 计费支持检查
-   ```java
-   public class CheckBillingSupported extends BillingRequest {
-       @Override
-       public long run() throws RemoteException {
-           int responseCode = mService.sendBillingRequest(
-               makeRequestBundle("CHECK_BILLING_SUPPORTED")
-           ).getInt(BILLING_RESPONSE_RESPONSE_CODE);
-           
-           ResponseHandler.checkBillingSupportedResponse(
-               responseCode == ResponseCode.RESULT_OK.ordinal()
-           );
-       }
-   }
-   ```
-
-2. **RequestPurchase** - 购买请求
-   ```java
-   public class RequestPurchase extends BillingRequest {
-       public final String mProductId;
-       public final String mDeveloperPayload;
-       
-       @Override
-       public long run() throws RemoteException {
-           Bundle request = makeRequestBundle("REQUEST_PURCHASE");
-           request.putString(BILLING_REQUEST_ITEM_ID, mProductId);
-           
-           if (mDeveloperPayload != null) {
-               request.putString(BILLING_REQUEST_DEVELOPER_PAYLOAD, mDeveloperPayload);
-           }
-           
-           Bundle response = mService.sendBillingRequest(request);
-           PendingIntent pendingIntent = response.getParcelable(
-               BILLING_RESPONSE_PURCHASE_INTENT
-           );
-           
-           ResponseHandler.buyPageIntentResponse(pendingIntent, new Intent());
-       }
-   }
-   ```
-
-3. **GetPurchaseInformation** - 购买信息获取
-   ```java
-   public class GetPurchaseInformation extends BillingRequest {
-       long mNonce;
-       
-       @Override
-       public long run() throws RemoteException {
-           mNonce = Security.generateNonce();
-           
-           Bundle request = makeRequestBundle("GET_PURCHASE_INFORMATION");
-           request.putLong(BILLING_REQUEST_NONCE, mNonce);
-           
-           // Nonce 异常清理
-           @Override
-           public void onRemoteException(RemoteException e) {
-               super.onRemoteException(e);
-               Security.removeNonce(mNonce);
-           }
-       }
-   }
-   ```
-
-#### 3.3.3 Security - 安全验证机制
-
-**RSA 公钥验证核心**:
-
-```java
-public class Security {
-    
-    private static final String KEY_FACTORY_ALGORITHM = "RSA";
-    private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
-    private static HashSet<Long> sKnownNonces = new HashSet();
-    
-    /**
-     * 已验证的购买信息封装类
-     */
-    public static class VerifiedPurchase {
-        public String developerPayload;
-        public String notificationId;
-        public String orderId;
-        public String productId;
-        public PurchaseState purchaseState;
-        public long purchaseTime;
-    }
-    
-    /**
-     * 生成 Nonce (防止重放攻击)
-     */
-    public static long generateNonce() {
-        long nonce = RANDOM.nextLong();
-        sKnownNonces.add(Long.valueOf(nonce));
-        return nonce;
-    }
-    
-    /**
-     * 购买数据验证 (核心安全流程)
-     * @param signedData Base64 编码的购买数据 JSON
-     * @param signature Base64 编码的 RSA 签名
-     * @return 验证通过的购买列表
-     */
-    public static ArrayList<VerifiedPurchase> verifyPurchase(
-            String signedData, String signature) {
-        
-        // 1. RSA 签名验证
-        boolean verified = false;
-        if (!TextUtils.isEmpty(signature)) {
-            PublicKey publicKey = generatePublicKey(
-                "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA..."
-            );
-            verified = verify(publicKey, signedData, signature);
-        }
-        
-        // 2. JSON 数据解析
-        JSONObject jObject = new JSONObject(signedData);
-        long nonce = jObject.optLong("nonce");
-        JSONArray ordersArray = jObject.optJSONArray("orders");
-        
-        // 3. Nonce 验证 (防止重放)
-        if (isNonceKnown(nonce)) {
-            ArrayList<VerifiedPurchase> purchases = new ArrayList();
-            
-            for (int i = 0; i < ordersArray.length(); i++) {
-                JSONObject order = ordersArray.getJSONObject(i);
-                
-                PurchaseState state = PurchaseState.valueOf(
-                    order.getInt("purchaseState")
-                );
-                String productId = order.getString("productId");
-                long purchaseTime = order.getLong("purchaseTime");
-                
-                purchases.add(new VerifiedPurchase(
-                    state, order.optString("notificationId"),
-                    productId, order.optString("orderId"),
-                    purchaseTime, order.optString("developerPayload")
-                ));
-            }
-            
-            removeNonce(nonce);
-            return purchases;
-        }
-        
-        return null;
-    }
-    
-    /**
-     * RSA 公钥生成
-     */
-    public static PublicKey generatePublicKey(String encodedPublicKey) {
-        try {
-            byte[] keyBytes = Base64.decode(encodedPublicKey);
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance(KEY_FACTORY_ALGORITHM);
-            return keyFactory.generatePublic(keySpec);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-    
-    /**
-     * 签名验证
-     */
-    public static boolean verify(PublicKey publicKey, 
-                                  String signedData, String signature) {
-        try {
-            Signature sig = Signature.getInstance(SIGNATURE_ALGORITHM);
-            sig.initVerify(publicKey);
-            sig.update(signedData.getBytes());
-            
-            return sig.verify(Base64.decode(signature));
-        } catch (Exception e) {
-            Log.e(TAG, "Signature verification failed", e);
-            return false;
-        }
-    }
-}
-```
-
-**安全特性**:
-- **RSA-2048**: 公钥加密验证
-- **SHA1withRSA**: 签名算法
-- **Nonce 机制**: 重放攻击防护
-- **Base64 编码**: 数据传输格式
-
-#### 3.3.4 PurchaseObserver - 观察者模式实现
-
-**状态变化监听**:
-
-```java
-public class PurchaseObserver {
-    
-    // 购买状态枚举
-    public enum PurchaseState {
-        PURCHASED,    // 已购买
-        CANCELLED,    // 已取消
-        RESTORED      // 已恢复
-    }
-    
-    /**
-     * 购买状态变化回调
-     */
-    public void onPurchaseStateChanged(PurchaseState state, 
-                                       VerifiedPurchase purchase) {
-        switch (state) {
-            case PURCHASED:
-                // 触发 API 确认和用户数据更新
-                new MoeyuAPIClient(context).userBilling(...);
-                ResponseHandler.purchaseResponse(...);
-                break;
-                
-            case CANCELLED:
-                // 取消处理
-                ResponseHandler.handleCancelled(purchase.productId);
-                break;
-                
-            case RESTORED:
-                // 恢复处理
-                ResponseHandler.handleRestored(purchase);
-                break;
-        }
-    }
-}
-```
+| 反模式 | 位置 | 说明 |
+|--------|------|------|
+| **God Activity** | BathActivity (1080行) | 单个Activity承担了UI、交互逻辑、语音管理、动画协调等多重职责 |
+| **硬编码魔法值** | SpecialEvent, BathActivity | 物品ID、语音名、区域坐标等直接写在代码中 |
+| **重复数据存储** | UserData双重序列化 | localUserData.dat和userData.dat存储相同的用户数据 |
+| **静态变量共享** | MainActivity.FIX_HEIGHT, MoeyuAPIClient.userData | 通过静态变量在Activity间共享数据 |
+| **内联匿名类** | BathActivity | 大量匿名OnCompletionListener/AnimationListener，降低可读性 |
+| **AsyncTask滥用** | api.task包 | 使用已废弃的AsyncTask进行异步操作 |
 
 ---
 
-## 四、设计模式清单
+## 7. 架构优缺点评估
 
-### 4.1 架构模式
+### 7.1 优点
 
-#### MVC (Model-View-Controller)
-
-**应用场景**: Live2D 引擎层
-
-| 组件 | 角色 | 实现类 |
-|------|------|--------|
-| **Model** | 数据和管理逻辑 | LAppModel, Live2DModelAndroid |
-| **View** | 显示和渲染 | LAppGLView, LAppRenderer |
-| **Controller** | 控制和协调 | LAppLive2DManager, LAppAnimation |
-
-**交互流程**:
-```
-用户触摸事件
-    ↓
-LAppLive2DManager (Controller) 接收事件
-    ↓
-LAppAnimation 更新模型参数 (Model)
-    ↓
-LAppRenderer 重绘视图 (View)
-    ↓
-GLSurfaceView 显示更新后的画面
-```
-
-### 4.2 GoF 设计模式
-
-#### Singleton (单例模式)
-
-**应用实例**:
-
-1. **LAppLive2DManager**
-   ```java
-   // 全局唯一的 Live2D 管理器
-   public class LAppLive2DManager {
-       private static LAppLive2DManager instance;
-       
-       public static LAppLive2DManager getInstance(Context context) {
-           if (instance == null) {
-               instance = new LAppLive2DManager(context);
-           }
-           return instance;
-       }
-   }
-   ```
-
-2. **Config**
-   ```java
-   public class Config {
-       private static Config instance;
-       
-       public static Config getInstance(Context context) {
-           if (instance == null) {
-               instance = new Config(context);
-           }
-           return instance;
-       }
-   }
-   ```
-
-3. **UserDataManager**
-   ```java
-   public class UserDataManager {
-       private static UserDataManager instance;
-       
-       public static UserDataManager getInstance(Context context) {
-           if (instance == null) {
-               instance = new UserDataManager(context);
-           }
-           return instance;
-       }
-   }
-   ```
-
-#### Factory (工厂模式)
-
-**应用实例**:
-
-1. **FileManager** - 资源文件工厂
-   ```java
-   public class FileManager {
-       public InputStream open_resource(String path) throws IOException {
-           return context.getAssets().open(path);
-       }
-       
-       // 用于创建各种资源 (模型、纹理、动画等)
-   }
-   ```
-
-2. **LAppModel 创建**
-   ```java
-   // LAppLive2DManager 中
-   public void setupModel_exe() throws Exception {
-       if (myModel == null) {
-           myModel = new LAppModel(this);  // 工厂方法创建模型
-           myModel.setupAnimation(this);
-       }
-   }
-   ```
-
-#### Observer (观察者模式)
-
-**应用实例**:
-
-1. **BillingService 购买状态观察**
-   ```java
-   // PurchaseObserver 监听购买状态变化
-   public class PurchaseObserver {
-       public void onPurchaseStateChanged(PurchaseState state);
-   }
-   
-   // BillingService 通知观察者
-   public void purchaseStateChanged(int startId, String signedData, String signature) {
-       ArrayList<VerifiedPurchase> purchases = Security.verifyPurchase(...);
-       
-       for (VerifiedPurchase vp : purchases) {
-           ResponseHandler.purchaseResponse(this, vp.purchaseState, ...);
-       }
-   }
-   ```
-
-2. **MoeyuAPITaskListener** - 异步任务观察
-   ```java
-   public interface MoeyuAPITaskListener<Result> {
-       void onSuccess(Result result);
-       void onError(MoeyuAPIException exception);
-       void onCancel();
-   }
-   ```
-
-3. **LAppLive2DManager.FinishListener** - 模型加载完成观察
-   ```java
-   public interface FinishListener {
-       void onFinishSetupModel();
-   }
-   ```
-
-#### Adapter (适配器模式)
-
-**应用实例**:
-
-1. **LAppRenderer** - OpenGL ES 适配器
-   ```java
-   public class LAppRenderer implements GLSurfaceView.Renderer {
-       @Override
-       public void onSurfaceCreated(GL10 gl, EGLConfig config);
-       
-       @Override
-       public void onSurfaceChanged(GL10 gl, int width, int height);
-       
-       @Override
-       public void onDrawFrame(GL10 gl);
-   }
-   ```
-
-2. **CameraPreview** - 相机预览适配器
-   ```java
-   public class CameraPreview extends SurfaceView 
-           implements Camera.PreviewCallback {
-       // 适配 Android Camera API
-   }
-   ```
-
-#### Strategy (策略模式)
-
-**应用实例**:
-
-1. **Gacha 抽卡概率策略**
-   ```java
-   // 不同金币类型对应不同的概率策略
-   public enum GachaCoin {
-       BRONZE(rate = 2),   // 10% 触发
-       GOLD(rate = 3),     // 50% 触发
-       PLATINUM(rate = 4)  // 90% 触发
-   }
-   
-   // 策略执行
-   private GachaResult getGachaResult(int rate, ArrayList<Integer> noHolds) {
-       Random random = new Random();
-       int randomResult = Math.abs(random.nextInt() % 10);
-       
-       if (rate > randomResult || userData.getItems().isEmpty()) {
-           // 未收集物品优先策略
-           itemId = noHolds.get(random.nextInt(noHolds.size()));
-           userData.addItem(itemId);
-       } else {
-           // 已有物品随机策略
-           itemId = userData.getItems().get(
-               random.nextInt(userData.getItems().size())
-           );
-       }
-   }
-   ```
-
-#### Queue (队列模式)
-
-**应用实例**:
-
-1. **MotionQueueManager** - 动画运动队列
-   ```java
-   // 主运动队列和表情队列管理
-   MotionQueueManager mainMotionMgr = new MotionQueueManager();
-   MotionQueueManager expressionMgr = new MotionQueueManager();
-   
-   // 队列操作
-   mainMotionMgr.startMotion(motion, false);  // 加入队列
-   mainMotionMgr.updateParam(model);          // 更新队列状态
-   mainMotionMgr.isFinished();                // 检查队列完成
-   ```
-
-2. **BillingService 请求队列**
-   ```java
-   // 待处理请求队列
-   public static LinkedList<BillingRequest> mPendingRequests = new LinkedList();
-   
-   // 队列处理
-   private void runPendingRequests() {
-       while (true) {
-           BillingRequest request = mPendingRequests.peek();
-           if (request != null) {
-               if (request.runIfConnected()) {
-                   mPendingRequests.remove();
-               } else {
-                   break;
-               }
-           } else {
-               break;
-           }
-       }
-   }
-   ```
-
-### 4.3 自定义设计模式
-
-#### Manager-Pattern (管理器模式)
-
-**LAppLive2DManager 实现**:
-
-```java
-public class LAppLive2DManager implements LAppDefine {
-    // 资源管理
-    private FileManager fileManager;
-    
-    // 组件管理
-    public LAppGLView glView;
-    private LAppModel myModel;
-    private AccelHelper accelHelper;
-    
-    // 生命周期管理
-    public void startAnimation();
-    public void stopAnimation();
-    public void releaseView();
-    public void releaseModel();
-    
-    // 配置管理
-    public void setTextureSize(int size);
-    public void setPartsCacheDirectory(String path);
-}
-```
-
-**特点**:
-- 统一的管理入口
-- 组件生命周期协调
-- 资源集中管理
-- 配置统一控制
-
----
-
-## 五、接口规范
-
-### 5.1 核心接口定义
-
-#### Live2D 引擎接口
-
-**LAppDefine 接口** - Live2D 常量定义:
-```java
-public interface LAppDefine {
-    // 运动目录
-    String MOTION_DIR = "motion";
-    
-    // 纹理尺寸常量
-    int TEXTURE_SIZE_512 = 512;
-    int TEXTURE_SIZE_1024 = 1024;
-    
-    // 其他常量定义...
-}
-```
-
-**FinishListener 接口** - 模型加载完成回调:
-```java
-public interface FinishListener {
-    /**
-     * 模型设置完成回调
-     */
-    void onFinishSetupModel();
-}
-```
-
-#### API 网络层接口
-
-**MoeyuAPITaskListener 接口** - 异步任务监听:
-```java
-public interface MoeyuAPITaskListener<Result> {
-    /**
-     * 回调前处理 (UI 加载指示等)
-     */
-    void onPreCallback();
-    
-    /**
-     * 任务成功回调
-     * @param result 任务结果
-     */
-    void onSuccess(Result result);
-    
-    /**
-     * 任务错误回调
-     * @param exception API 异常信息
-     */
-    void onError(MoeyuAPIException exception);
-    
-    /**
-     * 任务取消回调
-     */
-    void onCancel();
-}
-```
-
-**MoeyuAPIException 异常类**:
-```java
-public class MoeyuAPIException extends Exception {
-    private int statusCode;
-    
-    public MoeyuAPIException(String message) {
-        super(message);
-    }
-    
-    public MoeyuAPIException(Throwable cause) {
-        super(cause);
-    }
-    
-    public MoeyuAPIException(int statusCode) {
-        this.statusCode = statusCode;
-    }
-    
-    public int getStatusCode() {
-        return statusCode;
-    }
-}
-```
-
-#### Billing 层接口
-
-**PurchaseObserver 接口** - 购买状态观察:
-```java
-public interface PurchaseObserver {
-    /**
-     * 购买状态变化回调
-     * @param state 购买状态 (PURCHASED/CANCELLED/RESTORED)
-     * @param purchase 验证通过的购买信息
-     */
-    void onPurchaseStateChanged(PurchaseState state, VerifiedPurchase purchase);
-}
-```
-
-**VerifiedPurchase 数据类**:
-```java
-public class VerifiedPurchase {
-    public String developerPayload;
-    public String notificationId;
-    public String orderId;
-    public String productId;
-    public PurchaseState purchaseState;
-    public long purchaseTime;
-    
-    // 构造函数和 getter/setter...
-}
-```
-
-### 5.2 数据模型接口
-
-#### UserData 数据模型
-
-**核心属性**:
-```java
-public class UserData implements Serializable {
-    // 用户标识
-    String userId;
-    String state;
-    
-    // 三阶金币系统
-    int bronzeCoin;      // 青铜币
-    int goldCoin;        // 黄金币
-    int platinumCoin;    // 白金币
-    
-    // 物品收集 (25 种)
-    List<Integer> items;
-    
-    // 等级系统
-    int level;           // 1-6 级
-    int exp;             // 经验值
-    
-    // 奖励系统
-    boolean bonus;        // 每日奖励标记
-    long lastLoginTime;   // 最后登录时间
-    
-    // 常量
-    public static final int MAX_ITEM_COUNT = 25;
-    private static final int MAX_LEVEL = 6;
-}
-```
-
-#### GachaResult 数据模型
-
-**抽卡结果**:
-```java
-public class GachaResult {
-    private UserData userData;    // 更新后的用户数据
-    private int itemId;           // 获得的物品 ID
-    
-    // getter/setter...
-}
-```
-
----
-
-## 六、数据流图
-
-### 6.1 Live2D 交互数据流
-
-```
-用户触摸事件 (Touch Event)
-    ↓
-BathActivity.onTouchEvent()
-    ├─ 触摸坐标获取 (PointF)
-    └─ 区域判定 (getRegion(pointF))
-    ↓
-LAppLive2DManager.glView.getRenderer()
-    ↓
-LAppAnimation.touchesBegan/touchesMoved()
-    ├─ 面部跟随计算 (Spring-Damper)
-    ├─ Flip 触发检测
-    └─ 眨眼间隔调整
-    ↓
-LAppAnimation.updateParam(ALive2DModel)
-    ├─ mainMotionMgr.updateParam() (主运动更新)
-    ├─ expressionMgr.updateParam() (表情更新)
-    └─ eyeMotion.setParam() (眨眼控制)
-    ↓
-Live2DModelAndroid.update() + draw()
-    ↓
-LAppRenderer.onDrawFrame(GL10 gl)
-    ↓
-GLSurfaceView 显示渲染结果
-```
-
-### 6.2 Gacha 抽卡数据流
-
-```
-用户点击抽卡按钮
-    ↓
-GatyaActivity → GachaFragment
-    ↓
-GachaTask.execute() (AsyncTask)
-    ↓
-MoeyuAPIClient.userGatya(userId, coinType)
-    ├─ 构建未持有物品列表 (noHolds)
-    ├─ 扣除对应金币
-    └─ 概率计算 (rate 判定)
-    ↓
-getGachaResult(rate, noHolds)
-    ├─ 随机数生成
-    ├─ 优先级判定 (未收集 > 已收集)
-    └─ 物品添加到用户数据
-    ↓
-userData.addItem(itemId)
-    ↓
-saveUserData() (Object Serialization)
-    ↓
-GachaResult 返回
-    ↓
-GachaResultActivity 展示结果
-    ↓
-ItemTableController.update() (UI 更新)
-```
-
-### 6.3 Billing 购买数据流
-
-```
-用户点击购买按钮
-    ↓
-BillingService.requestPurchase(productId, payload)
-    ↓
-RequestPurchase.run()
-    ├─ 构建 REQUEST_PURCHASE 请求
-    └─ 获取 PendingIntent
-    ↓
-ResponseHandler.buyPageIntentResponse(pendingIntent)
-    ↓
-Google Play Store 支付界面
-    ↓
-用户完成支付
-    ↓
-BroadcastReceiver → BillingReceiver
-    ↓
-BillingService.purchaseStateChanged()
-    ↓
-Security.verifyPurchase(signedData, signature)
-    ├─ RSA-2048 公钥验证
-    ├─ Base64 解码
-    ├─ JSON 解析
-    └─ Nonce 重放检查
-    ↓
-MoeyuAPIClient.userBilling() (服务器确认)
-    ↓
-UserData.updateItems() + coins 更新
-    ↓
-ItemTableController.update() → Live2D 奖励动画
-    ↓
-ResponseHandler.purchaseResponse() (UI 反馈)
-```
-
-### 6.4 用户数据持久化流
-
-```
-应用启动
-    ↓
-MoeyuAPIClient(Context) 初始化
-    ↓
-检查 userDataFile.exists()
-    ├─ 存在：readUserData()
-    │   ├─ ObjectInputStream 反序列化
-    │   ├─ 每日登录奖励判定
-    │   └─ saveUserData()
-    └─ 不存在：createLocal()
-        └─ 初始化默认用户数据
-    ↓
-UserData 加载完成
-    ↓
-各 Activity/Fragment 使用 UserData
-    ↓
-数据变更 → storeUserData()
-    ↓
-ObjectOutputStream 序列化保存
-    ↓
-localUserData.dat 文件更新
-```
-
----
-
-## 七、模块依赖关系
-
-### 7.1 整体依赖图
-
-```
-┌─────────────────────────────────────────────────────┐
-│              UI 层 (Activity/Fragment)               │
-│                                                      │
-│  BathActivity ────→ LAppLive2DManager               │
-│      │                   ↓                           │
-│      │             LAppModel + LAppAnimation         │
-│      │                   ↓                           │
-│      └──────────────→ VoiceManager                  │
-│                                                      │
-│  GatyaActivity ────→ GachaFragment                  │
-│      │                   ↓                           │
-│      │             GachaTask (BaseTask)             │
-│      │                   ↓                           │
-│      └──────────────→ MoeyuAPIClient               │
-│                                                      │
-│  CollectionRoomActivity → ItemCollectionActivity    │
-│      │                   ↓                           │
-│      └──────────────→ ItemTableController          │
-└─────────────────────┬───────────────────────────────┘
-                      │
-                      ↓
-        ┌─────────────────────────────┐
-        │       Billing 层              │
-        │                             │
-        │  BillingService             │
-        │      ↓                      │
-        │  Security (RSA 验证)         │
-        │      ↓                      │
-        │  ResponseHandler            │
-        └──────────────┬──────────────┘
-                       │
-                       ↓
-        ┌─────────────────────────────┐
-        │       数据层                 │
-        │                             │
-        │  UserData (核心数据模型)     │
-        │      ↓                      │
-        │  GachaResult                │
-        │      ↓                      │
-        │  EventData                  │
-        └─────────────────────────────┘
-```
-
-### 7.2 关键依赖关系
-
-| 模块 | 依赖模块 | 依赖类型 | 说明 |
-|------|---------|---------|------|
-| **LAppLive2DManager** | Live2D SDK | 编译时 | live2d_android.jar |
-| **LAppModel** | LAppLive2DManager, FileManager | 运行时 | 模型加载和资源管理 |
-| **LAppAnimation** | LAppModel, MotionQueueManager | 运行时 | 动画控制和更新 |
-| **MoeyuAPIClient** | Apache HttpClient, UserData | 编译时+运行时 | HTTP 通信和数据管理 |
-| **BaseTask** | MoeyuAPIClient, AsyncTask | 继承关系 | 异步任务框架 |
-| **BillingService** | Security, MoeyuAPIClient | 运行时 | 购买验证和 API 调用 |
-| **Security** | RSA, Base64, JSON | 编译时 | 加密和解析依赖 |
-| **BathActivity** | LAppLive2DManager, VoiceManager | 运行时 | Live2D 渲染和语音管理 |
-| **GatyaActivity** | MoeyuAPIClient, BillingService | 运行时 | 抽卡和购买集成 |
-
----
-
-## 八、技术债务和改进建议
-
-### 8.1 架构层面的改进方向
-
-#### 高优先级改进
-
-1. **网络层现代化升级**
-   
-   **现状**: 使用 Apache HttpClient 3.x (旧版)  
-   **建议**: 迁移到 OkHttp 或 Retrofit
-   
-   ```java
-   // 建议采用 Retrofit + OkHttp
-   interface MoeyuAPIService {
-       @GET("user/data")
-       Call<UserData> getUserData(@Query("user_id") String userId);
-       
-       @POST("user/gatya")
-       Call<GachaResult> userGatya(@Body GachaRequest request);
-   }
-   
-   Retrofit retrofit = new Retrofit.Builder()
-       .baseUrl(BASE_URL)
-       .addConverterFactory(GsonConverterFactory.create())
-       .build();
-   ```
-   
-   **优势**:
-   - 更好的异步支持 (协程/Response)
-   - 自动 JSON 序列化
-   - 拦截器机制
-   - 连接池管理
-
-2. **异步框架现代化**
-   
-   **现状**: 基于 AsyncTask (已废弃)  
-   **建议**: 迁移到 coroutine + Flow 或 RxJava
-   
-   ```kotlin
-   // 建议采用 Kotlin Coroutines
-   suspend fun userGatya(userId: String, coinType: GachaCoin): Result<GachaResult> {
-       return try {
-           val response = apiClient.userGatya(userId, coinType)
-           Result.success(response)
-       } catch (e: Exception) {
-           Result.failure(e)
-       }
-   }
-   ```
-   
-   **优势**:
-   - 更好的异常处理
-   - 链式操作支持
-   - 生命周期感知
-   - 测试友好
-
-3. **架构模式优化 - MVVM 引入**
-   
-   **现状**: MVC 模式，UI 层业务逻辑较重  
-   **建议**: 引入 ViewModel + LiveData/StateFlow
-   
-   ```kotlin
-   class GachaViewModel : ViewModel() {
-       private val _gachaResult = StateFlow<GachaState>(Initial)
-       val gachaResult: StateFlow<GachaState> = _gachaResult
-       
-       fun performGacha(coinType: GachaCoin) {
-           viewModelScope.launch {
-               _gachaResult.value = Loading
-               val result = repository.performGacha(coinType)
-               _gachaResult.value = result.fold(
-                   onSuccess = { Success(it) },
-                   onFailure = { Error(it) }
-               )
-           }
-       }
-   }
-   ```
-   
-   **优势**:
-   - UI 与业务逻辑分离
-   - 配置自动保存
-   - 更好的状态管理
-   - 测试性提升
-
-#### 中优先级改进
-
-4. **依赖注入框架引入**
-   
-   **建议**: 采用 Dagger-Hilt
-   
-   ```kotlin
-   @HiltAndroidApp
-   class MoeyuApplication : Application()
-   
-   @ViewModelInject
-   class GachaViewModel @Inject constructor(
-       private val apiRepository: ApiRepository
-   )
-   ```
-   
-   **优势**:
-   - 依赖管理自动化
-   - 生命周期感知
-   - 编译时检查
-   - 代码生成优化
-
-5. **测试体系完善**
-   
-   **现状**: 缺少单元测试和集成测试  
-   **建议**: 
-   - 引入 JUnit + Mockito 进行单元测试
-   - Espresso 用于 UI 测试
-   - 目标覆盖率 > 70%
-   
-   ```kotlin
-   @Test
-   fun testUserGatya_success() {
-       // Arrange
-       val mockApi = MockMoeyuAPIClient()
-       val userData = UserData.createLocal()
-       
-       // Act
-       val result = mockApi.userGatya("user001", GachaCoin.BRONZE)
-       
-       // Assert
-       assertTrue(result.itemId > 0)
-       assertEquals(userData.items.size, 1)
-   }
-   ```
-
-6. **配置管理优化**
-   
-   **现状**: 配置分散，硬编码较多  
-   **建议**: 集中化配置管理
-   
-   ```kotlin
-   data class AppConfig(
-       val apiBaseUrl: String,
-       val billingEnabled: Boolean,
-       val gachaRates: Map<GachaCoin, Int>
-   )
-   
-   // 支持多环境配置 (Dev/Staging/Prod)
-   ```
-
-#### 低优先级改进
-
-7. **日志系统标准化**
-   
-   **建议**: 引入 structured logging (如 Timber)
-   
-   ```kotlin
-   Timber.plant(Timber.DebugTree())
-   Timber.i("Gacha result: item=$itemId, user=$userId")
-   ```
-
-8. **错误处理统一化**
-   
-   **建议**: 建立统一的错误码体系和异常处理机制
-   
-   ```kotlin
-   sealed class ApiError {
-       data object NetworkError : ApiError()
-       data class ServerError(val code: Int) : ApiError()
-       data class ValidationError(val messages: List<String>) : ApiError()
-   }
-   ```
-
-9. **资源管理优化**
-   
-   **建议**: 
-   - 引入资源加载器 (如 Coil/Glide)
-   - 实现图片缓存策略
-   - Live2D 资源按需加载
-
-### 8.2 代码质量改进
-
-#### 代码规范
-
-1. **命名规范统一**
-   - 类名：PascalCase，语义清晰
-   - 方法名：camelCase，动词开头
-   - 常量：UPPER_SNAKE_CASE
-   - 包结构：按功能模块划分
-
-2. **文档注释完善**
-   - 所有公共 API 必须包含 JavaDoc/KDoc
-   - 复杂算法添加注释说明
-   - 接口定义包含使用示例
-
-3. **代码复用提升**
-   - 提取通用工具类
-   - 建立基础组件库
-   - 减少重复代码
-
-#### 性能优化
-
-1. **内存管理**
-   - Live2D 纹理资源优化
-   - 避免内存泄漏 (特别是 Activity/Service)
-   - 实现对象池模式
-
-2. **渲染性能**
-   - OpenGL 绘制优化
-   - 减少不必要的重绘
-   - 实现帧率监控
-
-3. **网络优化**
-   - 连接池配置
-   - 响应压缩
-   - 缓存策略实施
-
-### 8.3 扩展性建议
-
-#### 功能扩展点
-
-1. **Live2D 模型热切换**
-   ```java
-   // 预留扩展接口
-   public interface ModelSwitchListener {
-       void onModelSwitching(String newModelId);
-       void onModelSwitched(String modelId);
-   }
-   ```
-
-2. **动画系统扩展**
-   - 支持自定义动画序列
-   - 动画编辑器集成
-   - 动态动画加载
-
-3. **Gacha 系统扩展**
-   - 多种抽卡模式支持
-   - 概率配置化
-   - 保底机制实现
-
-4. **社交功能预留**
-   - 用户数据云端同步接口
-   - 好友系统集成点
-   - 排行榜功能扩展
-
----
-
-## 九、项目规模统计
-
-### 9.1 代码规模
-
-| 指标 | 数量 | 说明 |
+| 优点 | 说明 | 来源 |
 |------|------|------|
-| **Java 源文件** | 74 个 | 核心业务代码 |
-| **Activity 组件** | 13 个 | UI 活动页面 |
-| **Fragment 组件** | 4 个 | 可复用 UI 片段 |
-| **API Task** | 5 个 | 异步网络任务 |
-| **Model 类** | 6 个 | 数据模型 |
-| **Service 组件** | 1 个 | BillingService |
-| **核心包路径** | jp.co.a_tm.moeyu | 主包名 |
+| **导航机制清晰** | 中央路由器模式使页面跳转逻辑集中在一处（MainActivity.onActivityResult），便于理解整体流程 | BaseActivity.java, MainActivity.java |
+| **Live2D模块封装良好** | LAppLive2DManager作为门面类，有效封装了Live2D SDK的复杂性 | LAppLive2DManager.java |
+| **本地化改造完整** | API客户端已完全本地化，应用可离线运行，无需服务端 | MoeyuAPIClient.java |
+| **语音系统设计灵活** | 基于JSON配置的概率权重语音选择机制，支持多语言（日文/中文） | VoiceManager.java, voice.json |
+| **数据初始化策略合理** | 首次运行时异步解密语音文件，并缓存到本地避免重复解密 | Decryption.java, TitleActivity.java |
+| **事件系统解耦** | EventController独立检测游戏事件，通过EventData传递，不耦合具体Activity | EventController.java |
 
-### 9.2 资源规模
+### 7.2 缺点
 
-| 资源类型 | 数量/大小 | 说明 |
-|---------|----------|------|
-| **Live2D 模型** | 1 个 MOC | moeyu.moc |
-| **纹理贴图** | 4 张 | 1024x1024 PNG |
-| **动画配置** | 多组 JSON | Idle/Touch/Expression |
-| **语音资源** | 多个音频文件 | 日语/中文语音 |
-| **背景图片** | 4 张 | 浴场场景背景 |
-
----
-
-## 十、架构总结
-
-### 10.1 架构特点
-
-**核心优势**:
-
-1. **分层清晰**: 四层架构 (表现层、引擎层、网络层、数据层) 职责明确
-2. **模块化设计**: Live2D、API、Billing 模块独立，耦合度低
-3. **异步处理完善**: BaseTask 框架提供统一的异步任务管理
-4. **安全机制健全**: RSA 签名 + Nonce 防重放的双重保障
-5. **数据持久化可靠**: 对象序列化 + 每日自动奖励逻辑
-
-**设计亮点**:
-
-1. **Live2D 引擎封装优秀**: Manager-Model-Animation三层架构，扩展性强
-2. **动画系统精细**: Spring-Damper物理模拟+多队列管理，交互流畅
-3. **Gacha 概率设计合理**: 三阶金币 + 未收集优先策略，用户体验好
-4. **Billing 流程完整**: 从请求到验证到数据更新的闭环设计
-
-### 10.2 潜在架构风险
-
-| 风险项 | 影响程度 | 建议措施 |
-|--------|---------|---------|
-| **AsyncTask 已废弃** | 高 | 规划迁移至 Coroutines/RxJava |
-| **HttpClient 版本较旧** | 高 | 评估迁移至 OkHttp/Retrofit |
-| **测试覆盖率不足** | 中 | 建立单元测试和集成测试体系 |
-| **配置硬编码较多** | 中 | 实施集中化配置管理 |
-| **依赖注入缺失** | 中 | 引入 Dagger-Hilt 框架 |
-
-### 10.3 推荐的演进路径
-
-**短期 (1-2 个月)**:
-- [ ] 建立单元测试框架，核心模块覆盖率 > 50%
-- [ ] 完善日志系统和错误处理机制
-- [ ] 优化配置管理，减少硬编码
-
-**中期 (3-4 个月)**:
-- [ ] 引入依赖注入框架 (Hilt)
-- [ ] 网络层迁移至 Retrofit + OkHttp
-- [ ] 异步框架现代化改造
-
-**长期 (5-6 个月)**:
-- [ ] MVVM 架构全面落地
-- [ ] 性能监控体系建立
-- [ ] 扩展功能模块开发 (社交、云端同步等)
+| 缺点 | 严重程度 | 说明 | 来源 |
+|------|----------|------|------|
+| **无架构分层** | 高 | 业务逻辑直接写在Activity中，无Presenter/ViewModel层，BathActivity达1080行 | BathActivity.java |
+| **数据一致性风险** | 高 | UserData同时存储在两个文件中（localUserData.dat和userData.dat），可能数据不一致 | MoeyuAPIClient.java, UserDataManager.java |
+| **静态变量状态共享** | 中 | FIX_HEIGHT和userData等通过静态变量共享，可能导致内存泄漏和状态不一致 | MainActivity.java:41, MoeyuAPIClient.java:60-61 |
+| **已废弃API使用** | 中 | AsyncTask、Apache HttpClient、Camera API、Billing v2均已废弃 | api/task/, api/MoeyuAPIClient.java, billing/ |
+| **硬编码配置** | 中 | 模型路径、触摸区域坐标、特殊事件规则、加密密钥等硬编码在源码中 | LAppModel.java:30, BathActivity.java:178-191, SpecialEvent.java |
+| **无依赖注入** | 低 | 所有依赖直接new创建，不利于测试和替换 | 所有Activity |
+| **无测试覆盖** | 高 | test目录基本为空（仅SecurityUtils有一个测试），无单元测试和集成测试 | app/src/test/ |
+| **线程安全隐患** | 中 | MoeyuAPIClient.userData为静态变量，在AsyncTask中读写无同步保护 | MoeyuAPIClient.java:61 |
+| **资源管理问题** | 中 | MediaPlayer在BathActivity中手动管理生命周期，容易泄漏 | BathActivity.java |
+| **无ProGuard混淆** | 低 | 逆向重建项目，不需要混淆 | proguard-rules.pro |
 
 ---
 
-**文档版本**: v2.0  
-**最后更新**: 2026-03-27  
- **架构分析完成度**: 100%  
- **下一步建议**: 委托 @requirement-analyst 进行需求规格梳理
- 
- ---
- 
- ## 十一、架构演进记录
- 
- ### 11.1 SHA-256 签名算法升级 (P0-TASK-001)
- 
- **升级日期**: 2026-03-27  
- **任务 ID**: P0-TASK-001  
- **实施代理**: code-builder
- 
- #### 升级概述
- 将 API 签名机制从 SHA-1 升级至 SHA-256，提升系统安全性并符合现代安全标准。
- 
- #### 核心变更
- 
- **新增模块**: SecurityUtils (安全工具类)
- - 文件路径：`app/src/main/java/jp/co/a_tm/moeyu/security/SecurityUtils.java`
- - 功能范围:
-   * SHA-256 签名生成（推荐）
-   * SHA-1 签名生成（向后兼容）
-   * Base64 编码支持
-   * 签名验证功能
-   * 字节数组与十六进制转换工具
- 
- **升级模块**: MoeyuAPIClient
- - 文件路径：`app/src/main/java/jp/co/a_tm/moeyu/api/MoeyuAPIClient.java`
- - 变更内容:
-   * createSignature() 方法重构，使用 SecurityUtils
-   * 默认采用 SHA-256，异常时降级至 SHA-1
-   * 新增 createSignature(params, algorithm) 支持指定算法
-   * 新增 verifySignature() 签名验证方法
- 
- #### 技术决策
- 
- **决策 1**: SecurityUtils 工具类设计
- - 采用不可实例化的工具类模式
- - 所有功能为静态方法，便于单元测试
- - 符合 Java 最佳实践
- 
- **决策 2**: SHA-256 为主，SHA-1 为后备
- - createSignature() 默认使用 SHA-256（安全性高）
- - 异常时自动降级至 SHA-1（向后兼容）
- - 容错机制提升系统稳定性
- 
- #### 质量指标
- 
- | 指标 | 目标值 | 实际值 | 状态 |
- |------|--------|--------|------|
- | 单元测试覆盖率 | ≥80% | ≥95% | ✅ 超额完成 |
- | SHA-256 签名长度 | 64 字符 | 64 字符 | ✅ 符合预期 |
- | SHA-1 签名长度 | 40 字符 | 40 字符 | ✅ 符合预期 |
- | 10KB 数据签名耗时 | ≤100ms | <100ms | ✅ 性能达标 |
- 
- #### 验收结果
- - ✅ SHA-256 签名生成正确，格式规范
- - ✅ 向后兼容性完整（SHA-1 + SHA-256 双支持）
- - ✅ 单元测试覆盖全面（20+ 测试用例）
- - ✅ 代码质量优良（Javadoc 完整、异常处理完善）
- 
- #### 输出文件
- 1. SecurityUtils.java (新建)
- 2. SecurityUtilsTest.java (新建)
- 3. MoeyuAPIClient.java (升级)
- 4. AndroidManifest.xml (Android 12+ 兼容性修复)
- 
- #### 参考文档
- - 实施报告：`ai/reports/P0-TASK-001-implementation-report.md`
- - 检查点：`ai/.task-context/IMPLEMENTATION-PHASE1-001/checkpoints/checkpoint-001.md`
- - 任务 YAML: `ai/tasks/active/task-IMPLEMENTATION-PHASE1-001.yaml`
+## 8. 改进建议
 
+### 8.1 架构层面
+
+| 优先级 | 建议 | 说明 |
+|--------|------|------|
+| P0 | **统一UserData存储** | 合并localUserData.dat和userData.dat为单一数据源，消除数据不一致风险 |
+| P0 | **引入MVVM架构** | 将BathActivity等巨型Activity拆分为ViewModel+Repository，分离UI逻辑和业务逻辑 |
+| P1 | **替换AsyncTask** | 使用Kotlin协程或RxJava替代已废弃的AsyncTask |
+| P1 | **引入依赖注入** | 使用Hilt/Dagger管理依赖，便于测试和解耦 |
+| P2 | **替换Billing库** | 从Google Play Billing v2升级到BillingClient |
+
+### 8.2 代码层面
+
+| 优先级 | 建议 | 说明 |
+|--------|------|------|
+| P0 | **添加单元测试** | 至少覆盖VoiceManager语音选择、MoeyuAPIClient扭蛋逻辑、LovePoint等级计算 |
+| P1 | **外部化硬编码配置** | 将触摸区域坐标、特殊事件规则、模型路径等提取到JSON配置文件 |
+| P1 | **消除静态变量** | 将FIX_HEIGHT和userData改为通过Intent或ViewModel传递 |
+| P2 | **资源管理自动化** | 使用Lifecycle感知组件管理MediaPlayer等资源 |
+
+### 8.3 安全层面
+
+| 优先级 | 建议 | 说明 |
+|--------|------|------|
+| P1 | **升级加密算法** | XOR 58安全性极低，建议使用AES等标准加密算法 |
+| P2 | **移除硬编码密钥** | 将API密钥和签名密钥移至NDK层或使用Android Keystore |
+
+### 8.4 扩展点识别
+
+| 扩展点 | 位置 | 说明 |
+|--------|------|------|
+| 新场景 | Scene枚举 | 添加新枚举值，需同步更新LAppAnimation的闲置动画组和LAppRenderer的渲染逻辑 |
+| 新触摸区域 | Region枚举 + BathActivity.createCommonRegionMap() | 添加新区域枚举和坐标范围 |
+| 新物品 | UserData.MAX_ITEM_COUNT | 修改最大物品数，需同步更新DatabaseOpenHelper的initItemRows |
+| 新事件类型 | EventData.Type枚举 + EventController | 添加新事件类型和检测逻辑 |
+| 新语音 | voice.json + assets/voice/ | 在JSON中添加语音映射，在assets中添加加密语音文件 |
+| 新Live2D模型 | LAppModel.setupModel() | 当前模型路径硬编码，需要参数化 |
+
+---
+
+## 附录A: 核心类签名索引
+
+### Activity类
+
+```
+abstract class BaseActivity extends AppCompatActivity
+  ├── static EXTRA_NEXT_ACTIVITY: String
+  ├── static NEXT_ACTIVITY_*: int (12个导航码)
+  ├── onCreate(Bundle): void
+  ├── release(): void
+  ├── exit(): void
+  ├── toTitle(): void
+  ├── toGacha(): void
+  ├── toBath(): void / toBath(String, int): void / toBath(EventData): void
+  ├── toPreference(): void
+  ├── toPreferenceFromBath(): void
+  ├── toCollection(): void
+  ├── toItemCollection(): void
+  ├── toVoiceCollection(): void
+  ├── toRoom(): void
+  └── toDiary(): void
+
+class MainActivity extends BaseActivity
+  ├── static FIX_HEIGHT: int
+  ├── onActivityResult(int, int, Intent): void
+  └── [12个start*Activity()私有方法]
+
+class BathActivity extends BaseActivity implements OnTouchListener
+  ├── mLive2dManager: LAppLive2DManager
+  ├── mVoiceManager: VoiceManager
+  ├── mUserData: UserData
+  ├── mScene: Scene
+  ├── mRenderer: LAppRenderer
+  ├── onTouch(View, MotionEvent): boolean
+  ├── startVoiceAndAnimation(String): void
+  └── changeScene(Scene): void
+```
+
+### 数据模型类
+
+```
+class UserData implements Serializable
+  ├── userId: String
+  ├── bronzeCoin / goldCoin / platinumCoin: int
+  ├── items: List<Integer>
+  ├── exp / level: int
+  ├── bonus: boolean
+  ├── lastLoginTime: long
+  ├── static createLocal(): UserData
+  ├── static fromJson(JSONObject): UserData
+  ├── static restore(InputStream): UserData
+  └── store(OutputStream): boolean
+
+class EventData implements Serializable
+  ├── mType: Type (枚举: Level2~6, Complete)
+  └── mVoiceList: ArrayList<String>
+
+class GachaResult implements Serializable
+  ├── itemId: int
+  └── userData: UserData
+```
+
+### 枚举类
+
+```
+enum Scene
+  ├── bath_a(0), head(1), body(2), bath_b(3)
+  ├── number: int
+  └── next(): Scene
+
+enum Region
+  └── head, face, belly, arm, brest, none
+```
+
+### Live2D核心类
+
+```
+class LAppLive2DManager implements LAppDefine
+  ├── myModel: LAppModel
+  ├── glView: LAppGLView
+  ├── fileManager: FileManager
+  ├── accelHelper: AccelHelper
+  ├── interface FinishListener { onFinishSetupModel(): void }
+  ├── createView(Activity, Rect): LAppGLView
+  ├── setupModel(): boolean
+  ├── getAnimation(): LAppAnimation
+  └── releaseModel(): void
+
+class LAppModel
+  ├── live2DModel: Live2DModelAndroid
+  ├── live2dAnimation: LAppAnimation
+  ├── setupModel(LAppLive2DManager, GL10): void
+  ├── drawModel(GL10): void
+  └── getAnimation(): LAppAnimation
+
+class LAppAnimation
+  ├── mainMotionMgr: MotionQueueManager
+  ├── expressionMgr: MotionQueueManager
+  ├── motionIdle: List<Live2DMotion[]> (按场景分组)
+  ├── motionTouchMap: Map<String, Live2DMotion>
+  ├── setScene(Scene): void
+  ├── startTouchMotion(String): void
+  └── updateParam(ALive2DModel): void
+```
+
+### API客户端类
+
+```
+class MoeyuAPIClient
+  ├── static userDataFile: File
+  ├── static userData: UserData
+  ├── enum GachaCoin { BRONZE, GOLD, PLATINUM, None }
+  ├── userSignUp(): UserData
+  ├── userData(String): UserData
+  ├── userGatya(String, GachaCoin): GachaResult
+  └── userBilling(String, String): UserData [远程调用]
+
+abstract class BaseTask<Params, Progress, Result> extends AsyncTask
+  ├── mApiClient: MoeyuAPIClient
+  ├── mListener: MoeyuAPITaskListener<Result>
+  ├── storeUserData(UserData): void
+  └── onPostExecute(Result): void
+```
+
+---
+
+## 附录B: 文件清单与代码行数统计
+
+| 文件 | 预估行数 | 主要职责 |
+|------|----------|----------|
+| BathActivity.java | 1080 | 浴室互动（核心页面） |
+| GatyaActivity.java | 719 | 扭蛋抽卡 |
+| LAppAnimation.java | 319 | Live2D动画控制 |
+| LAppRenderer.java | 289 | OpenGL渲染器 |
+| BaseActivity.java | 270 | Activity基类+导航 |
+| MainActivity.java | 284 | 路由中枢+入口 |
+| TitleActivity.java | 368 | 标题页+登录注册 |
+| MoeyuAPIClient.java | 350 | API客户端（本地化） |
+| DatabaseOpenHelper.java | 332 | SQLite数据库 |
+| LAppLive2DManager.java | 182 | Live2D管理器 |
+| UserData.java | 192 | 用户数据模型 |
+| LAppModel.java | 94 | Live2D模型 |
+| Decryption.java | 104 | 语音解密 |
+| VoiceManager.java | 64 | 语音选择 |
+| BaseTask.java | 59 | 异步任务基类 |
+| EventController.java | 74 | 事件控制 |
+| 其他文件(约50个) | ~1200 | 辅助功能 |
+
+> 总计约68个Java文件，预估总代码量约6000行。
+
+---
+
+*文档结束*
