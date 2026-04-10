@@ -47,7 +47,6 @@ public class PreferenceActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("設定");
     }
 
     /**

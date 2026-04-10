@@ -247,7 +247,6 @@ public class NoteCollectionActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("秘密の日記");
     }
 
     /**

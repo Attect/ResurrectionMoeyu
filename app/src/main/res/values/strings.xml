@@ -3,7 +3,7 @@
     <string name="hello">Hello World, MoeyuActivity!</string>
     <string name="app_name">萌浴 一起洗澡的故事</string>
     <string name="tweet_https">https://twitter.com/intent/tweet?text=</string>
-    <string name="tweet_text_left">いい湯だなう ふたりの仲は・・・「</string>
+    <string name="tweet_text_left">好舒服的温泉啊 我们的关系是……「</string>
     <string name="tweet_text_center">」 道具收集率</string>
     <string name="tweet_text_right">％萌浴 一起洗澡的故事</string>
     <string name="tweet_hash">\#moeyu</string>

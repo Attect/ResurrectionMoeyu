@@ -78,7 +78,6 @@ public class GatyaResultActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("ガチャ結果");
     }
 
     /**

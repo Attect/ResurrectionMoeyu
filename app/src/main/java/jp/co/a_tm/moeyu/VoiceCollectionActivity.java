@@ -122,7 +122,6 @@ public class VoiceCollectionActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("ボイスコレクション");
         this.mPlayer = new MediaPlayer();
     }
 

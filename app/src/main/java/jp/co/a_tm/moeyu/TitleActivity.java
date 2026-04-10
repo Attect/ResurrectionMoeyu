@@ -109,7 +109,6 @@ public class TitleActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("トップページ");
         MoeyuApplication application = (MoeyuApplication) getApplication();
         if (application.isFirstRun()) {
             application.setFirstRun(false);
@@ -199,7 +198,7 @@ public class TitleActivity extends BaseActivity {
         Intent intent = new Intent();
         intent.setAction("android.intent.action.SENDTO");
         intent.setData(Uri.parse("mailto:moe-yu_support@a-tm.co.jp"));
-        intent.putExtra("android.intent.extra.SUBJECT", "お問い合わせ " + this.mUserId);
+        intent.putExtra("android.intent.extra.SUBJECT", "用户咨询 " + this.mUserId);
         startActivity(intent);
     }
 

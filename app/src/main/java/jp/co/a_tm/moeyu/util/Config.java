@@ -26,7 +26,7 @@ public class Config {
             return isDebug.booleanValue();
         }
         if (mContext == null) {
-            throw new IllegalStateException("#init()でApplicationContextをセットしてください。");
+            throw new IllegalStateException("请先调用 #init() 设置 ApplicationContext");
         }
         try {
             Boolean valueOf;
@@ -39,7 +39,7 @@ public class Config {
             isDebug = valueOf;
             return valueOf.booleanValue();
         } catch (NameNotFoundException e) {
-            throw new IllegalStateException("ありえない");
+            throw new IllegalStateException("不应到达此处");
         }
     }
 
@@ -59,7 +59,7 @@ public class Config {
         }
         Boolean valueOf;
         if (mContext == null) {
-            throw new IllegalStateException("#init()でApplicationContextをセットしてください。");
+            throw new IllegalStateException("请先调用 #init() 设置 ApplicationContext");
         } else if (mContext.getPackageManager().getInstallerPackageName(mContext.getPackageName()) == null) {
             valueOf = Boolean.valueOf(false);
             isProd = valueOf;

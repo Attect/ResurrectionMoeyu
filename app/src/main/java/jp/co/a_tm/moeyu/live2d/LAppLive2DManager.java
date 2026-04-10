@@ -34,7 +34,7 @@ public class LAppLive2DManager implements LAppDefine {
         this.mContext = androidContext;
         this.fileManager = new FileManager(androidContext);
         if (!Live2D.L2D_RANGE_CHECK_POINT) {
-            UtDebug.error("RANGE_CHECK_POINTをオンにしない場合 モデルは崩れる場合があります", new Object[0]);
+            UtDebug.error("未开启 RANGE_CHECK_POINT 时模型可能会出现变形", new Object[0]);
         }
     }
 

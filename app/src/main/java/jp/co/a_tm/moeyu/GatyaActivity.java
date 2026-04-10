@@ -473,7 +473,7 @@ public class GatyaActivity extends BaseActivity {
      * 显示金币数量超过限制消息
      */
     public void showLimitCoinCountMessage() {
-        Toast.makeText(this, "これ以上コインを購入できません", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "金币数量已达上限", Toast.LENGTH_SHORT).show();
     }
 
     /**
@@ -490,13 +490,13 @@ public class GatyaActivity extends BaseActivity {
                     public void onSuccess(UserData userData) {
                         GatyaActivity.this.mIndicator.setVisibility(View.INVISIBLE);
                         GatyaActivity.this.drawCoinQuantity(userData);
-                        Toast.makeText(GatyaActivity.this, "コインを取得しました！", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GatyaActivity.this, "金币获取成功！", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(MoeyuAPIException e) {
                         GatyaActivity.this.mIndicator.setVisibility(View.INVISIBLE);
-                        Toast.makeText(GatyaActivity.this, "コインの取得に失敗しました", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(GatyaActivity.this, "金币获取失败", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

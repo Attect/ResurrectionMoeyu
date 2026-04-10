@@ -10,12 +10,12 @@
         <item>188</item>
     </integer-array>
     <string-array name="tweet_level_array">
-        <item>初対面</item>
-        <item>仲良し</item>
-        <item>わくわく</item>
-        <item>友達以上？</item>
-        <item>ドキドキ</item>
-        <item>らぶらぶ</item>
+        <item>初次见面</item>
+        <item>好朋友</item>
+        <item>好期待</item>
+        <item>朋友以上？</item>
+        <item>心跳加速</item>
+        <item>相亲相爱</item>
     </string-array>
     <string-array name="event_levelup_2">
         <item>251</item>

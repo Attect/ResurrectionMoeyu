@@ -202,7 +202,6 @@ public class ItemCollectionActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("アイテムコレクション");
     }
 
     /**

@@ -33,7 +33,6 @@ public class CollectionRoomActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("コレクション");
     }
 
     /**

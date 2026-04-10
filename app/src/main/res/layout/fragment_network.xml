@@ -5,6 +5,6 @@
         <ProgressBar android:layout_width="wrap_content" android:layout_height="wrap_content" />
     </LinearLayout>
     <LinearLayout android:gravity="center" android:id="@id/network_error" android:background="#aa000000" android:visibility="invisible" android:clickable="true" android:layout_width="fill_parent" android:layout_height="fill_parent" android:onClick="onNetworkErrorClick">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="通信エラーが発生しました。\n電波状況の良い場所で再試行してください。" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="网络连接出错。\n请在信号良好的地方重试。" />
     </LinearLayout>
 </FrameLayout>

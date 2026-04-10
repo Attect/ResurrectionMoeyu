@@ -43,7 +43,6 @@ public class MomorisRoomActivity extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //        this.mTracker.trackPageView("ももりの部屋");
     }
 
     /**
