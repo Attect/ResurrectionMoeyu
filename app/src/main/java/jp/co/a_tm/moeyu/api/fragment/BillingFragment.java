@@ -8,23 +8,24 @@ import jp.co.a_tm.moeyu.api.listener.UserDataListener;
 import jp.co.a_tm.moeyu.api.task.BillingTask;
 import jp.co.a_tm.moeyu.model.UserData;
 
+/**
+ * 本地化计费Fragment
+ * 通过产品ID直接赠送对应货币
+ */
 public class BillingFragment extends NetworkBaseFragment {
-    /* access modifiers changed from: private */
     public UserDataListener mListener;
-    private String mSignature;
-    private String mSignedData;
+    private String mProductId;
 
-    public void billing(String signedData, String signature, UserDataListener listener) {
-        this.mSignedData = signedData;
-        this.mSignature = signature;
+    public void billing(String productId, UserDataListener listener) {
+        this.mProductId = productId;
         this.mListener = listener;
         execute();
     }
 
-    /* access modifiers changed from: protected */
+    @Override
     public void execute() {
         this.mIndicator.setVisibility(View.VISIBLE);
-        new BillingTask(getActivity(), this.mSignedData, this.mSignature, new MoeyuAPITaskListener<UserData>() {
+        new BillingTask(getActivity(), this.mProductId, new MoeyuAPITaskListener<UserData>() {
             public void onPreCallback() {
                 BillingFragment.this.mIndicator.setVisibility(View.INVISIBLE);
             }

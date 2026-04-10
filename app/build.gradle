@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 android {
-    useLibrary 'org.apache.http.legacy'
     compileSdkVersion 34
     namespace "jp.co.a_tm.moeyu"
     defaultConfig {

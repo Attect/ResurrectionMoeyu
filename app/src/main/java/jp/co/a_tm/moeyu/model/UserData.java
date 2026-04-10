@@ -22,7 +22,7 @@ public class UserData implements Serializable {
     private int bronzeCoin;
     private int exp;
     private int goldCoin;
-    private List<Integer> items = new ArrayList();
+    private List<Integer> items = new ArrayList<>();
     private int level;
     private int platinumCoin;
     private String state;
@@ -188,5 +188,9 @@ public class UserData implements Serializable {
 
     public long getLastLoginTime() {
         return lastLoginTime;
+    }
+
+    public void setLastLoginTime(long lastLoginTime) {
+        this.lastLoginTime = lastLoginTime;
     }
 }
