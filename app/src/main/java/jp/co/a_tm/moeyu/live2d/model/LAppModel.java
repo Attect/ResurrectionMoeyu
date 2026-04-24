@@ -15,6 +15,8 @@ public class LAppModel {
     Live2DModelAndroid live2DModel;
     LAppAnimation live2dAnimation;
     transient boolean modelInitialized;
+    /** 模型纹理 ID，用于显式释放 */
+    private final int[] modelTextureIds = new int[4];
 
     public LAppModel(LAppLive2DManager mgr) {
         this.accel = null;
@@ -41,10 +43,13 @@ public class LAppModel {
                     in.close();
                 }
                 Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: moc loaded OK, live2DModel=" + (this.live2DModel != null ? "OK" : "FAIL"));
+                // 释放旧模型纹理（如果存在）
+                releaseModelTextures(gl);
                 // [DEBUG] 加载纹理
                 for (int j = 0; j < tex.length; j++) {
                     Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: loading texture[" + j + "]=" + tex[j] + " ...");
                     int texId = UtOpenGL.loadTexture(gl, this.live2DManager.getFileManager().open_resource("model/" + tex[j]), true);
+                    this.modelTextureIds[j] = texId;
                     this.live2DModel.setTexture(j, texId);
                     Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: texture[" + j + "] loaded, texId=" + texId);
                 }
@@ -104,6 +109,22 @@ public class LAppModel {
 
     public void setAccelarationValue(float[] accel) {
         this.accel = accel;
+    }
+
+    /**
+     * 释放模型纹理
+     */
+    public void releaseModelTextures(GL10 gl) {
+        if (gl == null) {
+            return;
+        }
+        for (int texId : this.modelTextureIds) {
+            if (texId != 0) {
+                gl.glDeleteTextures(1, new int[]{texId}, 0);
+            }
+        }
+        java.util.Arrays.fill(this.modelTextureIds, 0);
+        Log.d("LIVE2D_DEBUG", "LAppModel.releaseModelTextures: released");
     }
 
     public LAppAnimation getAnimation() {

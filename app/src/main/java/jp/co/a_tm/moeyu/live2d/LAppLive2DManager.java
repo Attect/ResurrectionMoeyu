@@ -67,8 +67,11 @@ public class LAppLive2DManager implements LAppDefine {
     }
 
     public void releaseView() {
+        if (this.glView != null) {
+            this.glView.onPause();
+        }
+        releaseModel();
         this.glView = null;
-        this.myModel = null;
         if (this.accelHelper != null) {
             this.accelHelper.stop();
             this.accelHelper = null;
@@ -178,6 +181,20 @@ public class LAppLive2DManager implements LAppDefine {
     }
 
     public void releaseModel() {
+        if (this.myModel != null && this.glView != null) {
+            final LAppModel modelToRelease = this.myModel;
+            this.glView.queueEvent(new Runnable() {
+                @Override
+                public void run() {
+                    GL10 gl = LAppLive2DManager.this.glView != null
+                            ? LAppLive2DManager.this.glView.getRenderer().getGL()
+                            : null;
+                    if (gl != null) {
+                        modelToRelease.releaseModelTextures(gl);
+                    }
+                }
+            });
+        }
         this.myModel = null;
     }
 

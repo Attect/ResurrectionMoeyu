@@ -289,6 +289,8 @@ public class LAppRenderer implements Renderer, LAppDefine {
         System.out.printf("onSurfaceCreated() \t\t\t\t\t\t@@LAppRenderer\n", new Object[0]);
         this.gl = gl;
         if (!this.isAr) {
+            // 先释放旧纹理，防止同一 GL 上下文内重复加载导致泄漏
+            releaseBackgroundTextures(gl);
             this.mWaterBacks[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_back00.png", true);
             this.mWaterFronts[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_front00.png", true);
             this.mWallTextures[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_wall00.png", true);
@@ -302,6 +304,26 @@ public class LAppRenderer implements Renderer, LAppDefine {
         } else {
             Log.d("LIVE2D_DEBUG", "onSurfaceCreated: AR mode, skipping texture loading");
         }
+    }
+
+    /**
+     * 释放背景纹理，防止 GPU 内存泄漏
+     */
+    private void releaseBackgroundTextures(GL10 gl) {
+        int[] textures = new int[] {
+                this.mWaterBacks[0], this.mWaterFronts[0],
+                this.mWallTextures[0], this.mWallTextures[1]
+        };
+        for (int texId : textures) {
+            if (texId != 0) {
+                gl.glDeleteTextures(1, new int[]{texId}, 0);
+            }
+        }
+        this.mWaterBacks[0] = 0;
+        this.mWaterFronts[0] = 0;
+        this.mWallTextures[0] = 0;
+        this.mWallTextures[1] = 0;
+        Log.d("LIVE2D_DEBUG", "releaseBackgroundTextures: old textures released");
     }
 
     public boolean setBackgroundImage(String filepath, float sx, float sy, float sw, float sh, float dx, float dy, float dw, float dh) {
