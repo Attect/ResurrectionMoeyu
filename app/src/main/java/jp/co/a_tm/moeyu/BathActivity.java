@@ -519,9 +519,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mFlag = true;
         smoking();
         this.mBgmMp.start();
-        if (this.mGLView != null) {
-            this.mGLView.onResume();
-        }
         this.mLive2dManager.startAnimation();
         if (PreferenceActivity.isEnableCamera(this) && this.mIsFinishedLive2dSetup) {
             startCamera();
@@ -542,9 +539,6 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             this.mVoiceMp.stop();
         }
         this.mLive2dManager.stopAnimation();
-        if (this.mGLView != null) {
-            this.mGLView.onPause();
-        }
         // 停止相机预览
         if (this.mCamera != null) {
             ((FrameLayout) findViewById(R.id.frame)).removeView(this.mCamera);

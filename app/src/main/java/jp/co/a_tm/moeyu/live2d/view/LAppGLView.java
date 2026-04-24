@@ -68,9 +68,11 @@ public class LAppGLView extends GLSurfaceView {
     }
 
     public void startAnimation() {
+        super.onResume();
     }
 
     public void stopAnimation() {
+        super.onPause();
     }
 
     public LAppRenderer getRenderer() {
