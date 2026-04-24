@@ -4,7 +4,10 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -39,46 +42,33 @@ public class TitleActivity extends BaseActivity {
      * 初始化数据任务类
      * 异步初始化应用数据
      */
-    private class InitializeDataTask extends AsyncTask<Void, Void, Void> {
-        /** 构造函数 */
+    private class InitializeDataTask {
+        private final ExecutorService executor = Executors.newSingleThreadExecutor();
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
         private InitializeDataTask() {
         }
 
-        /**
-         * 执行前操作
-         * 显示加载指示器
-         */
-        @Override
-        protected void onPreExecute() {
+        public void execute() {
+            onPreExecute();
+            executor.execute(() -> {
+                try {
+                    TitleActivity.this.initializeData();
+                    new PreferencesHelper(TitleActivity.this.getApplicationContext()).setInitBoot(false);
+                } catch (IOException e) {
+                    Logger.e("TitleActivity", "初始化数据失败", e);
+                } finally {
+                    executor.shutdown();
+                }
+                handler.post(() -> onPostExecute(null));
+            });
+        }
+
+        private void onPreExecute() {
             TitleActivity.this.findViewById(R.id.indicator).setVisibility(View.VISIBLE);
         }
 
-        /**
-         * 后台任务执行
-         * 初始化数据并保存设置
-         *
-         * @param params 参数
-         * @return 任务结果
-         */
-        @Override
-        protected Void doInBackground(Void... params) {
-            try {
-                TitleActivity.this.initializeData();
-                new PreferencesHelper(TitleActivity.this.getApplicationContext()).setInitBoot(false);
-            } catch (IOException e) {
-                Logger.e("TitleActivity", "初始化数据失败", e);
-            }
-            return null;
-        }
-
-        /**
-         * 执行后操作
-         * 隐藏加载指示器并执行登录
-         *
-         * @param result 任务结果
-         */
-        @Override
-        protected void onPostExecute(Void result) {
+        private void onPostExecute(Void result) {
             TitleActivity.this.findViewById(R.id.indicator).setVisibility(View.INVISIBLE);
             TitleActivity.this.login();
         }
