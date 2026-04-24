@@ -23,6 +23,9 @@ public class LAppLive2DManager implements LAppDefine {
     private FinishListener mFinishListener;
     private volatile boolean modelUpdating = false;
     private LAppModel myModel = null;
+    private static final int MAX_MODEL_SETUP_RETRY = 3;
+    private int modelSetupRetryCount = 0;
+    private volatile boolean modelSetupFailed = false;
     private String partsCacheDir = null;
     private int textureSize = 512;
 
@@ -97,7 +100,10 @@ public class LAppLive2DManager implements LAppDefine {
         }
     }
 
-    public LAppModel getModel(GL10 gl) throws Exception {
+    public LAppModel getModel(GL10 gl) {
+        if (this.modelSetupFailed) {
+            return null;
+        }
         if (this.dirtyFlag) {
             setupModel_later(gl);
         }
@@ -146,38 +152,52 @@ public class LAppLive2DManager implements LAppDefine {
         }
     }
 
-    public void setupModel_later(GL10 gl) throws Exception {
+    public void setupModel_later(GL10 gl) {
         UtDebug.start("LAppLive2DManager#setupModel()");
-        // [DEBUG] 模型加载入口
         Log.d("LIVE2D_DEBUG", "setupModel_later: modelUpdating=" + this.modelUpdating
-            + " dirtyFlag=" + this.dirtyFlag + " myModel=" + (this.myModel != null ? "exists" : "NULL"));
+            + " dirtyFlag=" + this.dirtyFlag + " myModel=" + (this.myModel != null ? "exists" : "NULL")
+            + " retry=" + this.modelSetupRetryCount + "/" + MAX_MODEL_SETUP_RETRY);
         if (!this.modelUpdating) {
             this.modelUpdating = true;
-            if (this.dirtyFlag) {
-                this.dirtyFlag = false;
-                if (this.myModel == null) {
-                    this.myModel = new LAppModel(this);
-                    Log.d("LIVE2D_DEBUG", "setupModel_later: created new LAppModel instance");
-                }
-                this.myModel.setupModel(this, gl);
-                this.modelUpdating = false;
-                Log.d("LIVE2D_DEBUG", "setupModel_later: setupModel completed, modelInitialized="
-                    + (this.myModel != null && this.myModel.isModelInitialized()));
-                UtDebug.dump("LAppLive2DManager#setupModel()");
-                if (this.mFinishListener != null) {
-                    Log.d("LIVE2D_DEBUG", "setupModel_later: calling onFinishSetupModel()");
-                    this.mFinishListener.onFinishSetupModel();
+            try {
+                if (this.dirtyFlag) {
+                    this.dirtyFlag = false;
+                    if (this.myModel == null) {
+                        this.myModel = new LAppModel(this);
+                        Log.d("LIVE2D_DEBUG", "setupModel_later: created new LAppModel instance");
+                    }
+                    this.myModel.setupModel(this, gl);
+                    Log.d("LIVE2D_DEBUG", "setupModel_later: setupModel completed, modelInitialized="
+                            + (this.myModel != null && this.myModel.isModelInitialized()));
+                    UtDebug.dump("LAppLive2DManager#setupModel()");
+                    if (this.mFinishListener != null) {
+                        Log.d("LIVE2D_DEBUG", "setupModel_later: calling onFinishSetupModel()");
+                        this.mFinishListener.onFinishSetupModel();
+                    } else {
+                        Log.w("LIVE2D_DEBUG", "setupModel_later: mFinishListener is NULL!");
+                    }
                 } else {
-                    Log.w("LIVE2D_DEBUG", "setupModel_later: mFinishListener is NULL!");
+                    Log.d("LIVE2D_DEBUG", "setupModel_later: dirtyFlag=false, skipping setup");
                 }
-            } else {
-                // [DEBUG] dirtyFlag为false
-                Log.d("LIVE2D_DEBUG", "setupModel_later: dirtyFlag=false, skipping setup");
+            } catch (Exception e) {
+                Log.e("LIVE2D_DEBUG", "setupModel_later: setupModel FAILED, will retry", e);
+                this.dirtyFlag = true;
+                this.modelSetupRetryCount++;
+                if (this.modelSetupRetryCount >= MAX_MODEL_SETUP_RETRY) {
+                    Log.e("LIVE2D_DEBUG", "setupModel_later: MAX RETRIES (" + MAX_MODEL_SETUP_RETRY + ") REACHED, giving up");
+                    this.dirtyFlag = false;
+                    this.modelSetupFailed = true;
+                }
+            } finally {
+                this.modelUpdating = false;
             }
         } else {
-            // [DEBUG] 模型正在更新中
             Log.w("LIVE2D_DEBUG", "setupModel_later: modelUpdating=true, skipping (concurrent update in progress?)");
         }
+    }
+
+    public boolean isModelSetupFailed() {
+        return this.modelSetupFailed;
     }
 
     public void releaseModel() {
