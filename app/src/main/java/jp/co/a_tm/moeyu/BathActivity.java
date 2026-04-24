@@ -397,7 +397,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
                 if (voiceName != null) {
                     try {
                         // 显示事件标题
-                        ImageView eventTitle = (ImageView) findViewById(R.id.event_title);
+                        ImageView eventTitle = findViewById(R.id.event_title);
                         switch (eventData.getType()) {
                             case Level2:
                                 eventTitle.setImageResource(R.drawable.spa_event_lv02);
@@ -485,7 +485,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
         // 显示引导提示
         if (new PreferencesHelper(this).isInitBath()) {
-            ImageView recommend = (ImageView) findViewById(R.id.recommend);
+            ImageView recommend = findViewById(R.id.recommend);
             recommend.setImageResource(R.drawable.recommend_plate01a);
             recommend.setTag("first");
             recommend.setVisibility(View.VISIBLE);
@@ -993,7 +993,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
      * @param event 触摸事件
      */
     private void drawItem(MotionEvent event) {
-        ImageView item = (ImageView) findViewById(R.id.use_item);
+        ImageView item = findViewById(R.id.use_item);
         View view = findViewById(R.id.item_image_view);
         item.setImageResource(this.mSelectedItem);
         LayoutParams layoutParams = new LayoutParams(item.getLayoutParams());

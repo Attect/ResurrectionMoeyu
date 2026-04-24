@@ -162,7 +162,7 @@ public class GatyaResultActivity extends BaseActivity {
      */
     private void setBackImage(boolean opened) {
         String fileName = "result_back_";
-        ImageView newImage = (ImageView) findViewById(R.id.img_gatya_result_body_item_new);
+        ImageView newImage = findViewById(R.id.img_gatya_result_body_item_new);
         if (opened) {
             newImage.setVisibility(View.INVISIBLE);
         } else {
@@ -182,7 +182,7 @@ public class GatyaResultActivity extends BaseActivity {
      * @param num 物品编号
      */
     private void setItemImage(int num) {
-        ImageView picture = (ImageView) findViewById(R.id.img_gatya_result_body_item_picture);
+        ImageView picture = findViewById(R.id.img_gatya_result_body_item_picture);
         ((ImageView) findViewById(R.id.img_gatya_result_body_item_name)).setImageResource(getResources().getIdentifier("itemname_bar_" + num, "drawable", getPackageName()));
         picture.setImageResource(getResources().getIdentifier("item" + num + "_2x", "drawable", getPackageName()));
     }

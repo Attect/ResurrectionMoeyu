@@ -53,7 +53,7 @@ public class MomorisRoomActivity extends BaseActivity {
      * @param fileName 图片文件名
      */
     private void changeImage(int diaryId, int resId, String fileName) {
-        ImageView imageView = (ImageView) findViewById(resId);
+        ImageView imageView = findViewById(resId);
         if (this.controller.isOpened(diaryId)) {
             imageView.setImageResource(getResources().getIdentifier(fileName, "drawable", getPackageName()));
         }

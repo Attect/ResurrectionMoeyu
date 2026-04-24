@@ -29,7 +29,7 @@ public class PreferenceActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preference);
         this.mPreferencesHelper = new PreferencesHelper(getApplicationContext());
-        ToggleButton toggleButton = (ToggleButton) findViewById(R.id.toggle_camera);
+        ToggleButton toggleButton = findViewById(R.id.toggle_camera);
         toggleButton.setChecked(isEnableCamera(this));
         toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
             @Override

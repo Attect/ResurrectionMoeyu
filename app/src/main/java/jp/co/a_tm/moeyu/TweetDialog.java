@@ -23,10 +23,10 @@ public class TweetDialog extends Dialog {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog_tweet);
         setCanceledOnTouchOutside(true);
-        ImageButton toBackButton = (ImageButton) findViewById(R.id.imgbutton_tweet_dialog_top_to_back);
-        ImageButton toTweetButton = (ImageButton) findViewById(R.id.imgbutton_tweet_dialog_top_to_tweet);
-        ImageButton checkBoxButton = (ImageButton) findViewById(R.id.imgbutton_tweet_dialog_center_center_check_box);
-        ImageButton checkMarkButton = (ImageButton) findViewById(R.id.imgbutton_tweet_dialog_center_center_check_mark);
+        ImageButton toBackButton = findViewById(R.id.imgbutton_tweet_dialog_top_to_back);
+        ImageButton toTweetButton = findViewById(R.id.imgbutton_tweet_dialog_top_to_tweet);
+        ImageButton checkBoxButton = findViewById(R.id.imgbutton_tweet_dialog_center_center_check_box);
+        ImageButton checkMarkButton = findViewById(R.id.imgbutton_tweet_dialog_center_center_check_mark);
         if (this.mPreferencesHelper.isTwitterCheck()) {
             checkMarkButton.setVisibility(View.VISIBLE);
         } else {

@@ -89,7 +89,7 @@ public class MainActivity extends BaseActivity {
      * 播放指定的视频文件，播放完成后跳转到标题页
      */
     private void playOpeningMovie() {
-        VideoView videoView = (VideoView) findViewById(R.id.video);
+        VideoView videoView = findViewById(R.id.video);
         // 设置视频路径
         videoView.setVideoURI(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.ateam_moive));
         // 开始播放

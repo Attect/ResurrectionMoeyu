@@ -221,9 +221,9 @@ public class VoiceCollectionActivity extends BaseActivity {
      * @param view 点击的视图
      */
     public void tabClick(View view) {
-        ImageButton normalButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_normal);
-        ImageButton itemButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_item);
-        ImageButton eventButton = (ImageButton) findViewById(R.id.imgbutton_voicecollec_event);
+        ImageButton normalButton = findViewById(R.id.imgbutton_voicecollec_normal);
+        ImageButton itemButton = findViewById(R.id.imgbutton_voicecollec_item);
+        ImageButton eventButton = findViewById(R.id.imgbutton_voicecollec_event);
         int id = view.getId();
         if (id == R.id.imgbutton_voicecollec_normal) { /*2131624131*/
             normalButton.setImageResource(R.drawable.nomalvoice);
