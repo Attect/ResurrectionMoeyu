@@ -269,50 +269,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             Logger.e(TAG, "初始化语音管理器失败(JSON)", e2);
         }
 
-        // 初始化Live2D管理器
-        this.mLive2dManager = new LAppLive2DManager(getApplicationContext());
-        this.mIsFinishedLive2dSetup = false;
-        // [DEBUG] Live2D初始化开始
-        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: Live2D manager created, isCamera="
-            + PreferenceActivity.isEnableCamera(this));
-        this.mLive2dManager.setFinishListener(new FinishListener() {
-            @Override
-            public void onFinishSetupModel() {
-                // [DEBUG] 模型设置完成回调
-                Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetupModel() called on thread="
-                    + Thread.currentThread().getName());
-                BathActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetup running on UI thread");
-                        BathActivity.this.onFinishSetup();
-                    }
-                });
-            }
-        });
-
-        // 创建Live2D视图
-        LAppGLView lAppGLView = this.mLive2dManager.createView(this, new Rect(0, 0, LIVE2D_VIEW_SIZE, LIVE2D_VIEW_SIZE));
-        this.mGLView = lAppGLView;
-        this.mRenderer = lAppGLView.getRenderer();
-        lAppGLView.setOnTouchListener(this);
-        ((FrameLayout) findViewById(R.id.frame)).addView(lAppGLView, 0);
-        // [DEBUG] GLView添加到布局
-        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: GLView added to frame, isAr="
-            + this.mRenderer.isAr + " FIX_HEIGHT=" + MainActivity.FIX_HEIGHT);
-
-        // 设置视图参数和背景色
-        FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) lAppGLView.getLayoutParams();
-        layoutParams.setMargins(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
-        lAppGLView.setBackgroundColor(Color.BLACK);
-
-        // 设置和启动Live2D模型
-        // [DEBUG] 调用setupModel和startAnimation
-        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: calling setupModel()...");
-        this.mLive2dManager.setupModel();
-        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: setupModel() returned, calling startAnimation()...");
-        this.mLive2dManager.startAnimation();
-        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: startAnimation() called, waiting for GL thread...");
+        initLive2D();
 
         // 加载用户数据
         this.mUserData = new UserDataManager(this).loadUserData();
@@ -356,6 +313,50 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         updateVoiceNum();
         updateVoiceNumDenominator();
         this.mChainEvent = new ArrayList<>();
+    }
+
+    /**
+     * 初始化 Live2D 渲染环境
+     * 包括创建管理器、GLView、设置监听器和启动渲染
+     */
+    private void initLive2D() {
+        this.mLive2dManager = new LAppLive2DManager(getApplicationContext());
+        this.mIsFinishedLive2dSetup = false;
+        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: manager created, isCamera="
+                + PreferenceActivity.isEnableCamera(this));
+        this.mLive2dManager.setFinishListener(new FinishListener() {
+            @Override
+            public void onFinishSetupModel() {
+                Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetupModel() on thread="
+                        + Thread.currentThread().getName());
+                BathActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetup on UI thread");
+                        BathActivity.this.onFinishSetup();
+                    }
+                });
+            }
+        });
+
+        LAppGLView glView = this.mLive2dManager.createView(this,
+                new Rect(0, 0, LIVE2D_VIEW_SIZE, LIVE2D_VIEW_SIZE));
+        this.mGLView = glView;
+        this.mRenderer = glView.getRenderer();
+        glView.setOnTouchListener(this);
+        ((FrameLayout) findViewById(R.id.frame)).addView(glView, 0);
+        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: GLView added, isAr="
+                + this.mRenderer.isAr + " FIX_HEIGHT=" + MainActivity.FIX_HEIGHT);
+
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) glView.getLayoutParams();
+        lp.setMargins(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        glView.setBackgroundColor(Color.BLACK);
+
+        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: calling setupModel()...");
+        this.mLive2dManager.setupModel();
+        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: calling startAnimation()...");
+        this.mLive2dManager.startAnimation();
+        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: waiting for GL thread...");
     }
 
     /**
