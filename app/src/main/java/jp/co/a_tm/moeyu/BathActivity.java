@@ -114,6 +114,23 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     public MediaPlayer mVoiceMp;
     /** 语音队列 */
     public LinkedList<String> mVoiceQueue = new LinkedList<>();
+    /** 烟雾动画任务 */
+    private final Runnable mSmokingRunnable = new Runnable() {
+        private int mN = 0;
+        @Override
+        public void run() {
+            if (!BathActivity.this.mFlag) return;
+            if (254 < this.mN) {
+                this.mN = -255;
+            } else {
+                this.mN += 5;
+            }
+            ImageView smoke = (ImageView) BathActivity.this.findViewById(R.id.smoke);
+            smoke.setAlpha(255 - Math.abs(this.mN));
+            smoke.setPadding(0, -this.mN, 0, -this.mN);
+            BathActivity.this.mHandler.postDelayed(this, 100);
+        }
+    };
 
     /**
      * 构造函数，初始化区域和背景音乐配置
@@ -540,6 +557,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             this.mVoiceMp.stop();
         }
         this.mLive2dManager.stopAnimation();
+        this.mHandler.removeCallbacks(this.mSmokingRunnable);
         // 停止相机预览
         if (this.mCamera != null) {
             ((FrameLayout) findViewById(R.id.frame)).removeView(this.mCamera);
@@ -584,38 +602,11 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
     /**
      * 启动烟雾效果
-     * 显示烟雾动画效果
+     * 使用 Handler 循环实现，避免额外线程
      */
     private void smoking() {
-        final ImageView smoke = (ImageView) findViewById(R.id.smoke);
-        final Handler handler = new Handler();
-        new Thread(new Runnable() {
-            public int mN;
-
-            @Override
-            public void run() {
-                while (BathActivity.this.mFlag) {
-                    try {
-                        Thread.sleep(100);
-                        if (254 < this.mN) {
-                            this.mN = -255;
-                        } else {
-                            this.mN += 5;
-                        }
-                        // 更新烟雾位置和透明度
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                smoke.setAlpha(255 - Math.abs(mN));
-                                smoke.setPadding(0, -mN, 0, -mN);
-                            }
-                        });
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
+        this.mHandler.removeCallbacks(this.mSmokingRunnable);
+        this.mHandler.post(this.mSmokingRunnable);
     }
 
     /**
