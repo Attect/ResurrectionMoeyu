@@ -1019,12 +1019,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
     /**
      * 停止时回调方法
-     * 活动停止时关闭活动
      */
     @Override
     protected void onStop() {
         super.onStop();
-        finish();
     }
 
     /**
