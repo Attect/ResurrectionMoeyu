@@ -3,6 +3,7 @@ package jp.co.a_tm.moeyu.live2d;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.util.Log;
 import javax.microedition.khronos.opengles.GL10;
 import jp.co.a_tm.moeyu.live2d.model.LAppModel;
 import jp.co.a_tm.moeyu.live2d.motion.LAppAnimation;
@@ -14,13 +15,13 @@ import jp.live2d.util.UtDebug;
 
 public class LAppLive2DManager implements LAppDefine {
     private AccelHelper accelHelper;
-    boolean dirtyFlag = true;
+    volatile boolean dirtyFlag = true;
     private FileManager fileManager;
     /* access modifiers changed from: private */
     public LAppGLView glView = null;
     private final Context mContext;
     private FinishListener mFinishListener;
-    private boolean modelUpdating = false;
+    private volatile boolean modelUpdating = false;
     private LAppModel myModel = null;
     private String partsCacheDir = null;
     private int textureSize = 512;
@@ -120,10 +121,13 @@ public class LAppLive2DManager implements LAppDefine {
     }
 
     public boolean setupModel() {
+        // [DEBUG] 预初始化入口（UI线程调用）
+        Log.d("LIVE2D_DEBUG", "setupModel (pre-init): called from UI thread");
         try {
             setupModel_exe();
             return true;
         } catch (Exception e) {
+            Log.e("LIVE2D_DEBUG", "setupModel (pre-init): FAILED", e);
             e.printStackTrace();
             return false;
         }
@@ -131,28 +135,45 @@ public class LAppLive2DManager implements LAppDefine {
 
     public void setupModel_exe() throws Exception {
         this.dirtyFlag = true;
+        Log.d("LIVE2D_DEBUG", "setupModel_exe: dirtyFlag=true, myModel=" + (this.myModel != null ? "exists" : "NULL"));
         if (this.myModel == null) {
             this.myModel = new LAppModel(this);
             this.myModel.setupAnimation(this);
+            Log.d("LIVE2D_DEBUG", "setupModel_exe: created model and setup animation");
         }
     }
 
     public void setupModel_later(GL10 gl) throws Exception {
         UtDebug.start("LAppLive2DManager#setupModel()");
+        // [DEBUG] 模型加载入口
+        Log.d("LIVE2D_DEBUG", "setupModel_later: modelUpdating=" + this.modelUpdating
+            + " dirtyFlag=" + this.dirtyFlag + " myModel=" + (this.myModel != null ? "exists" : "NULL"));
         if (!this.modelUpdating) {
             this.modelUpdating = true;
             if (this.dirtyFlag) {
                 this.dirtyFlag = false;
                 if (this.myModel == null) {
                     this.myModel = new LAppModel(this);
+                    Log.d("LIVE2D_DEBUG", "setupModel_later: created new LAppModel instance");
                 }
                 this.myModel.setupModel(this, gl);
                 this.modelUpdating = false;
+                Log.d("LIVE2D_DEBUG", "setupModel_later: setupModel completed, modelInitialized="
+                    + (this.myModel != null && this.myModel.isModelInitialized()));
                 UtDebug.dump("LAppLive2DManager#setupModel()");
                 if (this.mFinishListener != null) {
+                    Log.d("LIVE2D_DEBUG", "setupModel_later: calling onFinishSetupModel()");
                     this.mFinishListener.onFinishSetupModel();
+                } else {
+                    Log.w("LIVE2D_DEBUG", "setupModel_later: mFinishListener is NULL!");
                 }
+            } else {
+                // [DEBUG] dirtyFlag为false
+                Log.d("LIVE2D_DEBUG", "setupModel_later: dirtyFlag=false, skipping setup");
             }
+        } else {
+            // [DEBUG] 模型正在更新中
+            Log.w("LIVE2D_DEBUG", "setupModel_later: modelUpdating=true, skipping (concurrent update in progress?)");
         }
     }
 

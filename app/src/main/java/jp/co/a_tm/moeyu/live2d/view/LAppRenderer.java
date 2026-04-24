@@ -1,8 +1,8 @@
 package jp.co.a_tm.moeyu.live2d.view;
 
 import android.opengl.GLSurfaceView.Renderer;
+import android.util.Log;
 
-import androidx.core.content.IntentCompat;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import jp.co.a_tm.moeyu.Scene;
@@ -155,6 +155,13 @@ public class LAppRenderer implements Renderer, LAppDefine {
         if (this.logicalW > 0.0f && this.logicalH > 0.0f) {
             int i = this.renderCount;
             this.renderCount = i + 1;
+            // [DEBUG] 每帧日志（仅前10帧+每60帧打印一次，避免刷屏）
+            if (i < 10 || i % 60 == 0) {
+                Log.d("LIVE2D_DEBUG", "onDrawFrame: renderCount=" + i
+                    + " logicalW=" + this.logicalW + " logicalH=" + this.logicalH
+                    + " backingW=" + this.backingWidth + " backingH=" + this.backingHeight
+                    + " isAr=" + this.isAr + " scene=" + this.mScene);
+            }
             if (i % 60 == 0) {
                 gl.glViewport(0, 0, this.backingWidth, this.backingHeight);
                 gl.glMatrixMode(5889);
@@ -170,6 +177,10 @@ public class LAppRenderer implements Renderer, LAppDefine {
             }
             gl.glClear(0x00004000);
             renderMain(gl);
+        } else {
+            // [DEBUG] 逻辑尺寸为0时的异常日志
+            Log.w("LIVE2D_DEBUG", "onDrawFrame: SKIP rendering! logicalW=" + this.logicalW
+                + " logicalH=" + this.logicalH + " (surface not ready?)");
         }
     }
 
@@ -185,7 +196,6 @@ public class LAppRenderer implements Renderer, LAppDefine {
         gl.glEnable(3553);
         gl.glEnableClientState(32888);
         gl.glEnableClientState(32884);
-        gl.glPopMatrix();
         updateAccel();
         float ACCEL_PIX = this.logicalW / 6.0f;
         if (!this.isAr) {
@@ -194,6 +204,11 @@ public class LAppRenderer implements Renderer, LAppDefine {
             gl.glTranslatef(-80.0f, 0.0f, 0.0f);
             gl.glScalef(480.0f, 480.0f, 1.0f);
             int i = (this.mScene == Scene.bath_a || this.mScene == Scene.bath_b) ? 0 : 1;
+            // [DEBUG] 背景纹理ID
+            if (this.renderCount <= 3) {
+                Log.d("LIVE2D_DEBUG", "renderMain: drawing wall texture index=" + i
+                    + " wallTex[0]=" + this.mWallTextures[0] + " wallTex[1]=" + this.mWallTextures[1]);
+            }
             UtOpenGL.drawImage(gl, this.mWallTextures[i], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
             gl.glPopMatrix();
             if (Scene.bath_a == this.mScene || Scene.bath_b == this.mScene) {
@@ -215,15 +230,29 @@ public class LAppRenderer implements Renderer, LAppDefine {
             gl.glTranslatef(-80.0f, -20.0f, 0.0f);
             gl.glScalef(0.13f, 0.12f, 1.0f);
             LAppModel kmodel = this.live2DMgr.getModel(gl);
+            boolean modelNull = (kmodel == null);
+            boolean modelUpdating = this.live2DMgr.isModelUpdating();
+            boolean modelInitialized = kmodel != null && kmodel.isModelInitialized();
+            // [DEBUG] 模型绘制条件（仅前10帧+每60帧打印一次）
+            if (this.renderCount <= 10 || this.renderCount % 60 == 0) {
+                Log.d("LIVE2D_DEBUG", "renderMain: model=" + (kmodel != null ? kmodel.getClass().getSimpleName() : "NULL")
+                    + " isNull=" + modelNull + " isUpdating=" + modelUpdating
+                    + " isInitialized=" + modelInitialized
+                    + " willDraw=" + (!modelNull && !modelUpdating && modelInitialized));
+            }
             if (!(kmodel == null || this.live2DMgr.isModelUpdating() || !kmodel.isModelInitialized())) {
                 kmodel.setAccelarationValue(this.accel);
                 try {
                     kmodel.drawModel(gl);
                 } catch (Exception e) {
+                    // [DEBUG] 模型绘制异常
+                    Log.e("LIVE2D_DEBUG", "renderMain: drawModel EXCEPTION", e);
                     e.printStackTrace();
                 }
             }
         } catch (Exception e2) {
+            // [DEBUG] 模型获取异常
+            Log.e("LIVE2D_DEBUG", "renderMain: getModel EXCEPTION", e2);
             e2.printStackTrace();
         }
         gl.glPopMatrix();
@@ -247,18 +276,31 @@ public class LAppRenderer implements Renderer, LAppDefine {
         this.backingHeight = height;
         this.logicalW = 320.0f;
         this.logicalH = 480.0f;
+        // [DEBUG] 确认surface尺寸变化
+        Log.d("LIVE2D_DEBUG", "onSurfaceChanged: width=" + width + " height=" + height
+            + " logicalW=" + this.logicalW + " logicalH=" + this.logicalH);
         System.out.printf("onSurfaceChanged( %d , %d ) \t\t@@LAppRenderer\n", new Object[]{Integer.valueOf(this.backingWidth), Integer.valueOf(this.backingHeight)});
         this.renderCount = 0;
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig arg1) {
-        System.out.printf("onSurfaceCreated() \t\t\t\t\t@@LAppRenderer\n", new Object[0]);
+        // [DEBUG] 确认OpenGL表面创建
+        Log.d("LIVE2D_DEBUG", "onSurfaceCreated: isAr=" + this.isAr + " gl=" + gl);
+        System.out.printf("onSurfaceCreated() \t\t\t\t\t\t@@LAppRenderer\n", new Object[0]);
         this.gl = gl;
         if (!this.isAr) {
             this.mWaterBacks[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_back00.png", true);
             this.mWaterFronts[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_front00.png", true);
             this.mWallTextures[0] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_wall00.png", true);
             this.mWallTextures[1] = UtOpenGL.loadTexture(gl, this.view.getContext(), "water_wall01.png", true);
+            // [DEBUG] 纹理加载结果
+            Log.d("LIVE2D_DEBUG", "onSurfaceCreated: textures loaded -"
+                + " waterBack[0]=" + this.mWaterBacks[0]
+                + " waterFront[0]=" + this.mWaterFronts[0]
+                + " wallTex[0]=" + this.mWallTextures[0]
+                + " wallTex[1]=" + this.mWallTextures[1]);
+        } else {
+            Log.d("LIVE2D_DEBUG", "onSurfaceCreated: AR mode, skipping texture loading");
         }
     }
 

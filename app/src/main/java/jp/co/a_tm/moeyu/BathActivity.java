@@ -96,6 +96,8 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     private View mMenu;
     /** 区域映射 */
     private Map<Scene, LinkedHashMap<Region, PointF[]>> mRegions = new HashMap<>();
+    /** Live2D GL视图 */
+    private LAppGLView mGLView;
     /** 渲染器 */
     public LAppRenderer mRenderer;
     /** 当前场景 */
@@ -270,12 +272,19 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         // 初始化Live2D管理器
         this.mLive2dManager = new LAppLive2DManager(getApplicationContext());
         this.mIsFinishedLive2dSetup = false;
+        // [DEBUG] Live2D初始化开始
+        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: Live2D manager created, isCamera="
+            + PreferenceActivity.isEnableCamera(this));
         this.mLive2dManager.setFinishListener(new FinishListener() {
             @Override
             public void onFinishSetupModel() {
+                // [DEBUG] 模型设置完成回调
+                Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetupModel() called on thread="
+                    + Thread.currentThread().getName());
                 BathActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        Log.d("LIVE2D_DEBUG", "BathActivity: onFinishSetup running on UI thread");
                         BathActivity.this.onFinishSetup();
                     }
                 });
@@ -284,9 +293,13 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
         // 创建Live2D视图
         LAppGLView lAppGLView = this.mLive2dManager.createView(this, new Rect(0, 0, LIVE2D_VIEW_SIZE, LIVE2D_VIEW_SIZE));
+        this.mGLView = lAppGLView;
         this.mRenderer = lAppGLView.getRenderer();
         lAppGLView.setOnTouchListener(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(lAppGLView, 0);
+        // [DEBUG] GLView添加到布局
+        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: GLView added to frame, isAr="
+            + this.mRenderer.isAr + " FIX_HEIGHT=" + MainActivity.FIX_HEIGHT);
 
         // 设置视图参数和背景色
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) lAppGLView.getLayoutParams();
@@ -294,8 +307,12 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         lAppGLView.setBackgroundColor(Color.BLACK);
 
         // 设置和启动Live2D模型
+        // [DEBUG] 调用setupModel和startAnimation
+        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: calling setupModel()...");
         this.mLive2dManager.setupModel();
+        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: setupModel() returned, calling startAnimation()...");
         this.mLive2dManager.startAnimation();
+        Log.d("LIVE2D_DEBUG", "BathActivity.onCreate: startAnimation() called, waiting for GL thread...");
 
         // 加载用户数据
         this.mUserData = new UserDataManager(this).loadUserData();
@@ -502,6 +519,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mFlag = true;
         smoking();
         this.mBgmMp.start();
+        if (this.mGLView != null) {
+            this.mGLView.onResume();
+        }
+        this.mLive2dManager.startAnimation();
         if (PreferenceActivity.isEnableCamera(this) && this.mIsFinishedLive2dSetup) {
             startCamera();
         }
@@ -519,6 +540,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         // 停止语音播放
         if (this.mVoiceMp.isPlaying()) {
             this.mVoiceMp.stop();
+        }
+        this.mLive2dManager.stopAnimation();
+        if (this.mGLView != null) {
+            this.mGLView.onPause();
         }
         // 停止相机预览
         if (this.mCamera != null) {

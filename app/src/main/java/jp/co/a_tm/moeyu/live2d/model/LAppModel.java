@@ -2,6 +2,7 @@ package jp.co.a_tm.moeyu.live2d.model;
 
 import java.io.InputStream;
 import javax.microedition.khronos.opengles.GL10;
+import android.util.Log;
 import jp.co.a_tm.moeyu.live2d.LAppLive2DManager;
 import jp.co.a_tm.moeyu.live2d.motion.LAppAnimation;
 import jp.live2d.ALive2DModel;
@@ -25,20 +26,41 @@ public class LAppModel {
     }
 
     public void setupModel(LAppLive2DManager mgr, GL10 gl) throws Exception {
+        // [DEBUG] 模型加载开始
+        Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: mgr=" + (mgr != null ? "OK" : "NULL")
+            + " live2DModel=" + (this.live2DModel != null ? "already loaded" : "NULL"));
         if (mgr != null) {
             if (this.live2DModel == null) {
                 String[] tex = new String[]{"moeyu.1024/texture_00.png", "moeyu.1024/texture_01.png", "moeyu.1024/texture_02.png", "moeyu.1024/texture_03.png"};
+                // [DEBUG] 加载moc文件
+                Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: loading moeyu.moc ...");
                 InputStream in = this.live2DManager.getFileManager().open_resource("model/" + "moeyu" + ".moc");
-                this.live2DModel = Live2DModelAndroid.loadModel(in);
-                in.close();
-                for (int j = 0; j < tex.length; j++) {
-                    this.live2DModel.setTexture(j, UtOpenGL.loadTexture(gl, this.live2DManager.getFileManager().open_resource("model/" + tex[j]), true));
+                try {
+                    this.live2DModel = Live2DModelAndroid.loadModel(in);
+                } finally {
+                    in.close();
                 }
+                Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: moc loaded OK, live2DModel=" + (this.live2DModel != null ? "OK" : "FAIL"));
+                // [DEBUG] 加载纹理
+                for (int j = 0; j < tex.length; j++) {
+                    Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: loading texture[" + j + "]=" + tex[j] + " ...");
+                    int texId = UtOpenGL.loadTexture(gl, this.live2DManager.getFileManager().open_resource("model/" + tex[j]), true);
+                    this.live2DModel.setTexture(j, texId);
+                    Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: texture[" + j + "] loaded, texId=" + texId);
+                }
+            } else {
+                Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: live2DModel already exists, reusing");
             }
             if (this.live2dAnimation != null) {
                 this.live2dAnimation.initParam(this.live2DModel);
+                Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: animation params initialized");
+            } else {
+                Log.w("LIVE2D_DEBUG", "LAppModel.setupModel: live2dAnimation is NULL!");
             }
             this.modelInitialized = true;
+            Log.d("LIVE2D_DEBUG", "LAppModel.setupModel: COMPLETE, modelInitialized=true");
+        } else {
+            Log.e("LIVE2D_DEBUG", "LAppModel.setupModel: mgr is NULL, cannot setup!");
         }
     }
 

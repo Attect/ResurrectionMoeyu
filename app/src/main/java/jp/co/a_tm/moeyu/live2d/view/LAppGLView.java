@@ -168,19 +168,19 @@ public class LAppGLView extends GLSurfaceView {
                 }
             }
             if (minDist2 <= 9800 || touchNum <= 2) {
-                lDPointF = new LDPointF(event.getX(index1), event.getY(index1));
-                lDPointF = new LDPointF(event.getX(index2), event.getY(index2));
-                float dist = (float) Math.sqrt((double) (((lDPointF.a - lDPointF.a) * (lDPointF.a - lDPointF.a)) + ((lDPointF.b - lDPointF.b) * (lDPointF.b - lDPointF.b))));
-                float cx = (lDPointF.a + lDPointF.a) * 0.5f;
-                float cy = (lDPointF.b + lDPointF.b) * 0.5f;
+                LDPointF p1 = new LDPointF(event.getX(index1), event.getY(index1));
+                LDPointF p2 = new LDPointF(event.getX(index2), event.getY(index2));
+                float dist = (float) Math.sqrt((double) (((p1.a - p2.a) * (p1.a - p2.a)) + ((p1.b - p2.b) * (p1.b - p2.b))));
+                float cx = (p1.a + p2.a) * 0.5f;
+                float cy = (p1.b + p2.b) * 0.5f;
                 if (this.lastD > 0.0f) {
                 }
                 this.lastx = cx;
                 this.lasty = cy;
-                this.last_p1x = lDPointF.a;
-                this.last_p1y = lDPointF.b;
-                this.last_p2x = lDPointF.a;
-                this.last_p2y = lDPointF.b;
+                this.last_p1x = p1.a;
+                this.last_p1y = p1.b;
+                this.last_p2x = p2.a;
+                this.last_p2y = p2.b;
                 this.lastD = dist;
             } else {
                 return;
