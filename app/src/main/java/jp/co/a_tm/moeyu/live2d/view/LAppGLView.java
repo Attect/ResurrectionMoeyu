@@ -1,6 +1,7 @@
 package jp.co.a_tm.moeyu.live2d.view;
 
 import android.app.Activity;
+import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -57,9 +58,10 @@ public class LAppGLView extends GLSurfaceView {
     public LAppGLView(LAppLive2DManager sampleLive2D, Activity activity) {
         super(activity);
         boolean isAr = PreferenceActivity.isEnableCamera(activity);
-        setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        getHolder().setFormat(-3);
-        setZOrderOnTop(isAr);
+        // 不使用 setZOrderOnTop，让 GLView 作为普通 View 参与层级合成，
+        // 这样 FrameLayout 中后添加的 UI 才能覆盖在 Live2D 之上。
+        // Android 14 透明 Surface 有合成问题，改用不透明 EGL (无 Alpha 通道)。
+        setEGLConfigChooser(8, 8, 8, 0, 16, 0);
         setFocusable(true);
         this.live2DMgr = sampleLive2D;
         this.renderer = new LAppRenderer(sampleLive2D, this, isAr);

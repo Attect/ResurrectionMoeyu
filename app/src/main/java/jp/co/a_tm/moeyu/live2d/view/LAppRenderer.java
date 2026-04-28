@@ -3,6 +3,10 @@ package jp.co.a_tm.moeyu.live2d.view;
 import android.opengl.GLSurfaceView.Renderer;
 import android.util.Log;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 import jp.co.a_tm.moeyu.Scene;
@@ -155,7 +159,6 @@ public class LAppRenderer implements Renderer, LAppDefine {
         if (this.logicalW > 0.0f && this.logicalH > 0.0f) {
             int i = this.renderCount;
             this.renderCount = i + 1;
-            // [DEBUG] 每帧日志（仅前10帧+每60帧打印一次，避免刷屏）
             if (i < 10 || i % 60 == 0) {
                 Log.d("LIVE2D_DEBUG", "onDrawFrame: renderCount=" + i
                     + " logicalW=" + this.logicalW + " logicalH=" + this.logicalH
@@ -163,22 +166,24 @@ public class LAppRenderer implements Renderer, LAppDefine {
                     + " isAr=" + this.isAr + " scene=" + this.mScene);
             }
             if (i % 60 == 0) {
+                // 全屏视口，填满整个屏幕
                 gl.glViewport(0, 0, this.backingWidth, this.backingHeight);
-                gl.glMatrixMode(5889);
+                gl.glMatrixMode(GL10.GL_PROJECTION);
+                gl.glLoadIdentity();
+                gl.glOrthof(0.0f, this.logicalW, this.logicalH, 0.0f, 0.5f, -0.5f);
+                gl.glMatrixMode(GL10.GL_MODELVIEW);
                 gl.glLoadIdentity();
                 this.visibleRect.a = (int) 190.0f;
                 this.visibleRect.b = 0;
                 this.visibleRect.c = (int) this.logicalW;
                 this.visibleRect.d = (int) this.logicalH;
-                gl.glOrthof(0.0f, this.logicalW, this.logicalH, 0.0f, 0.5f, -0.5f);
-                gl.glMatrixMode(5888);
-                gl.glLoadIdentity();
-                gl.glClear(16640);
+                gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
             }
+            // 不透明清屏（EGL 已去掉 Alpha 通道，Alpha 值被忽略）
+            gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             gl.glClear(0x00004000);
             renderMain(gl);
         } else {
-            // [DEBUG] 逻辑尺寸为0时的异常日志
             Log.w("LIVE2D_DEBUG", "onDrawFrame: SKIP rendering! logicalW=" + this.logicalW
                 + " logicalH=" + this.logicalH + " (surface not ready?)");
         }
@@ -194,8 +199,13 @@ public class LAppRenderer implements Renderer, LAppDefine {
         gl.glMatrixMode(5888);
         gl.glLoadIdentity();
         gl.glEnable(3553);
-        gl.glEnableClientState(32888);
-        gl.glEnableClientState(32884);
+        // 显式设置纹理环境模式为 GL_MODULATE，防止被其他代码改为 GL_BLEND 等导致黑屏
+        gl.glTexEnvf(8960, 8704, 8448.0f);
+        // 禁用可能冲突的客户端状态数组，避免之前状态残留导致绘制失败
+        gl.glDisableClientState(32885); // GL_NORMAL_ARRAY
+        gl.glDisableClientState(32886); // GL_COLOR_ARRAY
+        gl.glEnableClientState(32888);  // GL_TEXTURE_COORD_ARRAY
+        gl.glEnableClientState(32884);  // GL_VERTEX_ARRAY
         updateAccel();
         float ACCEL_PIX = this.logicalW / 6.0f;
         if (!this.isAr) {
@@ -204,12 +214,11 @@ public class LAppRenderer implements Renderer, LAppDefine {
             gl.glTranslatef(-80.0f, 0.0f, 0.0f);
             gl.glScalef(480.0f, 480.0f, 1.0f);
             int i = (this.mScene == Scene.bath_a || this.mScene == Scene.bath_b) ? 0 : 1;
-            // [DEBUG] 背景纹理ID
             if (this.renderCount <= 3) {
                 Log.d("LIVE2D_DEBUG", "renderMain: drawing wall texture index=" + i
                     + " wallTex[0]=" + this.mWallTextures[0] + " wallTex[1]=" + this.mWallTextures[1]);
             }
-            UtOpenGL.drawImage(gl, this.mWallTextures[i], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
+            drawImageDirect(gl, this.mWallTextures[i], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
             gl.glPopMatrix();
             if (Scene.bath_a == this.mScene || Scene.bath_b == this.mScene) {
                 gl.glPushMatrix();
@@ -218,8 +227,7 @@ public class LAppRenderer implements Renderer, LAppDefine {
                 gl.glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
                 gl.glTranslatef(-80.0f, 0.0f, 0.0f);
                 gl.glScalef(480.0f, 480.0f, 1.0f);
-                UtOpenGL.drawImage(gl, this.mWaterBacks[0], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
-                gl.glDisable(3042);
+                drawImageDirect(gl, this.mWaterBacks[0], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
                 gl.glPopMatrix();
             }
         }
@@ -264,8 +272,7 @@ public class LAppRenderer implements Renderer, LAppDefine {
                 gl.glColor4f(0.5f, 0.5f, 0.5f, 0.5f);
                 gl.glTranslatef(-80.0f, 0.0f, 0.0f);
                 gl.glScalef(480.0f, 480.0f, 1.0f);
-                UtOpenGL.drawImage(gl, this.mWaterFronts[0], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
-                gl.glDisable(3042);
+                drawImageDirect(gl, this.mWaterFronts[0], this.backDstR.a, this.backDstR.b, this.backDstR.c, this.backDstR.d, this.backSrcR.a, this.backSrcR.b, this.backSrcR.c, this.backSrcR.d);
                 gl.glPopMatrix();
             }
         }
@@ -276,7 +283,17 @@ public class LAppRenderer implements Renderer, LAppDefine {
         this.backingHeight = height;
         this.logicalW = 320.0f;
         this.logicalH = 480.0f;
-        // [DEBUG] 确认surface尺寸变化
+        // 全屏视口，填满整个屏幕，UI 叠加在上方
+        gl.glViewport(0, 0, width, height);
+        gl.glMatrixMode(GL10.GL_PROJECTION);
+        gl.glLoadIdentity();
+        gl.glOrthof(0.0f, this.logicalW, this.logicalH, 0.0f, 0.5f, -0.5f);
+        gl.glMatrixMode(GL10.GL_MODELVIEW);
+        gl.glLoadIdentity();
+        this.visibleRect.a = (int) 190.0f;
+        this.visibleRect.b = 0;
+        this.visibleRect.c = (int) this.logicalW;
+        this.visibleRect.d = (int) this.logicalH;
         Log.d("LIVE2D_DEBUG", "onSurfaceChanged: width=" + width + " height=" + height
             + " logicalW=" + this.logicalW + " logicalH=" + this.logicalH);
         System.out.printf("onSurfaceChanged( %d , %d ) \t\t@@LAppRenderer\n", new Object[]{Integer.valueOf(this.backingWidth), Integer.valueOf(this.backingHeight)});
@@ -304,6 +321,10 @@ public class LAppRenderer implements Renderer, LAppDefine {
         } else {
             Log.d("LIVE2D_DEBUG", "onSurfaceCreated: AR mode, skipping texture loading");
         }
+        // EGL 上下文重建后，通知管理器释放已失效的模型纹理并标记重载
+        if (this.live2DMgr != null) {
+            this.live2DMgr.onGLContextCreated(gl);
+        }
     }
 
     /**
@@ -324,6 +345,41 @@ public class LAppRenderer implements Renderer, LAppDefine {
         this.mWallTextures[0] = 0;
         this.mWallTextures[1] = 0;
         Log.d("LIVE2D_DEBUG", "releaseBackgroundTextures: old textures released");
+    }
+
+    /**
+     * 使用 direct buffer 绘制带纹理的四边形。
+     * Android 14 (API 34) 起，glVertexPointer/glTexCoordPointer 等方法
+     * 强制要求使用 ByteBuffer.allocateDirect() 创建的 native order direct buffer，
+     * 否则绘制会被静默忽略（黑屏）。Live2D SDK 的 UtOpenGL.drawImage 使用旧式
+     * heap buffer，在 Android 14 上失效，因此需要自行实现。
+     */
+    private void drawImageDirect(GL10 gl, int texture, float x1, float y1, float x2, float y2, float u1, float v1, float u2, float v2) {
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, texture);
+        // 显式设置纹理过滤和环绕参数，防止 loadTexture 未设置或设置错误导致黑屏
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_LINEAR);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+        gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+        gl.glTexParameterx(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+
+        float[] vertices = {x1, y1, x2, y1, x1, y2, x2, y2};
+        float[] texCoords = {u1, v1, u2, v1, u1, v2, u2, v2};
+
+        ByteBuffer vbb = ByteBuffer.allocateDirect(vertices.length * 4);
+        vbb.order(ByteOrder.nativeOrder());
+        FloatBuffer vertexBuffer = vbb.asFloatBuffer();
+        vertexBuffer.put(vertices);
+        vertexBuffer.position(0);
+
+        ByteBuffer tbb = ByteBuffer.allocateDirect(texCoords.length * 4);
+        tbb.order(ByteOrder.nativeOrder());
+        FloatBuffer texCoordBuffer = tbb.asFloatBuffer();
+        texCoordBuffer.put(texCoords);
+        texCoordBuffer.position(0);
+
+        gl.glVertexPointer(2, GL10.GL_FLOAT, 0, vertexBuffer);
+        gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, texCoordBuffer);
+        gl.glDrawArrays(GL10.GL_TRIANGLE_STRIP, 0, 4);
     }
 
     public boolean setBackgroundImage(String filepath, float sx, float sy, float sw, float sh, float dx, float dy, float dw, float dh) {

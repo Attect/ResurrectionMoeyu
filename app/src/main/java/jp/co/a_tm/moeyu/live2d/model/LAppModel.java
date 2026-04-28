@@ -127,6 +127,16 @@ public class LAppModel {
         Log.d("LIVE2D_DEBUG", "LAppModel.releaseModelTextures: released");
     }
 
+    /**
+     * EGL 上下文重建后调用：丢弃 GPU 侧模型数据，强制下次 setupModel 时重新加载
+     */
+    public void invalidateGpuResources() {
+        this.live2DModel = null;
+        this.modelInitialized = false;
+        java.util.Arrays.fill(this.modelTextureIds, 0);
+        Log.d("LIVE2D_DEBUG", "LAppModel.invalidateGpuResources: live2DModel cleared");
+    }
+
     public LAppAnimation getAnimation() {
         return this.live2dAnimation;
     }

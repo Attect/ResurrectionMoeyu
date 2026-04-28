@@ -226,6 +226,25 @@ public class LAppLive2DManager implements LAppDefine {
         return this.partsCacheDir;
     }
 
+    /**
+     * EGL 上下文重建时调用（onSurfaceCreated 中触发）
+     * 释放已失效的模型纹理并标记需要重新加载
+     */
+    public void onGLContextCreated(GL10 gl) {
+        Log.d("LIVE2D_DEBUG", "onGLContextCreated: myModel=" + (this.myModel != null ? "exists" : "NULL")
+                + " dirtyFlag=" + this.dirtyFlag + " modelInitialized="
+                + (this.myModel != null && this.myModel.isModelInitialized()));
+        if (this.myModel != null) {
+            // EGL 上下文已重建，旧纹理 ID 全部失效，必须重新加载
+            this.myModel.releaseModelTextures(gl);
+            this.myModel.invalidateGpuResources();
+            this.dirtyFlag = true;
+            this.modelSetupRetryCount = 0;
+            this.modelSetupFailed = false;
+            Log.d("LIVE2D_DEBUG", "onGLContextCreated: released textures, dirtyFlag=true, ready for reload");
+        }
+    }
+
     public boolean setBackgroundImage(String filepath) {
         return setBackgroundImage(filepath, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f);
     }

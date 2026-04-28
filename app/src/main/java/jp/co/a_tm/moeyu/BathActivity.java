@@ -365,9 +365,11 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: GLView added, isAr="
                 + this.mRenderer.isAr + " FIX_HEIGHT=" + MainActivity.FIX_HEIGHT);
 
-        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) glView.getLayoutParams();
-        lp.setMargins(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
-        glView.setBackgroundColor(Color.BLACK);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT);
+        glView.setLayoutParams(lp);
+        glView.setBackgroundColor(Color.TRANSPARENT);
 
         Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: calling setupModel()...");
         this.mLive2dManager.setupModel();
