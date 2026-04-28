@@ -12,6 +12,8 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import jp.co.a_tm.moeyu.util.Logger;
+
 /**
  * 解密类
  * 负责解密应用中的音频文件
@@ -88,6 +90,35 @@ public class Decryption {
             array[i] = (byte) (array[i] ^ XOR_KEY);
         }
         return array;
+    }
+
+    /**
+     * 按需解密单个语音文件
+     * 如果文件已存在则跳过，否则从 assets 解密并写入内部存储
+     *
+     * @param voiceName 语音文件名（不含扩展名）
+     * @param useCN 是否使用中文语音
+     * @return 解密后的 .ogg 文件名
+     * @throws IOException IO异常
+     */
+    public String decryptOnDemand(String voiceName, boolean useCN) throws IOException {
+        String oggName = voiceName + (useCN ? "_cn.ogg" : ".ogg");
+        if (Arrays.asList(this.mContext.fileList()).contains(oggName)) {
+            return oggName;
+        }
+        String assetPath = (useCN ? VOICE_CN : VOICE) + File.separator + voiceName + ".okk";
+        try {
+            byte[] decrypted = decrypt(voiceName, this.mContext.getResources().getAssets().open(assetPath));
+            write(oggName, decrypted);
+            Logger.d("Decryption", "按需解密完成: " + oggName);
+        } catch (IOException e) {
+            if (useCN) {
+                Logger.w("Decryption", "中文语音不存在，回退到日文: " + voiceName);
+                return decryptOnDemand(voiceName, false);
+            }
+            throw e;
+        }
+        return oggName;
     }
 
     /**

@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.database.sqlite.SQLiteStatement;
 import java.util.ArrayList;
 import java.util.List;
 import jp.co.a_tm.moeyu.util.Logger;
@@ -18,12 +19,9 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     private final String TERM = "term";
     private final String TITLE = "title";
     private final String[] ITEM_COLUMNS;
-
-
     private final String[] NOTE_COLUMNS;
     private final String[] TABLE_NAME;
     private final String[] VOICE_COLUMNS;
-
 
     {
         ITEM_COLUMNS = new String[]{"name", "opened"};
@@ -53,6 +51,17 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Logger.d("DatabaseOpenHelper onUpgrade: " + oldVersion + " -> " + newVersion);
+        if (oldVersion < newVersion) {
+            try {
+                db.execSQL("DROP TABLE IF EXISTS " + this.TABLE_NAME[0]);
+                db.execSQL("DROP TABLE IF EXISTS " + this.TABLE_NAME[1]);
+                db.execSQL("DROP TABLE IF EXISTS " + this.TABLE_NAME[2]);
+                onCreate(db);
+            } catch (Exception e) {
+                Logger.e("DatabaseOpenHelper", "数据库升级失败", e);
+            }
+        }
     }
 
     private void createItemTable(SQLiteDatabase db) {
@@ -85,104 +94,124 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     public void update(String tableName, String fileName) {
         ContentValues values = new ContentValues();
         values.put("opened", "true");
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getWritableDatabase();
-            db.update(tableName, values, "name = '" + fileName + "'", null);
-            db.close();
+            db = getWritableDatabase();
+            db.update(tableName, values, "name = ?", new String[]{fileName});
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "更新数据失败", e);
+        } finally {
+            if (db != null) db.close();
         }
     }
 
     public void update(String tableName, int id) {
         ContentValues values = new ContentValues();
         values.put("opened", "true");
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getWritableDatabase();
-            db.update(tableName, values, "_id = '" + id + "'", null);
-            db.close();
+            db = getWritableDatabase();
+            db.update(tableName, values, "_id = ?", new String[]{String.valueOf(id)});
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "更新数据失败", e);
+        } finally {
+            if (db != null) db.close();
         }
     }
 
-    public void update(String tableName, int[] id) {
+    public void update(String tableName, int[] ids) {
         ContentValues values = new ContentValues();
         values.put("opened", "true");
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getWritableDatabase();
-            for (int i : id) {
-                db.update(tableName, values, "_id = '" + i + "'", null);
+            db = getWritableDatabase();
+            for (int i : ids) {
+                db.update(tableName, values, "_id = ?", new String[]{String.valueOf(i)});
             }
-            db.close();
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "更新数据失败", e);
+        } finally {
+            if (db != null) db.close();
         }
     }
 
     public void update(String tableName, List<Integer> ids) {
         ContentValues values = new ContentValues();
         values.put("opened", "true");
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = getWritableDatabase();
-            for (Integer integer : ids) {
-                db.update(tableName, values, "_id = '" + integer.intValue() + "'", null);
+            db = getWritableDatabase();
+            for (Integer id : ids) {
+                db.update(tableName, values, "_id = ?", new String[]{String.valueOf(id)});
             }
-            db.close();
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "更新数据失败", e);
+        } finally {
+            if (db != null) db.close();
         }
     }
 
     public boolean isOpened(String tableName, String fileName) {
         String[] columns = new String[]{"name", "opened"};
-        String[] where_args = new String[]{fileName};
+        String[] whereArgs = new String[]{fileName};
         boolean opened = false;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = ?", where_args, null, null, null);
-            cursor.moveToFirst();
-            opened = Boolean.valueOf(cursor.getString(1)).booleanValue();
-            cursor.close();
-            db.close();
-            return opened;
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", whereArgs, null, null, null);
+            if (cursor.moveToFirst()) {
+                opened = Boolean.valueOf(cursor.getString(1)).booleanValue();
+            }
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "查询是否打开失败", e);
-            return opened;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return opened;
     }
 
     public boolean isOpened(String tableName, int id) {
         String[] columns = new String[]{"_id", "opened"};
         boolean opened = false;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = " + id, null, null, null, null);
-            cursor.moveToFirst();
-            opened = Boolean.valueOf(cursor.getString(1)).booleanValue();
-            cursor.close();
-            db.close();
-            return opened;
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                opened = Boolean.valueOf(cursor.getString(1)).booleanValue();
+            }
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "查询是否打开失败", e);
-            return opened;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return opened;
     }
 
     public boolean[] isOpened(String tableName, int startId, int endId) {
         String[] columns = new String[]{"_id", "opened"};
-        String where = columns[0] + " >= '" + startId + "' and " + columns[0] + " <= '" + endId + "'";
         boolean[] opened = new boolean[((endId - startId) + 1)];
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, where, null, null, null, null);
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " >= ? and " + columns[0] + " <= ?",
+                    new String[]{String.valueOf(startId), String.valueOf(endId)}, null, null, null);
             while (cursor.moveToNext()) {
-                opened[cursor.getPosition()] = Boolean.valueOf(cursor.getString(1)).booleanValue();
+                int id = cursor.getInt(0);
+                if (id >= startId && id <= endId) {
+                    opened[id - startId] = Boolean.valueOf(cursor.getString(1)).booleanValue();
+                }
             }
-            cursor.close();
-            db.close();
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "批量查询是否打开失败", e);
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
         return opened;
     }
@@ -190,142 +219,177 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     public String getName(String tableName, int id) {
         String[] columns = new String[]{"_id", "name"};
         String name = "";
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = " + id, null, null, null, null);
-            cursor.moveToFirst();
-            name = String.valueOf(cursor.getString(1));
-            cursor.close();
-            db.close();
-            return name;
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                name = cursor.getString(1);
+            }
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "查询名称失败", e);
-            return name;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return name;
     }
 
     public String getTitle(String tableName, int id) {
         String[] columns = new String[]{"_id", "title"};
         String title = "";
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = " + id, null, null, null, null);
-            cursor.moveToFirst();
-            title = String.valueOf(cursor.getString(1));
-            cursor.close();
-            db.close();
-            return title;
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                title = cursor.getString(1);
+            }
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "查询标题失败", e);
-            return title;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return title;
     }
 
     public int getTerm(String tableName, int id) {
         String[] columns = new String[]{"_id", "term"};
-        int name = 0;
+        int term = 0;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = " + id, null, null, null, null);
-            cursor.moveToFirst();
-            name = Integer.valueOf(cursor.getString(1)).intValue();
-            cursor.close();
-            db.close();
-            return name;
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                term = Integer.valueOf(cursor.getString(1));
+            }
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "查询条件失败", e);
-            return name;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return term;
     }
 
     public int countOpened(String tableName) {
         String[] columns = new String[]{"opened"};
-        String[] where_args = new String[]{"true"};
+        String[] whereArgs = new String[]{"true"};
         int count = -1;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, columns[0] + " = ?", where_args, null, null, null);
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " = ?", whereArgs, null, null, null);
             count = cursor.getCount();
-            cursor.close();
-            db.close();
-            return count;
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "统计已打开数失败", e);
-            return count;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return count;
     }
 
     public int countOpened(String tableName, int startId, int endId) {
         String[] columns = new String[]{"_id", "opened"};
-        String where = columns[0] + " >= '" + startId + "' and " + columns[0] + " <= '" + endId + "' and " + columns[1] + " = 'true'";
         int count = -1;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, where, null, null, null, null);
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, columns[0] + " >= ? and " + columns[0] + " <= ? and " + columns[1] + " = ?",
+                    new String[]{String.valueOf(startId), String.valueOf(endId), "true"}, null, null, null);
             count = cursor.getCount();
-            cursor.close();
-            db.close();
-            return count;
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "统计已打开数失败", e);
-            return count;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return count;
     }
 
     public int countRows(String tableName) {
         String[] columns = new String[]{"_id"};
         int count = 0;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
-            SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.query(tableName, columns, null, null, null, null, null);
+            db = getReadableDatabase();
+            cursor = db.query(tableName, columns, null, null, null, null, null);
             count = cursor.getCount();
-            cursor.close();
-            db.close();
-            return count;
         } catch (Exception e) {
             Logger.e("DatabaseOpenHelper", "统计行数失败", e);
-            return count;
+        } finally {
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
         }
+        return count;
     }
 
     private void initItemRows(SQLiteDatabase db) {
-        int i = 0;
-        while (i < ITEM_MAX_ROWS) {
+        String sql = "insert into " + this.TABLE_NAME[0] + "(" + this.ITEM_COLUMNS[0] + "," + this.ITEM_COLUMNS[1] + ") values (?, ?);";
+        SQLiteStatement stmt = db.compileStatement(sql);
+        for (int i = 0; i < ITEM_MAX_ROWS; i++) {
             try {
-                db.execSQL("insert into " + this.TABLE_NAME[0] + "(" + this.ITEM_COLUMNS[0] + "," + this.ITEM_COLUMNS[1] + ") values ('" + String.format("%02d", new Object[]{Integer.valueOf(i + 1)}) + "','false');");
-                i++;
+                stmt.bindString(1, String.format("%02d", i + 1));
+                stmt.bindString(2, "false");
+                stmt.executeInsert();
             } catch (Exception e) {
                 Logger.e("DatabaseOpenHelper", "初始化物品行失败", e);
                 return;
+            } finally {
+                stmt.clearBindings();
             }
         }
+        stmt.close();
     }
 
     private void initVoiceRows(SQLiteDatabase db) {
         ArrayList<VoiceTitle> list = new CSV().loadVoice(this.mContext);
-        int i = 0;
-        while (i < list.size()) {
+        String sql = "insert into " + this.TABLE_NAME[1] + "(" + this.VOICE_COLUMNS[0] + "," + this.VOICE_COLUMNS[1] + "," + this.VOICE_COLUMNS[2] + ") values (?, ?, ?);";
+        SQLiteStatement stmt = db.compileStatement(sql);
+        for (int i = 0; i < list.size(); i++) {
             try {
-                db.execSQL("insert into " + this.TABLE_NAME[1] + "(" + this.VOICE_COLUMNS[0] + "," + this.VOICE_COLUMNS[1] + "," + this.VOICE_COLUMNS[2] + ") values ('" + ((VoiceTitle) list.get(i)).getFileName() + "','false','" + ((VoiceTitle) list.get(i)).getTitle() + "');");
-                i++;
+                VoiceTitle vt = list.get(i);
+                stmt.bindString(1, vt.getFileName());
+                stmt.bindString(2, "false");
+                stmt.bindString(3, vt.getTitle());
+                stmt.executeInsert();
             } catch (Exception e) {
                 Logger.e("DatabaseOpenHelper", "初始化语音行失败", e);
+                stmt.close();
                 return;
+            } finally {
+                stmt.clearBindings();
             }
         }
+        stmt.close();
     }
 
     private void initNoteRows(SQLiteDatabase db) {
         ArrayList<String> list = new CSV().loadNote(this.mContext);
-        int i = 0;
-        while (i < list.size()) {
+        String sql = "insert into " + this.TABLE_NAME[2] + "(" + this.NOTE_COLUMNS[0] + "," + this.NOTE_COLUMNS[1] + "," + this.NOTE_COLUMNS[2] + ") values (?, ?, ?);";
+        SQLiteStatement stmt = db.compileStatement(sql);
+        for (int i = 0; i < list.size(); i++) {
             try {
-                db.execSQL("insert into " + this.TABLE_NAME[2] + "(" + this.NOTE_COLUMNS[0] + "," + this.NOTE_COLUMNS[1] + "," + this.NOTE_COLUMNS[2] + ") values ('" + String.format("%02d", new Object[]{Integer.valueOf(i + 1)}) + "','false','" + ((String) list.get(i)) + "');");
-                i++;
+                stmt.bindString(1, String.format("%02d", i + 1));
+                stmt.bindString(2, "false");
+                stmt.bindString(3, list.get(i));
+                stmt.executeInsert();
             } catch (Exception e) {
                 Logger.e("DatabaseOpenHelper", "初始化笔记行失败", e);
+                stmt.close();
                 return;
+            } finally {
+                stmt.clearBindings();
             }
         }
+        stmt.close();
     }
 }

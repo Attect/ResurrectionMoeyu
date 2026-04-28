@@ -16,10 +16,12 @@ import java.util.Random;
 public class VoiceManager {
     private Context mContext;
     private JSONObject mVoiceJson;
+    private Decryption mDecryption;
     public boolean useCN = true;
 
     public VoiceManager(Context context) throws IOException, JSONException {
         this.mContext = context;
+        this.mDecryption = new Decryption(context);
         InputStream inputStream = this.mContext.getAssets().open("voice.json");
         StringBuilder stringBuilder = new StringBuilder();
         byte[] buffer = new byte[1024];
@@ -38,13 +40,15 @@ public class VoiceManager {
     public FileDescriptor getVoiceFileDescripter(String voiceName) throws FileNotFoundException, IOException {
         if (useCN) {
             try {
-                return this.mContext.openFileInput(voiceName + "_cn.ogg").getFD();
+                String cnFile = this.mDecryption.decryptOnDemand(voiceName, true);
+                return this.mContext.openFileInput(cnFile).getFD();
             } catch (IOException e) {
                 Logger.e("VoiceManager", "未找到中文语音: " + voiceName + "_cn.ogg");
             }
         }
 
-        return this.mContext.openFileInput(voiceName + ".ogg").getFD();
+        String file = this.mDecryption.decryptOnDemand(voiceName, false);
+        return this.mContext.openFileInput(file).getFD();
     }
 
     public String getVoiceName(Scene scene, Region region, int item, int level) throws JSONException {

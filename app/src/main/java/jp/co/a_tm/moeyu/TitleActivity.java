@@ -55,7 +55,7 @@ public class TitleActivity extends BaseActivity {
                 try {
                     TitleActivity.this.initializeData();
                     new PreferencesHelper(TitleActivity.this.getApplicationContext()).setInitBoot(false);
-                } catch (IOException e) {
+                } catch (Exception e) {
                     Logger.e("TitleActivity", "初始化数据失败", e);
                 } finally {
                     executor.shutdown();
@@ -121,12 +121,12 @@ public class TitleActivity extends BaseActivity {
 
     /**
      * 初始化数据
-     * 解密并初始化应用数据
-     *
-     * @throws IOException IO异常
+     * 旧版会批量解密所有语音文件，现已改为按需解密。
+     * 保留此方法以兼容首次启动流程。
      */
-    private void initializeData() throws IOException {
-        new Decryption(getApplicationContext()).execute();
+    private void initializeData() {
+        // 语音文件改为按需解密（VoiceManager#getVoiceFileDescripter 中即时解密）
+        // 不再首次启动时批量解密全部 352 个文件，大幅缩短首次启动时间
     }
 
     /**

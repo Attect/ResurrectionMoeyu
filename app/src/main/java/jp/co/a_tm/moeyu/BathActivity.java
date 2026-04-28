@@ -1,7 +1,9 @@
 package jp.co.a_tm.moeyu;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.graphics.Rect;
@@ -27,6 +29,10 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
+import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.json.JSONException;
 
@@ -67,6 +73,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     private static final String VOICE_NO_MARK_1 = "012";
     /** 无标记语音2（特殊语音，不计入收藏） */
     private static final String VOICE_NO_MARK_2 = "013";
+    private static final int REQUEST_CAMERA_PERMISSION = 101;
 
     /** 背景音乐播放器 */
     public MediaPlayer mBgmMp;
@@ -560,6 +567,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         }
         this.mLive2dManager.stopAnimation();
         this.mHandler.removeCallbacks(this.mSmokingRunnable);
+        this.mHandler.removeCallbacksAndMessages(null);
         // 停止相机预览
         if (this.mCamera != null) {
             ((FrameLayout) findViewById(R.id.frame)).removeView(this.mCamera);
@@ -575,6 +583,7 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        this.mHandler.removeCallbacksAndMessages(null);
         this.mBgmMp.release();
         this.mVoiceMp.release();
         Logger.d(getClass().getSimpleName() + " onDestroy()");
@@ -594,9 +603,15 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
 
     /**
      * 启动相机预览
-     * 显示相机预览画面
+     * 显示相机预览画面（先检查运行时权限）
      */
     private void startCamera() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+            return;
+        }
         this.mRenderer.isAr = true;
         this.mCamera = new CameraPreview(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(this.mCamera, 0);
@@ -702,6 +717,18 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
             }
         });
         view.setAnimation(animation);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera();
+            } else {
+                Toast.makeText(this, "需要相机权限才能使用AR模式", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     /**
@@ -1058,10 +1085,12 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
     private void popupNewVoice() {
         final View view = findViewById(R.id.voice_new);
         view.setVisibility(View.VISIBLE);
-        new Handler().postDelayed(new Runnable() {
+        this.mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                view.setVisibility(View.INVISIBLE);
+                if (!isFinishing()) {
+                    view.setVisibility(View.INVISIBLE);
+                }
             }
         }, 2000);
     }

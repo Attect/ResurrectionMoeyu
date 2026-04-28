@@ -1,3 +1,4 @@
+
 package jp.co.a_tm.moeyu.api.fragment;
 
 import android.view.View;

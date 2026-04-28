@@ -1,12 +1,15 @@
 package jp.co.a_tm.moeyu.model;
 
 import android.util.Log;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import org.json.JSONArray;
@@ -42,50 +45,96 @@ public class UserData implements Serializable {
         return user;
     }
 
-    public static UserData fromJson(JSONObject json) throws JSONException {
-        UserData user = new UserData();
-        user.setUserId(String.valueOf(json.get("user_id")));
-        user.setBronzeCoin(json.getInt("bronze_coin"));
-        user.setGoldCoin(json.getInt("gold_coin"));
-        user.setPlatinumCoin(json.getInt("platinum_coin"));
-        JSONArray jsonArray = json.getJSONArray("items");
-        for (int i = 0; i < jsonArray.length(); i++) {
-            user.addItem(jsonArray.getInt(i));
-        }
-        user.setExp(json.getInt("exp"));
-        user.setLevel(json.getInt("level"));
-        if (json.has("state")) {
-            user.setState(json.getString("state"));
-        }
-        if (json.has("bonus")) {
-            user.setBonus(json.getBoolean("bonus"));
-        }
-        return user;
-    }
-
+    /**
+     * 从输入流恢复用户数据
+     * 优先尝试 JSON 格式（新版），失败则回退到 Java Serialization（旧版兼容）
+     */
     public static UserData restore(InputStream is) {
-        UserData userData = null;
         try {
-            ObjectInputStream ois = new ObjectInputStream(is);
-            userData = (UserData) ois.readObject();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, len);
+            }
+            String jsonStr = baos.toString(StandardCharsets.UTF_8.name());
+            // 如果内容以 { 开头，尝试 JSON 解析
+            if (jsonStr.trim().startsWith("{")) {
+                return fromJson(new JSONObject(jsonStr));
+            }
+            // 回退到旧版 Java Serialization
+            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+            UserData userData = (UserData) ois.readObject();
             ois.close();
             return userData;
         } catch (Exception e) {
-            Log.e(TAG, "Can't restore UserData object");
-            return userData;
+            Log.e(TAG, "Can't restore UserData object", e);
+            return null;
         }
     }
 
+    /**
+     * 将用户数据存储为 JSON 格式到输出流
+     */
     public boolean store(OutputStream os) {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(os);
-            oos.writeObject(this);
-            oos.close();
+            String jsonStr = toJson().toString();
+            os.write(jsonStr.getBytes(StandardCharsets.UTF_8));
+            os.close();
             return true;
-        } catch (IOException e) {
-            Log.e(TAG, "Can't store UserData object");
+        } catch (Exception e) {
+            Log.e(TAG, "Can't store UserData object", e);
             return false;
         }
+    }
+
+    /**
+     * 序列化为 JSON 对象
+     */
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("user_id", this.userId);
+            json.put("bronze_coin", this.bronzeCoin);
+            json.put("gold_coin", this.goldCoin);
+            json.put("platinum_coin", this.platinumCoin);
+            json.put("exp", this.exp);
+            json.put("level", this.level);
+            json.put("state", this.state);
+            json.put("bonus", this.bonus);
+            json.put("last_login_time", this.lastLoginTime);
+            JSONArray itemsArray = new JSONArray();
+            for (Integer item : this.items) {
+                itemsArray.put(item);
+            }
+            json.put("items", itemsArray);
+        } catch (JSONException e) {
+            Log.e(TAG, "toJson failed", e);
+        }
+        return json;
+    }
+
+    /**
+     * 从 JSON 对象反序列化
+     */
+    public static UserData fromJson(JSONObject json) throws JSONException {
+        UserData user = new UserData();
+        user.setUserId(json.optString("user_id", "local"));
+        user.setBronzeCoin(json.optInt("bronze_coin", 0));
+        user.setGoldCoin(json.optInt("gold_coin", 0));
+        user.setPlatinumCoin(json.optInt("platinum_coin", 0));
+        user.setExp(json.optInt("exp", 0));
+        user.setLevel(json.optInt("level", 1));
+        user.setState(json.optString("state", null));
+        user.setBonus(json.optBoolean("bonus", false));
+        user.setLastLoginTime(json.optLong("last_login_time", System.currentTimeMillis()));
+        JSONArray itemsArray = json.optJSONArray("items");
+        if (itemsArray != null) {
+            for (int i = 0; i < itemsArray.length(); i++) {
+                user.addItem(itemsArray.getInt(i));
+            }
+        }
+        return user;
     }
 
     public void addItem(int itemId) {
