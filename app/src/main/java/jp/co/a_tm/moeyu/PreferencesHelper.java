@@ -100,4 +100,14 @@ public class PreferencesHelper {
         editor.putString("AppVersion", version);
         editor.apply();
     }
+
+    public boolean isUseCN() {
+        return this.mPreferences.getBoolean("UseCN", true);
+    }
+
+    public void setUseCN(boolean bool) {
+        Editor editor = this.mPreferences.edit();
+        editor.putBoolean("UseCN", bool);
+        editor.apply();
+    }
 }

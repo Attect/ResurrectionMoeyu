@@ -151,6 +151,7 @@
     <item type="id" name="imgbutton_diarydialog_contents_close" />
     <item type="id" name="pref_header" />
     <item type="id" name="toggle_camera" />
+    <item type="id" name="toggle_voice" />
     <item type="id" name="room_header" />
     <item type="id" name="content" />
     <item type="id" name="room_right_2" />

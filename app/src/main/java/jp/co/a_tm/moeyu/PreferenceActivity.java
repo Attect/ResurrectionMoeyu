@@ -26,6 +26,7 @@ public class PreferenceActivity extends BaseActivity {
 
     private static final int REQUEST_CAMERA_PERMISSION = 100;
     private ToggleButton mToggleCamera;
+    private ToggleButton mToggleVoice;
 
     /**
      * 创建时回调方法
@@ -54,6 +55,17 @@ public class PreferenceActivity extends BaseActivity {
                 } else {
                     PreferenceActivity.this.mPreferencesHelper.setCameraSetting(false);
                 }
+            }
+        });
+
+        mToggleVoice = findViewById(R.id.toggle_voice);
+        mToggleVoice.setChecked(this.mPreferencesHelper.isUseCN());
+        mToggleVoice.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                PreferenceActivity.this.mPreferencesHelper.setUseCN(isChecked);
+                Toast.makeText(PreferenceActivity.this,
+                        isChecked ? "已切换为中文配音" : "已切换为原版配音", Toast.LENGTH_SHORT).show();
             }
         });
     }

@@ -22,6 +22,7 @@ public class VoiceManager {
     public VoiceManager(Context context) throws IOException, JSONException {
         this.mContext = context;
         this.mDecryption = new Decryption(context);
+        this.useCN = new PreferencesHelper(context).isUseCN();
         InputStream inputStream = this.mContext.getAssets().open("voice.json");
         StringBuilder stringBuilder = new StringBuilder();
         byte[] buffer = new byte[1024];
