@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 
 /**
@@ -27,6 +28,8 @@ public class MomorisRoomActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         Logger.d("MomorisRoomAcitivity");
         setContentView(R.layout.activity_room);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         this.controller = new NoteTableController(this);
 
         // 根据笔记是否解锁来更改房间装饰图片

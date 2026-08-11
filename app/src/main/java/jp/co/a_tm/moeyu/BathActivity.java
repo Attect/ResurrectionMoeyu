@@ -55,6 +55,7 @@ import jp.co.a_tm.moeyu.live2d.view.LAppGLView;
 import jp.co.a_tm.moeyu.live2d.view.LAppRenderer;
 import jp.co.a_tm.moeyu.model.EventData;
 import jp.co.a_tm.moeyu.model.UserData;
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
@@ -280,6 +281,12 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bath);
 
+        // 非16:9屏幕适配：将场景相关层限制为9:16并居中，黑边由frame背景填充
+        // 烟雾层、顶部状态栏、道具使用层与GL视图保持同一内容盒，坐标系才能对齐
+        AspectRatioUtils.fitWithinParent(findViewById(R.id.smoke));
+        AspectRatioUtils.fitWithinParent(findViewById(R.id.bath_status_bar));
+        AspectRatioUtils.fitWithinParent(findViewById(R.id.bath_item_overlay));
+
         // 初始化背景音乐播放器
         this.mBgmMp = MediaPlayer.create(getApplicationContext(), R.raw.se353);
         this.mBgmMp.setOnCompletionListener(getBgmListener());
@@ -369,13 +376,10 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mRenderer = glView.getRenderer();
         glView.setOnTouchListener(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(glView, 0);
-        Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: GLView added, isAr="
-                + this.mRenderer.isAr + " FIX_HEIGHT=" + MainActivity.FIX_HEIGHT);
 
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT);
-        glView.setLayoutParams(lp);
+        // 非16:9屏幕适配：GL视图限制为9:16并居中，OpenGL按视图尺寸渲染，
+        // 逻辑坐标320x480不再被拉伸到整个物理屏幕，触摸映射也随视图尺寸自动正确
+        AspectRatioUtils.fitWithinParent(glView);
         glView.setBackgroundColor(Color.TRANSPARENT);
 
         Log.d("LIVE2D_DEBUG", "BathActivity.initLive2D: calling setupModel()...");
@@ -615,6 +619,8 @@ public class BathActivity extends BaseActivity implements OnTouchListener {
         this.mRenderer.isAr = true;
         this.mCamera = new CameraPreview(this);
         ((FrameLayout) findViewById(R.id.frame)).addView(this.mCamera, 0);
+        // AR模式下相机预览与GL视图保持同一9:16内容盒，避免模型与背景错位
+        AspectRatioUtils.fitWithinParent(this.mCamera);
     }
 
     /**

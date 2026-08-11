@@ -1,15 +1,11 @@
 package jp.co.a_tm.moeyu;
 
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Rect;
-import android.hardware.display.DisplayManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
 import android.widget.VideoView;
 
 import java.io.Serializable;
@@ -34,12 +30,6 @@ public class MainActivity extends BaseActivity {
     private boolean isFirstRun = true;
 
     /**
-     * 修正非16:9屏幕比例的值
-     * 用于适配不同设备屏幕比例
-     */
-    public static int FIX_HEIGHT = 0;
-
-    /**
      * 创建时的回调方法
      * 初始化屏幕尺寸计算和设置内容视图
      *
@@ -48,8 +38,6 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 获取屏幕尺寸并计算修正值
-        calculateScreenFixValue();
         // 设置布局
         setContentView(R.layout.activity_main);
         // 设置日志配置
@@ -70,18 +58,6 @@ public class MainActivity extends BaseActivity {
             // 设置首次运行标记
             ((MoeyuApplication) getApplication()).setFirstRun(true);
         }
-    }
-
-    /**
-     * 计算屏幕修正值
-     * 根据屏幕尺寸计算适配值，用于处理非16:9屏幕比例
-     */
-    private void calculateScreenFixValue() {
-        DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-        Display display = displayManager.getDisplays()[0];
-        Rect displaySize = new Rect();
-        display.getRectSize(displaySize);
-        FIX_HEIGHT = displaySize.height() - (displaySize.width() / 9 * 16);
     }
 
     /**

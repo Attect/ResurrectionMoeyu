@@ -272,11 +272,14 @@ C 源码提供 `CMakeLists.txt`，可用 CMake 重新编译。
 - 字符串资源中同时存在日文与中文内容；应用内文本以中文为主。
 
 ### 屏幕适配
-- `MainActivity.FIX_HEIGHT` 为全局静态变量，计算公式：`屏幕高度 - (屏幕宽度 / 9 * 16)`，用于非 16:9 屏幕的 UI 修正。
-- 多 Activity 直接读取该静态值设置 Padding，**属于全局状态共享**。
+- 应用按 9:16 竖屏设计，统一使用 `jp.co.a_tm.moeyu.util.AspectRatioUtils` 做非 16:9 屏幕适配：
+  - `AspectRatioUtils.applyToContent(Activity)`：将 Activity 内容根视图限制为 9:16 并居中，其余区域黑边填充。各 UI Activity 在 `setContentView()` 后调用。
+  - `AspectRatioUtils.fitWithinParent(View)`：将指定视图在父容器（FrameLayout）内限制为 9:16 居中，父容器尺寸变化时自动重算。`BathActivity` 用它约束 GL 视图、烟雾层、状态栏层、道具层与 AR 相机预览，保证它们共用同一内容盒、触摸坐标系对齐。
+- 在标准 16:9 屏幕上计算结果与全屏一致，无视觉变化；过宽屏幕（平板/折叠屏）自动转为左右黑边。
+- 旧的 `MainActivity.FIX_HEIGHT` 静态变量方案已移除（存在负值崩溃风险、整数除法误差、尺寸只算一次等问题）。
 
 ### 状态共享方式
-- 大量依赖**静态变量**在 Activity 间传递状态（如 `FIX_HEIGHT`、`MoeyuAPIClient.userData`）。
+- 部分依赖**静态变量**在 Activity 间传递状态（如 `MoeyuAPIClient.userData`）。
 - 页面间数据也通过 `Intent` Extra 传递（`Serializable` 对象如 `UserData`、`EventData`、`GachaResult`）。
 
 ---
@@ -315,7 +318,7 @@ C 源码提供 `CMakeLists.txt`，可用 CMake 重新编译。
 
 1. **无架构分层**：`BathActivity` 约 1080 行，直接混合 UI、交互逻辑、语音管理、动画协调。
 2. **已废弃 API 使用**：`AsyncTask`（API 异步任务）、旧 `Camera` API、Google Play Billing v2。
-3. **静态变量共享状态**：`FIX_HEIGHT`、`userData` 等静态字段易导致内存泄漏与状态不一致。
+3. **静态变量共享状态**：`userData` 等静态字段易导致内存泄漏与状态不一致。
 4. **ProGuard 规则过于宽泛**：`-keep class androidx.** { *; }` 会显著增大 Release APK 体积。
 5. **无签名配置**：Release 构建不可直接用于发布。
 6. **Billing 功能已废弃**：`BillingService`、`PurchaseObserver` 等内嵌的 v2 支付代码无法在 Google Play 正常工作。

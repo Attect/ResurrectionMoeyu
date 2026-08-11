@@ -4,6 +4,8 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
+
 /**
  * 收藏房间活动类
  * 负责显示收藏房间界面，提供导航到其他收藏页面的功能
@@ -19,8 +21,8 @@ public class CollectionRoomActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_collectionroom);
-        // 设置界面边距和背景色
-        findViewById(R.id.layout_collecroom).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         findViewById(R.id.layout_collecroom).setBackgroundColor(Color.BLACK);
     }
 

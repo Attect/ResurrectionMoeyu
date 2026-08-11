@@ -18,6 +18,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 
 /**
@@ -176,8 +177,8 @@ public class ItemCollectionActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_itemcollection);
 
-        // 设置界面边距和背景色
-        findViewById(R.id.layout_itemcollec).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         findViewById(R.id.layout_itemcollec).setBackgroundColor(Color.BLACK);
 
         // 初始化物品控制器并创建物品列表

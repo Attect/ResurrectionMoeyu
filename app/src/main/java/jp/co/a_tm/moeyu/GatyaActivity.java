@@ -29,6 +29,7 @@ import jp.co.a_tm.moeyu.api.listener.GachaResultListener;
 import jp.co.a_tm.moeyu.api.listener.UserDataListener;
 import jp.co.a_tm.moeyu.api.model.GachaResult;
 import jp.co.a_tm.moeyu.model.UserData;
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
@@ -103,6 +104,8 @@ public class GatyaActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         Logger.d("GatyaAcitivity");
         setContentView(R.layout.activity_gatya);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         this.mIndicator = findViewById(R.id.indicator);
         this.mBronzeQuantity = (TextView) findViewById(R.id.bronze_quantity);
         this.mGoldQuantity = (TextView) findViewById(R.id.gold_quantity);

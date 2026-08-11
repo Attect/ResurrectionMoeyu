@@ -23,6 +23,7 @@ import jp.co.a_tm.moeyu.api.fragment.LoginFragment;
 import jp.co.a_tm.moeyu.api.fragment.SignupFragment;
 import jp.co.a_tm.moeyu.api.listener.UserDataListener;
 import jp.co.a_tm.moeyu.model.UserData;
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 import jp.co.a_tm.moeyu.util.UserDataManager;
 
@@ -85,8 +86,8 @@ public class TitleActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_title);
 
-        // 设置界面边距和背景色
-        findViewById(R.id.layout_top).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         findViewById(R.id.layout_top).setBackgroundColor(Color.BLACK);
     }
 

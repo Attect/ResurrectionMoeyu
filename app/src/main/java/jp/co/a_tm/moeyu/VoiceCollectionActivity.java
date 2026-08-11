@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 
 /**
@@ -75,6 +76,8 @@ public class VoiceCollectionActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         Logger.d("VoiceCollectionAcitivity");
         setContentView(R.layout.activity_voicecollection);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         this.mController = new VoiceTableController(this);
         this.mListView = (ListView) findViewById(R.id.listview_voicecollec);
         this.mCompleteState = (TextView) findViewById(R.id.textview_voicecollec_getstate);

@@ -14,6 +14,8 @@ import android.widget.ToggleButton;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
+
 /**
  * 设置活动类
  * 负责显示和管理应用设置界面，包括相机设置等功能
@@ -38,6 +40,8 @@ public class PreferenceActivity extends BaseActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preference);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         this.mPreferencesHelper = new PreferencesHelper(getApplicationContext());
         mToggleCamera = findViewById(R.id.toggle_camera);
         mToggleCamera.setChecked(isEnableCamera(this));

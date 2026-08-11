@@ -2,6 +2,8 @@
 <resources>
     <item type="id" name="frame" />
     <item type="id" name="smoke" />
+    <item type="id" name="bath_status_bar" />
+    <item type="id" name="bath_item_overlay" />
     <item type="id" name="item_image_view" />
     <item type="id" name="item_button" />
     <item type="id" name="imageView3" />

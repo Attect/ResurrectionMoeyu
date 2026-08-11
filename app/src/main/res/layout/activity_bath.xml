@@ -3,7 +3,7 @@
     android:background="#000000"
   xmlns:android="http://schemas.android.com/apk/res/android">
     <ImageView android:id="@id/smoke" android:layout_width="fill_parent" android:layout_height="fill_parent" android:scaleType="fitStart" />
-    <LinearLayout android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
+    <LinearLayout android:id="@id/bath_status_bar" android:orientation="horizontal" android:layout_width="fill_parent" android:layout_height="fill_parent">
         <FrameLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0">
             <ImageView android:id="@id/item_image_view" android:layout_width="wrap_content" android:layout_height="wrap_content" />
             <ImageButton android:id="@id/item_button" android:background="@null" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/bath_item_box" android:onClick="onItemButton" />
@@ -20,7 +20,7 @@
         <ImageView android:id="@id/voice_denominator_one_place" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1.0" />
         <ImageView android:id="@id/voice_new" android:visibility="invisible" android:layout_width="wrap_content" android:layout_height="wrap_content" android:src="@drawable/bath_voice_new" android:layout_weight="1.0" />
     </LinearLayout>
-    <LinearLayout android:layout_width="fill_parent" android:layout_height="fill_parent">
+    <LinearLayout android:id="@id/bath_item_overlay" android:layout_width="fill_parent" android:layout_height="fill_parent">
         <ImageView android:id="@id/use_item" android:layout_width="wrap_content" android:layout_height="wrap_content" android:scaleType="matrix" android:adjustViewBounds="true" />
     </LinearLayout>
     <View android:id="@id/white_screen" android:background="#ffffffff" android:layout_width="fill_parent" android:layout_height="fill_parent" />

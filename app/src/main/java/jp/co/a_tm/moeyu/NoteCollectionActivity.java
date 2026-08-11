@@ -16,6 +16,7 @@ import android.widget.ListView;
 import java.util.ArrayList;
 import java.util.List;
 
+import jp.co.a_tm.moeyu.util.AspectRatioUtils;
 import jp.co.a_tm.moeyu.util.Logger;
 
 /**
@@ -218,8 +219,8 @@ public class NoteCollectionActivity extends BaseActivity {
         Logger.d("NoteCollectionAcitivity");
         setContentView(R.layout.activity_notecollection);
 
-        // 设置界面边距和背景色
-        findViewById(R.id.layout_note_collection).setPadding(0, MainActivity.FIX_HEIGHT / 2, 0, MainActivity.FIX_HEIGHT / 2);
+        // 非16:9屏幕适配：内容限制为9:16居中显示，黑边填充
+        AspectRatioUtils.applyToContent(this);
         findViewById(R.id.layout_note_collection).setBackgroundColor(Color.BLACK);
 
         // 初始化控制器和计数
